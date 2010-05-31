@@ -18,8 +18,10 @@ public class ClientThread extends Thread {
     private OutputStream outStream;
 	
 	// hard code hardware address and UUID here
-	private String address = "";
-	private UUID uuid = UUID.fromString("a60f35f0-b93a-11de-8a39-08002009c666");
+	private String address = "00:06:66:02:CB:75";
+	// Using "well-known" SPP UUID as specified at:
+	// http://developer.android.com/reference/android/bluetooth/BluetoothDevice.html#createRfcommSocketToServiceRecord%28java.util.UUID%29
+	private UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 	String text = "";
 	
 	TextView txtStatus;
@@ -76,44 +78,25 @@ public class ClientThread extends Thread {
 			return;
 		}
 
-		int buf = -1;
 		while(true) {
 	    	try {
 	    		inStream = client_socket.getInputStream();
 	    		int b = inStream.read();
-	    		this.updateTextView("Received byte '" + buf + "'");
-	    		if (buf != 1) {
-	    			// edge detection
-		    		if((buf>>0)%2 == 1 && (b>>0)%2 == 0) {
-		    			this.updateTextView("Switch #1 falling edge.");
-		    		} else if ((buf>>0)%2 == 0 && (b>>0)%2 == 1) {
-		    			this.updateTextView("Switch #1 rising edge.");
-		    		}
-		    		if((buf>>1)%2 == 1 && (b>>1)%2 == 0) {
-		    			this.updateTextView("Switch #2 falling edge.");
-		    		} else if ((buf>>1)%2 == 0 && (b>>1)%2 == 1) {
-		    			this.updateTextView("Switch #2 rising edge.");
-		    		}
-		    		if((buf>>2)%2 == 1 && (b>>2)%2 == 0) {
-		    			this.updateTextView("Switch #3 falling edge.");
-		    		} else if ((buf>>2)%2 == 0 && (b>>2)%2 == 1) {
-		    			this.updateTextView("Switch #3 rising edge.");
-		    		}
-		    		if((buf>>3)%2 == 1 && (b>>3)%2 == 0) {
-		    			this.updateTextView("Switch #4 falling edge.");
-		    		} else if ((buf>>3)%2 == 0 && (b>>3)%2 == 1) {
-		    			this.updateTextView("Switch #4 rising edge.");
-		    		}
+	    		this.updateTextView("Received byte '" + b + "'");
+	    		switch (b) {
+    			case 0x0F: this.updateTextView("Switch released");
+    			case 0x07: this.updateTextView("Forward switch on");
+    			case 0x0B: this.updateTextView("Back switch on");
+    			case 0x0D: this.updateTextView("Left switch on");
+    			case 0x0E: this.updateTextView("Right switch on");
+    			case 0x70: this.updateTextView("Echo...");
+    			default: this.updateTextView("Unknown byte received");
 	    		}
-	    		if((b>>7)%2 == 1) {
-	    			this.updateTextView("Echo ...");
-	    		}		    		
-	    		buf = b;	    		
 	    	} catch (IOException e) {
 	    		this.updateTextView("Read error.");	    		
 	    		break;
 	    	}			
-		}		
+		}
 		this.updateTextView("Thread ended.");		
 	}
 	

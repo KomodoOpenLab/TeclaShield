@@ -16,7 +16,7 @@ public class BTCommSwitch extends Activity {
         
         TextView tv = (TextView) findViewById(R.id.TextView02);
         cthread = new ClientThread(tv);
-        cthread.start();
+        cthread.run();
     }
     
 }
