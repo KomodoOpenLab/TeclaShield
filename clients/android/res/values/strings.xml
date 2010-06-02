@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="hello">BTCommSwitch</string>
-    <string name="app_name">BTCommSwitchmEADLApp</string>
+    
+    <string name="app_name">mEADL bluetooth log</string>
+<string name="rxByte">Rx Byte: </string>
+<string name="txByte">Tx Byte: </string>
 </resources>
