@@ -1,157 +1,130 @@
 package com.meadl.btcommswitch;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.UUID;
-
 import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.os.Looper;
-import android.widget.TextView;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 
-public class BTCommSwitch extends Activity implements Runnable {
+public class BTCommSwitch extends Activity {
 
-	private BluetoothAdapter btAdapter;
-	private BluetoothSocket clientSocket;
-    private InputStream inStream;
-    private OutputStream outStream;
-	private int REQUEST_ENABLE_BT = 0;
-	private TextView logView, txByte, rxByte;	
-	private String logString = "", rxByteString = "", txByteString = "";
-	
-	// hard-code hardware address and UUID here
-	//private String server_address = "00:06:66:02:CB:75"; // BlueSMiRF
-	private String server_address = "00:16:41:89:C8:0A"; // jsilva-laptop
-	// Using "well-known" SPP UUID as specified at:
-	// http://developer.android.com/reference/android/bluetooth/BluetoothDevice.html#createRfcommSocketToServiceRecord%28java.util.UUID%29
-	private UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-	
+	private Button startBtn, stopBtn;	
+	private EditText outEditText;
+	private String logText = "";
 
-    /** Called when the activity is first created. */
+	//Constants
+	static final private String FWD_ACTION = "com.meadl.btcommswitch.FWD_SWITCH_ACTION";
+	static final private String BACK_ACTION = "com.meadl.btcommswitch.BACK_SWITCH_ACTION";
+	static final private String RIGHT_ACTION = "com.meadl.btcommswitch.LEFT_SWITCH_ACTION";
+	static final private String LEFT_ACTION = "com.meadl.btcommswitch.RIGHT_SWITCH_ACTION";
+	//static final private String NONE_ACTION = "com.meadl.btcommswitch.NONE_SWITCH_ACTION";
+
+	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.main);
         
-        logView = (TextView) findViewById(R.id.TextView01);
-        rxByte = (TextView) findViewById(R.id.TextView03);
-        txByte = (TextView) findViewById(R.id.TextView05);
+        //Views
+        startBtn = (Button) findViewById(R.id.Button01);
+        stopBtn = (Button) findViewById(R.id.Button02);
+        outEditText = (EditText) findViewById(R.id.EditText01);
         
-        updateLogView("Creating thread ...");
-        
-        Thread thread = new Thread(this);
-        thread.start();
-    }
+        //Intents & Intent Filters
+        final Intent serviceIntent = new Intent(this, BTCommSwitchService.class );
+        IntentFilter fwdIntentFilter = new IntentFilter(FWD_ACTION);
+        IntentFilter backIntentFilter = new IntentFilter(BACK_ACTION);
+        IntentFilter rightIntentFilter = new IntentFilter(RIGHT_ACTION);
+        IntentFilter leftIntentFilter = new IntentFilter(LEFT_ACTION);
+        //IntentFilter noneIntentFilter = new IntentFilter(NONE_ACTION);
 
-	@Override
-	public void run() {
-		updateLogView("Running thread...");
-		Looper.prepare();
-		
-		// set up local bluetooth
-		btAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (btAdapter == null) {
-            // Device does not support Bluetooth
-        	updateLogView("Device does not support Bluetooth. Ending thread...");
-        	return;
-        }
-        if (!btAdapter.isEnabled()) {
-            Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-			startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-        }
-        
-        // connect to server app
-        try {
-        	BluetoothDevice btServer = btAdapter.getRemoteDevice(server_address);
-            clientSocket = btServer.createRfcommSocketToServiceRecord(uuid);
-            clientSocket.connect();
-		} catch (IOException e) {
-			e.printStackTrace();
-			updateLogView(e.getMessage());
-			return;
-		}
-		
-		try {
-			inStream = clientSocket.getInputStream();
-			outStream = clientSocket.getOutputStream();
-		} catch (IOException e) {
-			e.printStackTrace();
-			updateLogView("Failed to get IO streams. Thread ended.");
-			return;
-		}
+        outEditText.setText("");
 
-		while(true) {
-	    	try {
-	    		inStream = clientSocket.getInputStream();
-	    		int b = inStream.read();
-	    		updateRXbyte("" + b);
-	    		//switch (b) {
-    			//case 0x0F: updateText("Switch released");
-    			//case 0x07: updateText("Forward switch on");
-    			//case 0x0B: updateText("Back switch on");
-    			//case 0x0D: updateText("Left switch on");
-    			//case 0x0E: updateText("Right switch on");
-    			//case 0x70: updateText("Echo...");
-    			//default: updateText("Unknown byte received");
-	    		//}
-	    	} catch (IOException e) {
-	    		updateLogView(e.getMessage());	    		
-	    		break;
-	    	}			
-		}
-		updateLogView("Thread ended.");
-		
+        //Start service when Activity is run
+        //startService(serviceIntent);
+
+    	registerReceiver(intentReceiver, fwdIntentFilter);
+    	registerReceiver(intentReceiver, backIntentFilter);
+    	registerReceiver(intentReceiver, rightIntentFilter);
+    	registerReceiver(intentReceiver, leftIntentFilter);
+    	//registerReceiver(intentReceiver, noneIntentFilter);
+
+    	startBtn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                startService(serviceIntent);
+            }
+        });
+
+        stopBtn.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+            	stopService(serviceIntent);
+            }
+        });
+
+  }
+
+	// Updates text in EditText view
+	public void updateOutText(String s) {
+    	logText += s;
+		outEditText.setText(logText);
 	}
 
-	private void updateLogView(String s) {
-		logString += "\n" + s;
-		logHandler.sendEmptyMessage(0);
-	}
-
-	private void updateRXbyte(String s) {
-		rxByteString = s;
-		logHandler.sendEmptyMessage(1);
-	}
-
-	private void updateTXbyte(String s) {
-		txByteString = s;
-		logHandler.sendEmptyMessage(2);
-	}
-
-	private Handler logHandler = new Handler() {
+	// Switch event provider events will be processed here
+	private BroadcastReceiver intentReceiver = new BroadcastReceiver() {
 		@Override
-		public void handleMessage(Message msg) {
-			switch (msg.what) {
-			case 0: logView.setText(logString);
-			case 1: rxByte.setText(rxByteString);
-			case 2: txByte.setText(txByteString);
+		public void onReceive(Context context, Intent intent) {
+			String action = intent.getAction();
+			if (action.compareTo(FWD_ACTION) == 0) {
+				updateOutText("F");
+			}
+			if (action.compareTo(BACK_ACTION) == 0) {
+				updateOutText("B");
+			}
+			if (action.compareTo(RIGHT_ACTION) == 0) {
+				updateOutText("R");
+			}
+			if (action.compareTo(LEFT_ACTION) == 0) {
+				updateOutText("L");
 			}
 		}
 	};
-    
-	public void write(byte b) {
-		try {
-			outStream.write(b);
-			updateLogView("Sent byte '" + b + "'");
-		} catch (IOException e) {
-			e.printStackTrace();
-			updateLogView("Write error.");
-		}
+
+	@Override
+	protected void onResume() {
+		// Activity woke up
+		super.onResume();
 	}
-    
-    /* Call this from the main Activity to shutdown the connection */
-    public void stopDetectingEvent() {
-        try {
-            clientSocket.close();
-            updateLogView("Closed client socket.");
-        } catch (IOException e) { }
-    }
+
+	@Override
+	protected void onPause() {
+		// The activity went to sleep
+		//unregisterReceiver(mIntentReceiver);
+		super.onPause();
+	}
+
+	//private void updateRXbyte(String s) {
+		//rxByteString = s;
+		//logHandler.sendEmptyMessage(1);
+	//}
+
+	//private void updateTXbyte(String s) {
+		//txByteString = s;
+		//logHandler.sendEmptyMessage(2);
+	//}
+
+	//private Handler logHandler = new Handler() {
+		//@Override
+		//public void handleMessage(Message msg) {
+			//switch (msg.what) {
+			//case 0: logView.setText(logString);
+			//case 1: rxByte.setText(rxByteString);
+			//case 2: txByte.setText(txByteString);
+			//}
+		//}
+	//};
     
 }

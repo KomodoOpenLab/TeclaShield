@@ -1,19 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView  xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent"
-    >
+    android:layout_height="wrap_content">
+    android:scrollbars="vertical"
+    android:id="@+id/ScrollView01"
+	<LinearLayout
+    	android:layout_width="fill_parent"
+    	android:layout_height="fill_parent">
 
-	<TableLayout android:id="@+id/TableLayout01" android:layout_height="wrap_content" android:layout_width="fill_parent" android:padding="5sp">
-		<TableRow android:id="@+id/TableRow01" android:layout_height="wrap_content" android:layout_width="fill_parent" android:baselineAligned="true">
-			<TextView android:id="@+id/TextView02" android:layout_width="fill_parent" android:text="@string/rxByte" android:layout_height="fill_parent" android:gravity="center_vertical" android:textSize="30sp" android:padding="5sp"></TextView>
-			<TextView android:text="@+id/TextView03" android:id="@+id/TextView03" android:layout_width="fill_parent" android:textStyle="bold" android:layout_height="fill_parent" android:gravity="right" android:typeface="monospace" android:textSize="40sp" android:padding="5sp"></TextView>
-		</TableRow>
-		<TableRow android:id="@+id/TableRow03" android:layout_height="wrap_content" android:layout_width="fill_parent">
-			<TextView android:id="@+id/TextView04" android:text="@string/txByte" android:layout_width="fill_parent" android:layout_height="fill_parent" android:gravity="center_vertical" android:textSize="30sp" android:padding="5sp"></TextView>
-			<TextView android:text="@+id/TextView05" android:id="@+id/TextView05" android:layout_width="fill_parent" android:textStyle="bold" android:layout_height="fill_parent" android:typeface="monospace" android:textSize="40sp" android:gravity="right" android:padding="5sp"></TextView>
-		</TableRow>
-	</TableLayout>
-	<TextView android:text="@+id/TextView01" android:id="@+id/TextView01" android:layout_width="wrap_content" android:layout_height="wrap_content" android:isScrollContainer="true" android:textSize="20sp"></TextView>
-</LinearLayout>
+    	<TableLayout
+    		android:id="@+id/TableLayout01"
+    		android:layout_height="wrap_content"
+    		android:layout_width="fill_parent"
+    		android:padding="5sp"
+    		android:stretchColumns="*">
+			<EditText
+				android:text="@+id/EditText01"
+				android:id="@+id/EditText01"
+				android:textStyle="bold"
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content">
+			</EditText>
+			<TableRow
+				android:id="@+id/TableRow01"
+				android:layout_width="fill_parent"
+				android:baselineAligned="true"
+				android:layout_height="fill_parent"
+				android:layout_gravity="center">
+				<Button
+					android:id="@+id/Button01"
+					android:layout_height="fill_parent"
+					android:layout_width="fill_parent"
+					android:layout_gravity="left"
+					android:text="@string/start_button"
+					android:textSize="20sp">
+				</Button>
+				<Button
+					android:id="@+id/Button02"
+					android:layout_gravity="right"
+					android:layout_height="fill_parent"
+					android:layout_width="fill_parent"
+					android:text="@string/stop_button"
+					android:textSize="20sp">
+				</Button>
+			</TableRow>
+		</TableLayout>
+	</LinearLayout>
+</ScrollView>
