@@ -1,4 +1,4 @@
-package com.meadl.btcommswitch;
+package ca.idi.meadl.switcheventprovider;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,4 +1,4 @@
-package com.meadl.btcommswitch;
+package ca.idi.meadl.switcheventprovider;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
