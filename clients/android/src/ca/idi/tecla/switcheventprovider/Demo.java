@@ -1,4 +1,4 @@
-package ca.idi.meadl.switcheventprovider;
+package ca.idi.tecla.switcheventprovider;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;

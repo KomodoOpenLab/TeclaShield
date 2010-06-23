@@ -1,4 +1,4 @@
-package ca.idi.meadl.switcheventprovider;
+package ca.idi.tecla.switcheventprovider;
 
 import java.io.IOException;
 import java.io.InputStream;
