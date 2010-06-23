@@ -18,7 +18,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.widget.Toast;
 
-public class BTCommSwitchService extends Service implements Runnable {
+public class SEPService extends Service implements Runnable {
 
     private NotificationManager mNM;
 	private BluetoothAdapter btAdapter;
@@ -51,8 +51,8 @@ public class BTCommSwitchService extends Service implements Runnable {
      * IPC.
      */
     public class LocalBinder extends Binder {
-    	BTCommSwitchService getService() {
-            return BTCommSwitchService.this;
+    	SEPService getService() {
+            return SEPService.this;
         }
     }
 
@@ -186,7 +186,7 @@ public class BTCommSwitchService extends Service implements Runnable {
 
         // The PendingIntent to launch our activity if the user selects this notification
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, BTCommSwitch.class), 0);
+                new Intent(this, Demo.class), 0);
 
         // Set the info for the views that show in the notification panel.
         notification.setLatestEventInfo(this, getText(R.string.sep_label),
