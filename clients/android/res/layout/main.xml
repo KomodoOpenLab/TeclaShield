@@ -20,7 +20,7 @@
 				android:id="@+id/EditText01"
 				android:textStyle="bold"
 				android:layout_width="fill_parent"
-				android:layout_height="wrap_content">
+				android:layout_height="wrap_content" android:textSize="60px">
 			</EditText>
 			<TableRow
 				android:id="@+id/TableRow01"
@@ -33,16 +33,14 @@
 					android:layout_height="fill_parent"
 					android:layout_width="fill_parent"
 					android:layout_gravity="left"
-					android:text="@string/start_button"
-					android:textSize="20sp">
+					android:text="@string/start_button" android:textSize="50sp">
 				</Button>
 				<Button
 					android:id="@+id/Button02"
 					android:layout_gravity="right"
 					android:layout_height="fill_parent"
 					android:layout_width="fill_parent"
-					android:text="@string/stop_button"
-					android:textSize="20sp">
+					android:text="@string/stop_button" android:textSize="50sp">
 				</Button>
 			</TableRow>
 		</TableLayout>
