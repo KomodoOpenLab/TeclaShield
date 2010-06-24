@@ -1,4 +1,4 @@
-package ca.idi.tecla.switcheventprovider;
+package ca.idi.tekla.switcheventprovider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -40,7 +40,8 @@ public class SEPService extends Service implements Runnable {
     //Intent noneIntent = new Intent(NONE_ACTION);
     
 	// hard-code hardware address and UUID here
-	private String server_address = "00:06:66:02:CB:75"; // BlueSMiRF
+	// private String server_address = "00:06:66:02:CB:75"; // BlueSMiRF
+	private String server_address = "00:16:41:89:C8:0A"; // jsilva-laptop
 	// Using "well-known" SPP UUID as specified at:
 	// http://developer.android.com/reference/android/bluetooth/BluetoothDevice.html#createRfcommSocketToServiceRecord%28java.util.UUID%29
 	private UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
