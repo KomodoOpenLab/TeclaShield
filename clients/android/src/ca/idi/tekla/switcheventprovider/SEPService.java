@@ -1,4 +1,4 @@
-package com.meadl.btcommswitch;
+package ca.idi.tekla.switcheventprovider;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +18,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.widget.Toast;
 
-public class BTCommSwitchService extends Service implements Runnable {
+public class SEPService extends Service implements Runnable {
 
     private NotificationManager mNM;
 	private BluetoothAdapter btAdapter;
@@ -40,7 +40,8 @@ public class BTCommSwitchService extends Service implements Runnable {
     //Intent noneIntent = new Intent(NONE_ACTION);
     
 	// hard-code hardware address and UUID here
-	private String server_address = "00:06:66:02:CB:75"; // BlueSMiRF
+	// private String server_address = "00:06:66:02:CB:75"; // BlueSMiRF
+	private String server_address = "00:16:41:89:C8:0A"; // jsilva-laptop
 	// Using "well-known" SPP UUID as specified at:
 	// http://developer.android.com/reference/android/bluetooth/BluetoothDevice.html#createRfcommSocketToServiceRecord%28java.util.UUID%29
 	private UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
@@ -51,8 +52,8 @@ public class BTCommSwitchService extends Service implements Runnable {
      * IPC.
      */
     public class LocalBinder extends Binder {
-    	BTCommSwitchService getService() {
-            return BTCommSwitchService.this;
+    	SEPService getService() {
+            return SEPService.this;
         }
     }
 
@@ -186,7 +187,7 @@ public class BTCommSwitchService extends Service implements Runnable {
 
         // The PendingIntent to launch our activity if the user selects this notification
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, BTCommSwitch.class), 0);
+                new Intent(this, Demo.class), 0);
 
         // Set the info for the views that show in the notification panel.
         notification.setLatestEventInfo(this, getText(R.string.sep_label),

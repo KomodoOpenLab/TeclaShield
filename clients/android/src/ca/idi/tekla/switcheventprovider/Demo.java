@@ -1,4 +1,4 @@
-package com.meadl.btcommswitch;
+package ca.idi.tekla.switcheventprovider;
 
 import android.app.Activity;
 import android.content.BroadcastReceiver;
@@ -10,7 +10,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
-public class BTCommSwitch extends Activity {
+public class Demo extends Activity {
 
 	private Button startBtn, stopBtn;	
 	private EditText outEditText;
@@ -35,7 +35,7 @@ public class BTCommSwitch extends Activity {
         outEditText = (EditText) findViewById(R.id.EditText01);
         
         //Intents & Intent Filters
-        final Intent serviceIntent = new Intent(this, BTCommSwitchService.class );
+        final Intent serviceIntent = new Intent(this, SEPService.class );
         IntentFilter fwdIntentFilter = new IntentFilter(FWD_ACTION);
         IntentFilter backIntentFilter = new IntentFilter(BACK_ACTION);
         IntentFilter rightIntentFilter = new IntentFilter(RIGHT_ACTION);
