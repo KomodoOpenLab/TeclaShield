@@ -1,0 +1,20 @@
+[Eagle]
+Version="05 10 00"
+Platform="Windows"
+Serial="62191E841E-LSR-WLM-1EL"
+Globals="Globals"
+Desktop="Desktop"
+
+[Globals]
+AutoSaveProject=1
+UsedLibrary="C:/Program Files/EAGLE-5.10.0/lbr/SparkFun.lbr"
+
+[Win_1]
+Type="Control Panel"
+Loc="175 175 774 574"
+State=2
+Number=0
+
+[Desktop]
+Screen="1366 768"
+Window="Win_1"
