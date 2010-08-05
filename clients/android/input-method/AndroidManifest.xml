@@ -4,7 +4,7 @@
       android:versionCode="1"
       android:versionName="1.0">
 		<application android:label="@string/ime_name">
-		    <service android:name="TeklaKeyboard"
+		    <service android:name="TeklaIME"
 		            android:permission="android.permission.BIND_INPUT_METHOD">
 		        <intent-filter>
 		            <action android:name="android.view.InputMethod" />
