@@ -7,6 +7,7 @@ import android.inputmethodservice.KeyboardView;
 import android.inputmethodservice.Keyboard.Key;
 import android.os.Handler;
 import android.os.Message;
+import android.util.DisplayMetrics;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.inputmethod.CompletionInfo;
@@ -19,7 +20,7 @@ public class TeklaIME  extends InputMethodService
 	private Handler handlerTimer = new Handler();
 	private static final int UPDATE_STUFF_ON_DIALOG = 99999; //this is a true arbitrary number.
 	
-    private KeyboardView mInputView;    
+    private KeyboardView mKeyboardView;    
     private int mLastDisplayWidth;
     private TeklaKeyboard mTeklaKeyboard;
     private TeklaKeyboard mCurKeyboard;
@@ -51,7 +52,8 @@ public class TeklaIME  extends InputMethodService
             if (displayWidth == mLastDisplayWidth) return;
             mLastDisplayWidth = displayWidth;
         }
-        mTeklaKeyboard = new TeklaKeyboard(this, R.xml.teklakeyboard);
+        mTeklaKeyboard = new TeklaKeyboard(this, R.xml.tekla_keyboard);
+
     }
     
     /**
@@ -61,13 +63,15 @@ public class TeklaIME  extends InputMethodService
      * a configuration change.
      */
     @Override public View onCreateInputView() {
-        mInputView = (KeyboardView) getLayoutInflater().inflate(
-                R.layout.input, null);
-        mInputView.setOnKeyboardActionListener(this);
-        mInputView.setKeyboard(mTeklaKeyboard);
-
+        mKeyboardView = (KeyboardView) getLayoutInflater().inflate(
+                R.layout.tekla_keyboardview, null);
+        mKeyboardView.setOnKeyboardActionListener(this);
+        mKeyboardView.setKeyboard(mTeklaKeyboard);
+        //TODO: Fix keyboard size        
+        mKeyboardView.setMinimumWidth(2000);
+        
     	imManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-        return mInputView;
+        return mKeyboardView;
     }
 
     /**
@@ -97,16 +101,16 @@ public class TeklaIME  extends InputMethodService
     @Override public void onFinishInput() {
         super.onFinishInput();
         mCurKeyboard = mTeklaKeyboard;
-        if (mInputView != null) {
-            mInputView.closing();
+        if (mKeyboardView != null) {
+            mKeyboardView.closing();
         }
     }
 
     @Override public void onStartInputView(EditorInfo attribute, boolean restarting) {
         super.onStartInputView(attribute, restarting);
         // Apply the selected keyboard to the input view.
-        mInputView.setKeyboard(mCurKeyboard);
-        mInputView.closing();
+        mKeyboardView.setKeyboard(mCurKeyboard);
+        mKeyboardView.closing();
     }
 
     /**
@@ -142,8 +146,8 @@ public class TeklaIME  extends InputMethodService
                 // key for us, to dismiss the input method if it is shown.
                 // However, our keyboard could be showing a pop-up window
                 // that back should dismiss, so we first allow it to do that.
-                if (event.getRepeatCount() == 0 && mInputView != null) {
-                    if (mInputView.handleBack()) {
+                if (event.getRepeatCount() == 0 && mKeyboardView != null) {
+                    if (mKeyboardView.handleBack()) {
                         return true;
                     }
                 }
@@ -208,7 +212,7 @@ public class TeklaIME  extends InputMethodService
 	public void onKey(int primaryCode, int[] keyCodes) {
     	if(mScanCount==-1) {
     		mScanCount = 0;
-        	Keyboard kb = mInputView.getKeyboard();
+        	Keyboard kb = mKeyboardView.getKeyboard();
         	List<Key> kl = kb.getKeys();
         	Key k = kl.get(0);
         	
@@ -216,7 +220,7 @@ public class TeklaIME  extends InputMethodService
         	handlerTimer.removeCallbacks(taskUpdateStuffOnDialog );
         	handlerTimer.postDelayed(taskUpdateStuffOnDialog , 1500); //set a 1500 millisecond delay for the initial post
     	} else {
-        	Keyboard kb = mInputView.getKeyboard();
+        	Keyboard kb = mKeyboardView.getKeyboard();
         	List<Key> kl = kb.getKeys();
         	Key k = kl.get(mScanCount%6);
         	switch (mScanCount%6) {
@@ -242,7 +246,7 @@ public class TeklaIME  extends InputMethodService
     		}
         	mScanCount = -1;
     	}
-    	mInputView.invalidateAllKeys();
+    	mKeyboardView.invalidateAllKeys();
 		/*
 		if(primaryCode == 19) {
         	keyDownUp(KeyEvent.KEYCODE_DPAD_UP);
@@ -307,7 +311,7 @@ public class TeklaIME  extends InputMethodService
 
 	    	   if(mScanCount==-1) return;
 	    	   
-	    	   Keyboard kb = mInputView.getKeyboard();
+	    	   Keyboard kb = mKeyboardView.getKeyboard();
 	        	List<Key> kl = kb.getKeys();
 	        	Key k = kl.get(mScanCount%6);
 	        	
@@ -352,7 +356,7 @@ public class TeklaIME  extends InputMethodService
 	    public void handleMessage(Message msg) {
 	        switch (msg.what) {
 	        case UPDATE_STUFF_ON_DIALOG: {
-	        	mInputView.invalidateAllKeys();
+	        	mKeyboardView.invalidateAllKeys();
 	        }
 	            break;          
 	        default: {
