@@ -18,10 +18,8 @@
 */
 -->
 
-<com.tekla.LatinKeyboardView
+<ca.idi.tekla.inputmethod.LatinKeyboardView
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/keyboard"
         android:layout_alignParentBottom="true"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         />
