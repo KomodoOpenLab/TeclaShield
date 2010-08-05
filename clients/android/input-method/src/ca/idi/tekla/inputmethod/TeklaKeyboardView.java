@@ -22,15 +22,15 @@ import android.inputmethodservice.KeyboardView;
 import android.inputmethodservice.Keyboard.Key;
 import android.util.AttributeSet;
 
-public class LatinKeyboardView extends KeyboardView {
+public class TeklaKeyboardView extends KeyboardView {
 
     static final int KEYCODE_OPTIONS = -100;
 
-    public LatinKeyboardView(Context context, AttributeSet attrs) {
+    public TeklaKeyboardView(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public LatinKeyboardView(Context context, AttributeSet attrs, int defStyle) {
+    public TeklaKeyboardView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
     }
 
