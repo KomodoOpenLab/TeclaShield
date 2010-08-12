@@ -79,18 +79,18 @@
     </Row>
     
         <Row>
-        <Key android:codes="19" android:keyIcon="@drawable/up" 
+        <Key android:codes="19" android:keyIcon="@drawable/nav_keyboard_up" 
         		android:keyWidth="15%p" android:keyEdgeFlags="left"
         		android:horizontalGap="5%p"/>
-        <Key android:codes="20" android:keyIcon="@drawable/down" 
+        <Key android:codes="20" android:keyIcon="@drawable/nav_keyboard_down" 
         		android:keyWidth="15%p"/>       		
-        <Key android:codes="21" android:keyIcon="@drawable/left" 
+        <Key android:codes="21" android:keyIcon="@drawable/nav_keyboard_left" 
         		android:keyWidth="15%p"/> 
-        <Key android:codes="22" android:keyIcon="@drawable/right" 
+        <Key android:codes="22" android:keyIcon="@drawable/nav_keyboard_right" 
         		android:keyWidth="15%p"/> 
-        <Key android:codes="23" android:keyIcon="@drawable/enter" 
+        <Key android:codes="23" android:keyIcon="@drawable/nav_keyboard_enter" 
         		android:keyWidth="15%p"/>
-        <Key android:codes="4" android:keyIcon="@drawable/back" 
+        <Key android:codes="4" android:keyIcon="@drawable/nav_keyboard_back" 
         		android:keyWidth="15%p" android:keyEdgeFlags="right"/>         		         		        		
     </Row>
     
