@@ -182,12 +182,14 @@ public class TeklaIME  extends InputMethodService
 		if(mScanCount==-1) {
 			mScanCount = 0;
 			Key k = kl.get(0);
+			k.pressed = true;
 			
 			k.icon = getResources().getDrawable(R.drawable.up_pressed);
 			timerHandler.removeCallbacks(updateKeyDrawables );
 			timerHandler.postDelayed(updateKeyDrawables , SCAN_DELAY); //set delay for the initial post
 		} else {
 			Key k = kl.get(mScanCount%6);
+			k.pressed = false;
 			switch (mScanCount%6) {
 				case 0:
 					k.icon = getResources().getDrawable(R.drawable.up); 
@@ -281,6 +283,7 @@ public class TeklaIME  extends InputMethodService
 			Keyboard kb = mKeyboardView.getKeyboard();
 			List<Key> kl = kb.getKeys();
 			Key k = kl.get(mScanCount%6);
+			k.pressed = false;
 			
 			switch (mScanCount%6) {
 				case 0:
@@ -309,6 +312,7 @@ public class TeklaIME  extends InputMethodService
 			if(mScanCount==18) mScanCount = -1;
 			else {
 				k = kl.get(mScanCount%6);
+				k.pressed = true;
 				switch (mScanCount%6) {
 					case 0:
 						k.icon = getResources().getDrawable(R.drawable.up_pressed);
