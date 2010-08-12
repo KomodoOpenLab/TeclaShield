@@ -184,7 +184,6 @@ public class TeklaIME  extends InputMethodService
 			Key k = kl.get(0);
 			k.pressed = true;
 			
-			k.icon = getResources().getDrawable(R.drawable.up_pressed);
 			timerHandler.removeCallbacks(updateKeyDrawables );
 			timerHandler.postDelayed(updateKeyDrawables , SCAN_DELAY); //set delay for the initial post
 		} else {
@@ -192,27 +191,21 @@ public class TeklaIME  extends InputMethodService
 			k.pressed = false;
 			switch (mScanCount%6) {
 				case 0:
-					k.icon = getResources().getDrawable(R.drawable.up); 
 					keyDownUp(KeyEvent.KEYCODE_DPAD_UP);
 					break;
 				case 1:
-					k.icon = getResources().getDrawable(R.drawable.down);
 					keyDownUp(KeyEvent.KEYCODE_DPAD_DOWN);
 					break;
 				case 2:
-					k.icon = getResources().getDrawable(R.drawable.left);
 					keyDownUp(KeyEvent.KEYCODE_DPAD_LEFT);
 					break;
 				case 3:
-					k.icon = getResources().getDrawable(R.drawable.right);
 					keyDownUp(KeyEvent.KEYCODE_DPAD_RIGHT);
 					break;
 				case 4:
-					k.icon = getResources().getDrawable(R.drawable.enter);
 					keyDownUp(KeyEvent.KEYCODE_DPAD_CENTER);
 					break;
 				case 5:
-					k.icon = getResources().getDrawable(R.drawable.back);
 					keyDownUp(KeyEvent.KEYCODE_BACK);
 					break;
 				default:
@@ -285,56 +278,11 @@ public class TeklaIME  extends InputMethodService
 			Key k = kl.get(mScanCount%6);
 			k.pressed = false;
 			
-			switch (mScanCount%6) {
-				case 0:
-					k.icon = getResources().getDrawable(R.drawable.up);
-					break;
-				case 1:
-					k.icon = getResources().getDrawable(R.drawable.down);
-					break;
-				case 2:
-					k.icon = getResources().getDrawable(R.drawable.left);
-					break;
-				case 3:
-					k.icon = getResources().getDrawable(R.drawable.right);
-					break;
-				case 4:
-					k.icon = getResources().getDrawable(R.drawable.enter);
-					break;
-				case 5:
-					k.icon = getResources().getDrawable(R.drawable.back);
-					break;
-				default:
-					break;
-			}
-			
 			++mScanCount;
 			if(mScanCount==18) mScanCount = -1;
 			else {
 				k = kl.get(mScanCount%6);
 				k.pressed = true;
-				switch (mScanCount%6) {
-					case 0:
-						k.icon = getResources().getDrawable(R.drawable.up_pressed);
-						break;
-					case 1:
-						k.icon = getResources().getDrawable(R.drawable.down_pressed);
-						break;
-					case 2:
-						k.icon = getResources().getDrawable(R.drawable.left_pressed);
-						break;
-					case 3:
-						k.icon = getResources().getDrawable(R.drawable.right_pressed);
-						break;
-					case 4:
-						k.icon = getResources().getDrawable(R.drawable.enter_pressed);
-						break;
-					case 5:
-						k.icon = getResources().getDrawable(R.drawable.back_pressed);
-						break;
-					default:
-						break;
-				}
 			}	
 				    
 			// Should't mess with GUI from within a thread,
