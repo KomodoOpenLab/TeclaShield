@@ -8,9 +8,13 @@ import android.inputmethodservice.KeyboardView;
 import android.inputmethodservice.Keyboard.Key;
 import android.os.Handler;
 import android.os.Message;
+import android.text.method.MetaKeyKeyListener;
+import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.inputmethod.CompletionInfo;
 import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
@@ -24,7 +28,9 @@ public class TeklaIME  extends InputMethodService
 	private Handler timerHandler = new Handler();
 
     private int mLastDisplayWidth;
-	private KeyboardView mKeyboardView;    
+	private KeyboardView mKeyboardView; 
+    private TeklaKeyboard mSymbolsKeyboard;
+    private TeklaKeyboard mSymbolsShiftedKeyboard;   
     private TeklaKeyboard mTeklaKeyboard;
     private TeklaKeyboard mCurKeyboard;
     private InputMethodManager imManager;    
@@ -38,6 +44,13 @@ public class TeklaIME  extends InputMethodService
     
     private String mWordSeparators;
     private StringBuilder mComposing = new StringBuilder();
+    private boolean mPredictionOn;
+    private boolean mCompletionOn;
+    private boolean mCapsLock;
+    private long mLastShiftTime;
+    private CompletionInfo[] mCompletions;
+    private CandidateView mCandidateView;
+    private long mMetaState;
     
     /**
      * Main initialization of the input method component.  Be sure to call
@@ -64,17 +77,39 @@ public class TeklaIME  extends InputMethodService
         
     	imManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
     	mScanState = ScanState.IDLE;
+    	setQwertyKeyPointers();
+    	    	
+        return mKeyboardView;
+    }
+
+    private void setQwertyKeyPointers() {
     	mFirstColumnKeyPointer = new ArrayList<Integer>(5);
     	mFirstColumnKeyPointer.add(new Integer(0));
     	mFirstColumnKeyPointer.add(new Integer(10));
     	mFirstColumnKeyPointer.add(new Integer(19));
     	mFirstColumnKeyPointer.add(new Integer(28));
-    	mFirstColumnKeyPointer.add(new Integer(33));
-    	
-    	
-        return mKeyboardView;
+    	mFirstColumnKeyPointer.add(new Integer(33));    	
     }
 
+    private void setSymbolsKeyPointers() { 
+    	mFirstColumnKeyPointer = new ArrayList<Integer>(5);
+    	mFirstColumnKeyPointer.add(new Integer(0));
+    	mFirstColumnKeyPointer.add(new Integer(10));
+    	mFirstColumnKeyPointer.add(new Integer(20));
+    	mFirstColumnKeyPointer.add(new Integer(29));
+    	mFirstColumnKeyPointer.add(new Integer(34));   	
+    }
+
+    private void setShiftedSymbolsKeyPointers() {
+    	mFirstColumnKeyPointer = new ArrayList<Integer>(5);
+    	mFirstColumnKeyPointer.add(new Integer(0));
+    	mFirstColumnKeyPointer.add(new Integer(10));
+    	mFirstColumnKeyPointer.add(new Integer(20));
+    	mFirstColumnKeyPointer.add(new Integer(29));
+    	mFirstColumnKeyPointer.add(new Integer(34));
+    	
+    }
+        
     /**
      * This is the point where you can do all of your UI initialization.  It
      * is called after creation and any configuration change.
@@ -91,9 +126,96 @@ public class TeklaIME  extends InputMethodService
         }
         //mTeklaKeyboard = new TeklaKeyboard(this, R.xml.ui_navigation);
         mTeklaKeyboard = new TeklaKeyboard(this, R.xml.qwerty);
+        mSymbolsKeyboard = new TeklaKeyboard(this, R.xml.symbols);
+        mSymbolsShiftedKeyboard = new TeklaKeyboard(this, R.xml.symbols_shift);
 
     }
+
+    /**
+     * Update the list of available candidates from the current composing
+     * text.  This will need to be filled in by however you are determining
+     * candidates.
+     */
+    private void updateCandidates() {
+        if (!mCompletionOn) {
+            if (mComposing.length() > 0) {
+                ArrayList<String> list = new ArrayList<String>();
+                list.add(mComposing.toString());
+                setSuggestions(list, true, true);
+            } else {
+                setSuggestions(null, false, false);
+            }
+        }
+    }
+
+    public void setSuggestions(List<String> suggestions, boolean completions,
+            boolean typedWordValid) {
+        if (suggestions != null && suggestions.size() > 0) {
+            setCandidatesViewShown(true);
+        } else if (isExtractViewShown()) {
+            setCandidatesViewShown(true);
+        }
+        if (mCandidateView != null) {
+            mCandidateView.setSuggestions(suggestions, completions, typedWordValid);
+        }
+    }
     
+    private void handleBackspace() {
+        final int length = mComposing.length();
+        if (length > 1) {
+            mComposing.delete(length - 1, length);
+            getCurrentInputConnection().setComposingText(mComposing, 1);
+            updateCandidates();
+        } else if (length > 0) {
+            mComposing.setLength(0);
+            getCurrentInputConnection().commitText("", 0);
+            updateCandidates();
+        } else {
+            keyDownUp(KeyEvent.KEYCODE_DEL);
+        }
+        updateShiftKeyState(getCurrentInputEditorInfo());
+    }
+
+    private void handleShift() {
+        if (mKeyboardView == null) {
+            return;
+        }
+        
+        Keyboard currentKeyboard = mKeyboardView.getKeyboard();
+        if (mTeklaKeyboard == currentKeyboard) {
+            // Alphabet keyboard
+            checkToggleCapsLock();
+            mKeyboardView.setShifted(mCapsLock || !mKeyboardView.isShifted());
+        } else if (currentKeyboard == mSymbolsKeyboard) {
+            mSymbolsKeyboard.setShifted(true);
+            mKeyboardView.setKeyboard(mSymbolsShiftedKeyboard);
+            mSymbolsShiftedKeyboard.setShifted(true);
+            setShiftedSymbolsKeyPointers();
+        } else if (currentKeyboard == mSymbolsShiftedKeyboard) {
+            mSymbolsShiftedKeyboard.setShifted(false);
+            mKeyboardView.setKeyboard(mSymbolsKeyboard);
+            mSymbolsKeyboard.setShifted(false);
+            setSymbolsKeyPointers();
+        }
+    }
+    
+    private void handleCharacter(int primaryCode, int[] keyCodes) {
+        if (isInputViewShown()) {
+            if (mTeklaKeyboard.isShifted()) {
+                primaryCode = Character.toUpperCase(primaryCode);
+            }
+        }
+        if (isAlphabet(primaryCode) && mPredictionOn) {
+            mComposing.append((char) primaryCode);
+            getCurrentInputConnection().setComposingText(mComposing, 1);
+            updateShiftKeyState(getCurrentInputEditorInfo());
+            updateCandidates();
+        } else {
+            getCurrentInputConnection().commitText(
+                    String.valueOf((char) primaryCode), 1);
+        }
+    }
+
 	/**
 	* This is the main point where we do our initialization of the input
 	* method to begin operating on an application.  At this point we have
@@ -107,11 +229,111 @@ public class TeklaIME  extends InputMethodService
 		// Reset our state.  We want to do this even if restarting, because
         // the underlying state of the text editor could have changed in any way.
         mComposing.setLength(0);
+        updateCandidates();
+
+        if (!restarting) {
+            // Clear shift states.
+            mMetaState = 0;
+        }
         
-        mCurKeyboard = mTeklaKeyboard;        
+        mPredictionOn = false;
+        mCompletionOn = false;
+        mCompletions = null;
+        
+        // We are now going to initialize our state based on the type of
+        // text being edited.
+        switch (attribute.inputType&EditorInfo.TYPE_MASK_CLASS) {
+            case EditorInfo.TYPE_CLASS_NUMBER:
+            case EditorInfo.TYPE_CLASS_DATETIME:
+                // Numbers and dates default to the symbols keyboard, with
+                // no extra features.
+                mCurKeyboard = mSymbolsKeyboard;
+                setSymbolsKeyPointers();
+                break;
+                
+            case EditorInfo.TYPE_CLASS_PHONE:
+                // Phones will also default to the symbols keyboard, though
+                // often you will want to have a dedicated phone keyboard.
+                mCurKeyboard = mSymbolsKeyboard;
+                setSymbolsKeyPointers();
+                break;
+                
+            case EditorInfo.TYPE_CLASS_TEXT:
+                // This is general text editing.  We will default to the
+                // normal alphabetic keyboard, and assume that we should
+                // be doing predictive text (showing candidates as the
+                // user types).
+                mCurKeyboard = mTeklaKeyboard;
+                mPredictionOn = true;
+                setQwertyKeyPointers();
+                
+                // We now look for a few special variations of text that will
+                // modify our behavior.
+                int variation = attribute.inputType &  EditorInfo.TYPE_MASK_VARIATION;
+                if (variation == EditorInfo.TYPE_TEXT_VARIATION_PASSWORD ||
+                        variation == EditorInfo.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD) {
+                    // Do not display predictions / what the user is typing
+                    // when they are entering a password.
+                    mPredictionOn = false;
+                }
+                
+                if (variation == EditorInfo.TYPE_TEXT_VARIATION_EMAIL_ADDRESS 
+                        || variation == EditorInfo.TYPE_TEXT_VARIATION_URI
+                        || variation == EditorInfo.TYPE_TEXT_VARIATION_FILTER) {
+                    // Our predictions are not useful for e-mail addresses
+                    // or URIs.
+                    mPredictionOn = false;
+                }
+                
+                if ((attribute.inputType&EditorInfo.TYPE_TEXT_FLAG_AUTO_COMPLETE) != 0) {
+                    // If this is an auto-complete text view, then our predictions
+                    // will not be shown and instead we will allow the editor
+                    // to supply their own.  We only show the editor's
+                    // candidates when in fullscreen mode, otherwise relying
+                    // own it displaying its own UI.
+                    mPredictionOn = false;
+                    mCompletionOn = isFullscreenMode();
+                }
+                
+                // We also want to look at the current state of the editor
+                // to decide whether our alphabetic keyboard should start out
+                // shifted.
+                updateShiftKeyState(attribute);
+                break;
+                
+            default:
+                // For all unknown input types, default to the alphabetic
+                // keyboard with no special features.
+                mCurKeyboard = mTeklaKeyboard;
+                updateShiftKeyState(attribute);
+        }
+        
 		mCurKeyboard.setImeOptions(getResources(), attribute.imeOptions);
 	}
 
+    /**
+     * This is called when the user is done editing a field.  We can use
+     * this to reset our state.
+     */
+    @Override public void onFinishInput() {
+        super.onFinishInput();
+        
+        // Clear current composing text and candidates.
+        mComposing.setLength(0);
+        updateCandidates();
+        
+        // We only hide the candidates window when finishing input on
+        // a particular editor, to avoid popping the underlying application
+        // up and down if the user is entering text into the bottom of
+        // its window.
+        setCandidatesViewShown(false);
+        
+        mCurKeyboard = mTeklaKeyboard;
+        if (mKeyboardView != null) {
+        	mKeyboardView.closing();
+        }
+    }
+    
     @Override
     public void onStartInputView(EditorInfo attribute, boolean restarting) {
         super.onStartInputView(attribute, restarting);
@@ -121,12 +343,96 @@ public class TeklaIME  extends InputMethodService
     }
 
     /**
+     * Deal with the editor reporting movement of its cursor.
+     */
+    @Override public void onUpdateSelection(int oldSelStart, int oldSelEnd,
+            int newSelStart, int newSelEnd,
+            int candidatesStart, int candidatesEnd) {
+        super.onUpdateSelection(oldSelStart, oldSelEnd, newSelStart, newSelEnd,
+                candidatesStart, candidatesEnd);
+        
+        // If the current selection in the text view changes, we should
+        // clear whatever candidate text we have.
+        if (mComposing.length() > 0 && (newSelStart != candidatesEnd
+                || newSelEnd != candidatesEnd)) {
+            mComposing.setLength(0);
+            updateCandidates();
+            InputConnection ic = getCurrentInputConnection();
+            if (ic != null) {
+                ic.finishComposingText();
+            }
+        }
+    }
+
+    /**
+     * This tells us about completions that the editor has determined based
+     * on the current text in it.  We want to use this in fullscreen mode
+     * to show the completions ourself, since the editor can not be seen
+     * in that situation.
+     */
+    @Override public void onDisplayCompletions(CompletionInfo[] completions) {
+        if (mCompletionOn) {
+            mCompletions = completions;
+            if (completions == null) {
+                setSuggestions(null, false, false);
+                return;
+            }
+            
+            List<String> stringList = new ArrayList<String>();
+            for (int i=0; i<(completions != null ? completions.length : 0); i++) {
+                CompletionInfo ci = completions[i];
+                if (ci != null) stringList.add(ci.getText().toString());
+            }
+            setSuggestions(stringList, true, true);
+        }
+    }
+    
+    /**
+     * This translates incoming hard key events in to edit operations on an
+     * InputConnection.  It is only needed when using the
+     * PROCESS_HARD_KEYS option.
+     */
+    private boolean translateKeyDown(int keyCode, KeyEvent event) {
+        mMetaState = MetaKeyKeyListener.handleKeyDown(mMetaState,
+                keyCode, event);
+        int c = event.getUnicodeChar(MetaKeyKeyListener.getMetaState(mMetaState));
+        mMetaState = MetaKeyKeyListener.adjustMetaAfterKeypress(mMetaState);
+        InputConnection ic = getCurrentInputConnection();
+        if (c == 0 || ic == null) {
+            return false;
+        }
+        
+        boolean dead = false;
+
+        if ((c & KeyCharacterMap.COMBINING_ACCENT) != 0) {
+            dead = true;
+            c = c & KeyCharacterMap.COMBINING_ACCENT_MASK;
+        }
+        
+        if (mComposing.length() > 0) {
+            char accent = mComposing.charAt(mComposing.length() -1 );
+            int composed = KeyEvent.getDeadChar(accent, c);
+
+            if (composed != 0) {
+                c = composed;
+                mComposing.setLength(mComposing.length()-1);
+            }
+        }
+        
+        onKey(c, null);
+        
+        return true;
+    }
+    
+    /**
      * Called by the framework when your view for showing candidates needs to
      * be generated, like {@link #onCreateInputView}.
      */
     @Override
     public View onCreateCandidatesView() {
-        return null; // No candidates view!
+        mCandidateView = new CandidateView(this);
+        mCandidateView.setService(this);
+        return mCandidateView;
     }
 
 	/**
@@ -170,6 +476,33 @@ public class TeklaIME  extends InputMethodService
         return super.onKeyUp(keyCode, event);
     }
 
+    /**
+     * Helper function to commit any text being composed in to the editor.
+     */
+    private void commitTyped(InputConnection inputConnection) {
+        if (mComposing.length() > 0) {
+            inputConnection.commitText(mComposing, mComposing.length());
+            mComposing.setLength(0);
+            updateCandidates();
+        }
+    }
+
+    /**
+     * Helper to update the shift state of our keyboard based on the initial
+     * editor state.
+     */
+    private void updateShiftKeyState(EditorInfo attr) {
+        if (attr != null 
+                && mKeyboardView != null && mTeklaKeyboard == mKeyboardView.getKeyboard()) {
+            int caps = 0;
+            EditorInfo ei = getCurrentInputEditorInfo();
+            if (ei != null && ei.inputType != EditorInfo.TYPE_NULL) {
+                caps = getCurrentInputConnection().getCursorCapsMode(attr.inputType);
+            }
+            mKeyboardView.setShifted(mCapsLock || caps != 0);
+        }
+    }
+    
 	/**
 	* This is called every time the soft IME window is hidden from the user.
 	*/
@@ -215,6 +548,22 @@ public class TeklaIME  extends InputMethodService
         }
     }
 
+    private void handleClose() {
+        commitTyped(getCurrentInputConnection());
+        requestHideSelf(0);
+        mKeyboardView.closing();
+    }
+
+    private void checkToggleCapsLock() {
+        long now = System.currentTimeMillis();
+        if (mLastShiftTime + 800 > now) {
+            mCapsLock = !mCapsLock;
+            mLastShiftTime = 0;
+        } else {
+            mLastShiftTime = now;
+        }
+    }
+  
     private String getWordSeparators() {
         return mWordSeparators;
     }
@@ -292,40 +641,42 @@ public class TeklaIME  extends InputMethodService
 					break;
 				}
 			} else {
-				sendKey(k.codes[0]);
-				/*
+				//sendKey(k.codes[0]);
+				
 				if (isWordSeparator(k.codes[0])) {
 		            // Handle separator
 		            if (mComposing.length() > 0) {
 		                commitTyped(getCurrentInputConnection());
 		            }
-		            sendKey(primaryCode);
+		            sendKey(k.codes[0]);
 		            updateShiftKeyState(getCurrentInputEditorInfo());
-		        } else if (primaryCode == Keyboard.KEYCODE_DELETE) {
+		        } else if (k.codes[0] == Keyboard.KEYCODE_DELETE) {
 		            handleBackspace();
-		        } else if (primaryCode == Keyboard.KEYCODE_SHIFT) {
+		        } else if (k.codes[0] == Keyboard.KEYCODE_SHIFT) {
 		            handleShift();
-		        } else if (primaryCode == Keyboard.KEYCODE_CANCEL) {
+		        } else if (k.codes[0] == Keyboard.KEYCODE_CANCEL) {
 		            handleClose();
 		            return;
-		        } else if (primaryCode == LatinKeyboardView.KEYCODE_OPTIONS) {
+		        } else if (k.codes[0] == TeklaKeyboardView.KEYCODE_OPTIONS) {
 		            // Show a menu or somethin'
-		        } else if (primaryCode == Keyboard.KEYCODE_MODE_CHANGE
-		                && mInputView != null) {
-		            Keyboard current = mInputView.getKeyboard();
+		        } else if (k.codes[0] == Keyboard.KEYCODE_MODE_CHANGE
+		                && mTeklaKeyboard != null) {
+		            Keyboard current = mKeyboardView.getKeyboard();
 		            if (current == mSymbolsKeyboard || current == mSymbolsShiftedKeyboard) {
-		                current = mQwertyKeyboard;
+		                current = mTeklaKeyboard;
+		                setQwertyKeyPointers();
 		            } else {
 		                current = mSymbolsKeyboard;
+		                setSymbolsKeyPointers();
 		            }
-		            mInputView.setKeyboard(current);
+		            mKeyboardView.setKeyboard(current);
 		            if (current == mSymbolsKeyboard) {
 		                current.setShifted(false);
 		            }
 		        } else {
-		            handleCharacter(primaryCode, keyCodes);
+		            handleCharacter(k.codes[0], keyCodes);
 		        }
-		      	*/
+		      	
 			}
 			
 			break;
@@ -400,7 +751,15 @@ public class TeklaIME  extends InputMethodService
 
 	@Override
 	public void onText(CharSequence text) {
-		// TODO Auto-generated method stub
+		InputConnection ic = getCurrentInputConnection();
+        if (ic == null) return;
+        ic.beginBatchEdit();
+        if (mComposing.length() > 0) {
+            commitTyped(ic);
+        }
+        ic.commitText(text, 0);
+        ic.endBatchEdit();
+        updateShiftKeyState(getCurrentInputEditorInfo());
 	}
 
 	@Override
@@ -422,6 +781,23 @@ public class TeklaIME  extends InputMethodService
 	public void swipeUp() {
 		// TODO Auto-generated method stub
 	}
+
+    public void pickSuggestionManually(int index) {
+        if (mCompletionOn && mCompletions != null && index >= 0
+                && index < mCompletions.length) {
+            CompletionInfo ci = mCompletions[index];
+            getCurrentInputConnection().commitCompletion(ci);
+            if (mCandidateView != null) {
+                mCandidateView.clear();
+            }
+            updateShiftKeyState(getCurrentInputEditorInfo());
+        } else if (mComposing.length() > 0) {
+            // If we were generating candidate suggestions for the current
+            // text, we would commit one of them here.  But for this sample,
+            // we will just commit the current text.
+            commitTyped(getCurrentInputConnection());
+        }
+    }
     
 	private Runnable updateKeyDrawables = new Runnable() {
 		public void run() {
@@ -456,7 +832,11 @@ public class TeklaIME  extends InputMethodService
 			
 			switch(mScanState) {
 			case SCANNING_ROW:
-				if(mScanCount/mFirstColumnKeyPointer.size()==3) return;
+				if(mScanCount/mFirstColumnKeyPointer.size()==3 &&
+						mScanCount%mFirstColumnKeyPointer.size()==0) {
+					mScanState = ScanState.IDLE;
+					break;
+				}
 				startIndex = mFirstColumnKeyPointer.get(mScanCount%mFirstColumnKeyPointer.size()).intValue();
 				if((mScanCount+1)%mFirstColumnKeyPointer.size()==0) endIndex = startIndex + 6;
 				else endIndex = mFirstColumnKeyPointer.get((mScanCount+1)%mFirstColumnKeyPointer.size()).intValue();
@@ -469,7 +849,10 @@ public class TeklaIME  extends InputMethodService
 				startIndex = mFirstColumnKeyPointer.get(mCurrScanRow%mFirstColumnKeyPointer.size()).intValue();
 				if((mCurrScanRow+1)%mFirstColumnKeyPointer.size()==0) colCount = 6;
 				else colCount = mFirstColumnKeyPointer.get((mCurrScanRow+1)%mFirstColumnKeyPointer.size()).intValue() - startIndex;
-				if(mScanCount/colCount==3) return;
+				if(mScanCount/colCount==3 && mScanCount%colCount==0) {
+					mScanState = ScanState.IDLE;
+					break;
+				}
 				k = kl.get(mFirstColumnKeyPointer.get(mCurrScanRow).intValue()+(mScanCount%colCount));
 				k.pressed = true;
 				break;				
@@ -518,7 +901,18 @@ public class TeklaIME  extends InputMethodService
 			}
 		}
 	};
-	
+	 
+    /**
+     * Helper to determine if a given character code is alphabetic.
+     */
+    private boolean isAlphabet(int code) {
+        if (Character.isLetter(code)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+  
 	/**
 	* Helper to send a key down / key up pair to the current editor.
 	*/
