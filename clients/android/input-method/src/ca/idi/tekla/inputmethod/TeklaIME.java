@@ -15,8 +15,6 @@ import android.view.View;
 import android.view.inputmethod.CompletionInfo;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
-import android.view.inputmethod.InputMethodManager;
-import android.widget.Toast;
 
 public class TeklaIME  extends InputMethodService 
 	implements KeyboardView.OnKeyboardActionListener {
@@ -24,24 +22,23 @@ public class TeklaIME  extends InputMethodService
 	// TODO: SCAN_DELAY should be set from settings.
 	private static final int SCAN_DELAY = 1000; //in milliseconds
 	private static final int REDRAW_KEYBOARD = 99999; //this is a true arbitrary number.
-	
 	private Handler timerHandler = new Handler();
 
-    private int mLastDisplayWidth;
 	private KeyboardView mKeyboardView; 
     private TeklaKeyboard mSymbolsKeyboard;
     private TeklaKeyboard mSymbolsShiftedKeyboard;   
     private TeklaKeyboard mTeklaKeyboard;
-    private TeklaKeyboard mCurKeyboard;
-    private InputMethodManager imManager;    
+    private TeklaKeyboard mCurKeyboard;    
     
     private enum ScanState {
     	IDLE, SCANNING_ROW, SCANNING_COLUMN
     }
     private ScanState mScanState;
     private int mScanCount, mCurrScanRow;
-    private ArrayList<Integer> mFirstColumnKeyPointer;
-    
+    private ArrayList<Integer> mFirstColKeyPtr;
+
+    // variables from the Soft Keyboard Sample 
+    private int mLastDisplayWidth;
     private String mWordSeparators;
     private StringBuilder mComposing = new StringBuilder();
     private boolean mPredictionOn;
@@ -75,7 +72,6 @@ public class TeklaIME  extends InputMethodService
         mKeyboardView.setOnKeyboardActionListener(this);
         mKeyboardView.setKeyboard(mTeklaKeyboard);
         
-    	imManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
     	mScanState = ScanState.IDLE;
     	setQwertyKeyPointers();
     	    	
@@ -83,30 +79,30 @@ public class TeklaIME  extends InputMethodService
     }
 
     private void setQwertyKeyPointers() {
-    	mFirstColumnKeyPointer = new ArrayList<Integer>(5);
-    	mFirstColumnKeyPointer.add(new Integer(0));
-    	mFirstColumnKeyPointer.add(new Integer(10));
-    	mFirstColumnKeyPointer.add(new Integer(19));
-    	mFirstColumnKeyPointer.add(new Integer(28));
-    	mFirstColumnKeyPointer.add(new Integer(33));    	
+    	mFirstColKeyPtr = new ArrayList<Integer>(5);
+    	mFirstColKeyPtr.add(new Integer(0));
+    	mFirstColKeyPtr.add(new Integer(10));
+    	mFirstColKeyPtr.add(new Integer(19));
+    	mFirstColKeyPtr.add(new Integer(28));
+    	mFirstColKeyPtr.add(new Integer(33));    	
     }
 
     private void setSymbolsKeyPointers() { 
-    	mFirstColumnKeyPointer = new ArrayList<Integer>(5);
-    	mFirstColumnKeyPointer.add(new Integer(0));
-    	mFirstColumnKeyPointer.add(new Integer(10));
-    	mFirstColumnKeyPointer.add(new Integer(20));
-    	mFirstColumnKeyPointer.add(new Integer(29));
-    	mFirstColumnKeyPointer.add(new Integer(34));   	
+    	mFirstColKeyPtr = new ArrayList<Integer>(5);
+    	mFirstColKeyPtr.add(new Integer(0));
+    	mFirstColKeyPtr.add(new Integer(10));
+    	mFirstColKeyPtr.add(new Integer(20));
+    	mFirstColKeyPtr.add(new Integer(29));
+    	mFirstColKeyPtr.add(new Integer(34));   	
     }
 
     private void setShiftedSymbolsKeyPointers() {
-    	mFirstColumnKeyPointer = new ArrayList<Integer>(5);
-    	mFirstColumnKeyPointer.add(new Integer(0));
-    	mFirstColumnKeyPointer.add(new Integer(10));
-    	mFirstColumnKeyPointer.add(new Integer(20));
-    	mFirstColumnKeyPointer.add(new Integer(29));
-    	mFirstColumnKeyPointer.add(new Integer(34));
+    	mFirstColKeyPtr = new ArrayList<Integer>(5);
+    	mFirstColKeyPtr.add(new Integer(0));
+    	mFirstColKeyPtr.add(new Integer(10));
+    	mFirstColKeyPtr.add(new Integer(20));
+    	mFirstColKeyPtr.add(new Integer(29));
+    	mFirstColKeyPtr.add(new Integer(34));
     	
     }
         
@@ -124,7 +120,6 @@ public class TeklaIME  extends InputMethodService
             if (displayWidth == mLastDisplayWidth) return;
             mLastDisplayWidth = displayWidth;
         }
-        //mTeklaKeyboard = new TeklaKeyboard(this, R.xml.ui_navigation);
         mTeklaKeyboard = new TeklaKeyboard(this, R.xml.qwerty);
         mSymbolsKeyboard = new TeklaKeyboard(this, R.xml.symbols);
         mSymbolsShiftedKeyboard = new TeklaKeyboard(this, R.xml.symbols_shift);
@@ -401,11 +396,8 @@ public class TeklaIME  extends InputMethodService
         if (c == 0 || ic == null) {
             return false;
         }
-        
-        boolean dead = false;
 
         if ((c & KeyCharacterMap.COMBINING_ACCENT) != 0) {
-            dead = true;
             c = c & KeyCharacterMap.COMBINING_ACCENT_MASK;
         }
         
@@ -585,7 +577,7 @@ public class TeklaIME  extends InputMethodService
 		int startIndex, endIndex, colCount, sel;
 		switch (mScanState) {
 		case IDLE:
-			for(int i=0; i<mFirstColumnKeyPointer.get(1).intValue(); ++i) {
+			for(int i=0; i<mFirstColKeyPtr.get(1).intValue(); ++i) {
 				k = kl.get(i);
 				k.pressed = true;
 			}
@@ -595,54 +587,38 @@ public class TeklaIME  extends InputMethodService
 			break;
 		case SCANNING_ROW:
 			timerHandler.removeCallbacks(updateKeyDrawables);
-			startIndex = mFirstColumnKeyPointer.get(mScanCount%mFirstColumnKeyPointer.size()).intValue();
-			if((mScanCount+1)%mFirstColumnKeyPointer.size()==0) endIndex = startIndex + 6;
-			else endIndex = mFirstColumnKeyPointer.get((mScanCount+1)%mFirstColumnKeyPointer.size()).intValue();
+			startIndex = mFirstColKeyPtr.get(mScanCount%mFirstColKeyPtr.size()).intValue();
+			if((mScanCount+1)%mFirstColKeyPtr.size()==0) endIndex = startIndex + 6;
+			else endIndex = mFirstColKeyPtr.get((mScanCount+1)%mFirstColKeyPtr.size()).intValue();
 			for(int i=startIndex+1; i<endIndex; ++i) {
 				k = kl.get(i);
 				k.pressed = false;
 			}
 			mScanState = ScanState.SCANNING_COLUMN;
-			mCurrScanRow = mScanCount%mFirstColumnKeyPointer.size();
+			mCurrScanRow = mScanCount%mFirstColKeyPtr.size();
 			mScanCount = 0;
 			timerHandler.postDelayed(updateKeyDrawables , SCAN_DELAY); //set delay for the initial post
 			break;
 		case SCANNING_COLUMN:
 			timerHandler.removeCallbacks(updateKeyDrawables);
 			mScanState = ScanState.IDLE;
-			startIndex = mFirstColumnKeyPointer.get(mCurrScanRow).intValue();
-			if(mCurrScanRow==mFirstColumnKeyPointer.size()-1) colCount = 6;
-			else colCount = mFirstColumnKeyPointer.get(mCurrScanRow+1).intValue() - startIndex;
+			startIndex = mFirstColKeyPtr.get(mCurrScanRow).intValue();
+			if(mCurrScanRow==mFirstColKeyPtr.size()-1) colCount = 6;
+			else colCount = mFirstColKeyPtr.get(mCurrScanRow+1).intValue() - startIndex;
 			sel = startIndex+(mScanCount%colCount);
 			k = kl.get(sel);
 			k.pressed = false;
-			//keyDownUp(k.codes[0]);
-			if(mCurrScanRow==mFirstColumnKeyPointer.size()-1) { // UI Navigation 
+			if(mCurrScanRow==mFirstColKeyPtr.size()-1) { // UI Navigation 
 				switch (mScanCount%6) {
-				case 0:
-					keyDownUp(KeyEvent.KEYCODE_DPAD_UP);
-					break;
-				case 1:
-					keyDownUp(KeyEvent.KEYCODE_DPAD_DOWN);
-					break;
-				case 2:
-					keyDownUp(KeyEvent.KEYCODE_DPAD_LEFT);
-					break;
-				case 3:
-					keyDownUp(KeyEvent.KEYCODE_DPAD_RIGHT);
-					break;
-				case 4:
-					keyDownUp(KeyEvent.KEYCODE_DPAD_CENTER);
-					break;
-				case 5:
-					keyDownUp(KeyEvent.KEYCODE_BACK);
-					break;
-				default:
-					break;
+				case 0: keyDownUp(KeyEvent.KEYCODE_DPAD_UP); break;
+				case 1: keyDownUp(KeyEvent.KEYCODE_DPAD_DOWN); break;
+				case 2: keyDownUp(KeyEvent.KEYCODE_DPAD_LEFT); break;
+				case 3: keyDownUp(KeyEvent.KEYCODE_DPAD_RIGHT); break;
+				case 4: keyDownUp(KeyEvent.KEYCODE_DPAD_CENTER); break;
+				case 5: keyDownUp(KeyEvent.KEYCODE_BACK); break;
+				default: break;
 				}
 			} else {
-				//sendKey(k.codes[0]);
-				
 				if (isWordSeparator(k.codes[0])) {
 		            // Handle separator
 		            if (mComposing.length() > 0) {
@@ -683,43 +659,6 @@ public class TeklaIME  extends InputMethodService
 		}
 		mKeyboardView.invalidateAllKeys(); // Redraw keyboard
 		
-		/*
-		if(mScanCount==-1) {
-			mScanCount = 0;
-			Key k = kl.get(0);
-			k.pressed = true;
-			
-			timerHandler.removeCallbacks(updateKeyDrawables );
-			timerHandler.postDelayed(updateKeyDrawables , SCAN_DELAY); //set delay for the initial post
-		} else {
-			Key k = kl.get(mScanCount%6);
-			k.pressed = false;
-			switch (mScanCount%6) {
-				case 0:
-					keyDownUp(KeyEvent.KEYCODE_DPAD_UP);
-					break;
-				case 1:
-					keyDownUp(KeyEvent.KEYCODE_DPAD_DOWN);
-					break;
-				case 2:
-					keyDownUp(KeyEvent.KEYCODE_DPAD_LEFT);
-					break;
-				case 3:
-					keyDownUp(KeyEvent.KEYCODE_DPAD_RIGHT);
-					break;
-				case 4:
-					keyDownUp(KeyEvent.KEYCODE_DPAD_CENTER);
-					break;
-				case 5:
-					keyDownUp(KeyEvent.KEYCODE_BACK);
-					break;
-				default:
-					break;
-			}
-			mScanCount = -1;
-		}
-		mKeyboardView.invalidateAllKeys(); // Redraw keyboard
-		*/
 		// TODO: Uncomment code below to allow for direct touch functionality.
 		// TODO: Add optional direct touch functionality to settings.
 		/*
@@ -811,19 +750,19 @@ public class TeklaIME  extends InputMethodService
 			case IDLE:
 				return;
 			case SCANNING_ROW:
-				startIndex = mFirstColumnKeyPointer.get(mScanCount%mFirstColumnKeyPointer.size()).intValue();
-				if((mScanCount+1)%mFirstColumnKeyPointer.size()==0) endIndex = startIndex + 6;
-				else endIndex = mFirstColumnKeyPointer.get((mScanCount+1)%mFirstColumnKeyPointer.size()).intValue();
+				startIndex = mFirstColKeyPtr.get(mScanCount%mFirstColKeyPtr.size()).intValue();
+				if((mScanCount+1)%mFirstColKeyPtr.size()==0) endIndex = startIndex + 6;
+				else endIndex = mFirstColKeyPtr.get((mScanCount+1)%mFirstColKeyPtr.size()).intValue();
 				for(int i=startIndex; i<endIndex; ++i) {
 					k = kl.get(i);
 					k.pressed = false;
 				}
 				break;
 			case SCANNING_COLUMN:
-				startIndex = mFirstColumnKeyPointer.get(mCurrScanRow%mFirstColumnKeyPointer.size()).intValue();
-				if((mCurrScanRow+1)%mFirstColumnKeyPointer.size()==0) colCount = 6;
-				else colCount = mFirstColumnKeyPointer.get((mCurrScanRow+1)%mFirstColumnKeyPointer.size()).intValue() - startIndex;
-				k = kl.get(mFirstColumnKeyPointer.get(mCurrScanRow).intValue()+(mScanCount%colCount));
+				startIndex = mFirstColKeyPtr.get(mCurrScanRow%mFirstColKeyPtr.size()).intValue();
+				if((mCurrScanRow+1)%mFirstColKeyPtr.size()==0) colCount = 6;
+				else colCount = mFirstColKeyPtr.get((mCurrScanRow+1)%mFirstColKeyPtr.size()).intValue() - startIndex;
+				k = kl.get(mFirstColKeyPtr.get(mCurrScanRow).intValue()+(mScanCount%colCount));
 				k.pressed = false;
 				break;
 			}
@@ -832,47 +771,31 @@ public class TeklaIME  extends InputMethodService
 			
 			switch(mScanState) {
 			case SCANNING_ROW:
-				if(mScanCount/mFirstColumnKeyPointer.size()==3 &&
-						mScanCount%mFirstColumnKeyPointer.size()==0) {
+				if(mScanCount/mFirstColKeyPtr.size()==3 &&
+						mScanCount%mFirstColKeyPtr.size()==0) {
 					mScanState = ScanState.IDLE;
 					break;
 				}
-				startIndex = mFirstColumnKeyPointer.get(mScanCount%mFirstColumnKeyPointer.size()).intValue();
-				if((mScanCount+1)%mFirstColumnKeyPointer.size()==0) endIndex = startIndex + 6;
-				else endIndex = mFirstColumnKeyPointer.get((mScanCount+1)%mFirstColumnKeyPointer.size()).intValue();
+				startIndex = mFirstColKeyPtr.get(mScanCount%mFirstColKeyPtr.size()).intValue();
+				if((mScanCount+1)%mFirstColKeyPtr.size()==0) endIndex = startIndex + 6;
+				else endIndex = mFirstColKeyPtr.get((mScanCount+1)%mFirstColKeyPtr.size()).intValue();
 				for(int i=startIndex; i<endIndex; ++i) {
 					k = kl.get(i);
 					k.pressed = true;
 				}
 				break;
 			case SCANNING_COLUMN:
-				startIndex = mFirstColumnKeyPointer.get(mCurrScanRow%mFirstColumnKeyPointer.size()).intValue();
-				if((mCurrScanRow+1)%mFirstColumnKeyPointer.size()==0) colCount = 6;
-				else colCount = mFirstColumnKeyPointer.get((mCurrScanRow+1)%mFirstColumnKeyPointer.size()).intValue() - startIndex;
+				startIndex = mFirstColKeyPtr.get(mCurrScanRow%mFirstColKeyPtr.size()).intValue();
+				if((mCurrScanRow+1)%mFirstColKeyPtr.size()==0) colCount = 6;
+				else colCount = mFirstColKeyPtr.get((mCurrScanRow+1)%mFirstColKeyPtr.size()).intValue() - startIndex;
 				if(mScanCount/colCount==3 && mScanCount%colCount==0) {
 					mScanState = ScanState.IDLE;
 					break;
 				}
-				k = kl.get(mFirstColumnKeyPointer.get(mCurrScanRow).intValue()+(mScanCount%colCount));
+				k = kl.get(mFirstColKeyPtr.get(mCurrScanRow).intValue()+(mScanCount%colCount));
 				k.pressed = true;
 				break;				
 			}
-			
-			/*
-			if(mScanCount==-1) return;
-			   
-			Keyboard kb = mKeyboardView.getKeyboard();
-			List<Key> kl = kb.getKeys();
-			Key k = kl.get(mScanCount%6);
-			k.pressed = false;
-			
-			++mScanCount;
-			if(mScanCount==18) mScanCount = -1;
-			else {
-				k = kl.get(mScanCount%6);
-				k.pressed = true;
-			}	
-			*/
 			
 			// Should't mess with GUI from within a thread,
 			// we'll use a handler for that.
