@@ -30,23 +30,15 @@ public class Demo extends Activity {
         
         //Intents & Intent Filters
         final Intent serviceIntent = new Intent();
-        serviceIntent.setAction(SEPService.INTENT);
-        IntentFilter fwdIntentFilter = new IntentFilter(SEPService.FWD_ACTION);
-        IntentFilter backIntentFilter = new IntentFilter(SEPService.BACK_ACTION);
-        IntentFilter rightIntentFilter = new IntentFilter(SEPService.RIGHT_ACTION);
-        IntentFilter leftIntentFilter = new IntentFilter(SEPService.LEFT_ACTION);
-        //IntentFilter noneIntentFilter = new IntentFilter(NONE_ACTION);
+        serviceIntent.setAction(SEPService.INTENT_START_SERVICE);
+        IntentFilter switchEventFilter = new IntentFilter(SEPService.ACTION_SWITCH_EVENT_RECEIVED);
 
         outEditText.setText("");
 
         //Start service when Activity is run
         //startService(serviceIntent);
 
-    	registerReceiver(intentReceiver, fwdIntentFilter);
-    	registerReceiver(intentReceiver, backIntentFilter);
-    	registerReceiver(intentReceiver, rightIntentFilter);
-    	registerReceiver(intentReceiver, leftIntentFilter);
-    	//registerReceiver(intentReceiver, noneIntentFilter);
+    	registerReceiver(switchBroadcastReceiver, switchEventFilter);
 
     	startBtn.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
@@ -69,21 +61,23 @@ public class Demo extends Activity {
 	}
 
 	// Switch event provider events will be processed here
-	private BroadcastReceiver intentReceiver = new BroadcastReceiver() {
+	private BroadcastReceiver switchBroadcastReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			String action = intent.getAction();
-			if (action.compareTo(SEPService.FWD_ACTION) == 0) {
-				updateOutText("F");
-			}
-			if (action.compareTo(SEPService.BACK_ACTION) == 0) {
-				updateOutText("B");
-			}
-			if (action.compareTo(SEPService.RIGHT_ACTION) == 0) {
-				updateOutText("R");
-			}
-			if (action.compareTo(SEPService.LEFT_ACTION) == 0) {
-				updateOutText("L");
+			Bundle extras = intent.getExtras();
+			switch (extras.getInt(SEPService.EXTRA_SWITCH_EVENT)) {
+				case SEPService.SWITCH_FWD:
+					updateOutText("F");
+					break;
+				case SEPService.SWITCH_BACK:
+					updateOutText("B");
+					break;
+				case SEPService.SWITCH_RIGHT:
+					updateOutText("R");
+					break;
+				case SEPService.SWITCH_LEFT:
+					updateOutText("L");
+					break;
 			}
 		}
 	};

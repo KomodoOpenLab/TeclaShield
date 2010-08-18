@@ -34,18 +34,16 @@ public class SEPService extends Service implements Runnable {
     private OutputStream outStream;
     
 	//Constants
-    public static final String INTENT = "ca.idi.tekla.sep.SEPService";
-    public static final String FWD_ACTION = "ca.idi.tekla.sep.FWD_SWITCH_ACTION";
-    public static final String BACK_ACTION = "ca.idi.tekla.sep.BACK_SWITCH_ACTION";
-    public static final String RIGHT_ACTION = "ca.idi.tekla.sep.RIGHT_SWITCH_ACTION";
-    public static final String LEFT_ACTION = "ca.idi.tekla.sep.LEFT_SWITCH_ACTION";
-	//static final private String NONE_ACTION = "ca.idi.tekla.sep.NONE_SWITCH_ACTION";
+    public static final String INTENT_START_SERVICE = "ca.idi.tekla.sep.SEPService";
+    public static final String ACTION_SWITCH_EVENT_RECEIVED = "ca.idi.tekla.sep.action.SWITCH_EVENT_RECEIVED";
+    public static final String EXTRA_SWITCH_EVENT = "ca.idi.tekla.sep.extra.SWITCH_EVENT";
+    public static final int SWITCH_FWD = 10;
+    public static final int SWITCH_BACK = 20;
+    public static final int SWITCH_RIGHT = 40;
+    public static final int SWITCH_LEFT = 80;
+    // public static final int SWITCH_RELEASE = F0;
 
-    Intent fwdIntent = new Intent(FWD_ACTION);
-    Intent backIntent = new Intent(BACK_ACTION);
-    Intent rightIntent = new Intent(RIGHT_ACTION);
-    Intent leftIntent = new Intent(LEFT_ACTION);
-    //Intent noneIntent = new Intent(NONE_ACTION);
+    Intent switchEventIntent = new Intent(ACTION_SWITCH_EVENT_RECEIVED);
     
 	// hard-code hardware address and UUID here
 	private String server_address = "00:06:66:02:CB:75"; // BlueSMiRF 1
@@ -145,25 +143,33 @@ public class SEPService extends Service implements Runnable {
 		}
 
 		while(true) {
-	    	try {
-	    		inStream = clientSocket.getInputStream();
-	    		int b = inStream.read();
-	    		switch (b) {
-    			//case 0x0F: TODO: Do nothing
-    			//case 0x07: ics.sendDownUpKeyEvents(android.view.KeyEvent.KEYCODE_DPAD_UP);
-    			case 0x07: sendBroadcast(fwdIntent); break;
-    			case 0x0B: sendBroadcast(backIntent); break;
-    			case 0x0D: sendBroadcast(rightIntent); break;
-    			case 0x0E: sendBroadcast(leftIntent); break;
-    			//case 0x70: TODO: Send hard key event
-    			//default: TODO: Do nothing
-	    		}
-	    	} catch (IOException e) {
+			try {
+				inStream = clientSocket.getInputStream();
+				int b = inStream.read();
+				switchEventIntent.removeExtra(EXTRA_SWITCH_EVENT);
+				switch (b) {
+					case 0x07:
+						switchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_FWD);
+						sendBroadcast(switchEventIntent);
+						break;
+					case 0x0B:
+						switchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_BACK);
+						sendBroadcast(switchEventIntent);
+						break;
+					case 0x0D:
+						switchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_RIGHT);
+						sendBroadcast(switchEventIntent);
+						break;
+					case 0x0E:
+						switchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_LEFT);
+						sendBroadcast(switchEventIntent);
+						break;
+				}
+			} catch (IOException e) {
 				e.printStackTrace();
-	    		break;
-	    	}			
+				break;
+			}			
 		}
-	
 	}
 	
 	// Bluetooth State Events will be processed here

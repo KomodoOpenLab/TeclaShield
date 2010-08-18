@@ -585,10 +585,10 @@ public class TeklaIME  extends InputMethodService
 			}
 			mScanState = ScanState.SCANNING_ROW;
 			mScanCount = 0;
-			timerHandler.postDelayed(updateKeyDrawables , SCAN_DELAY); //set delay for the initial post
+			timerHandler.postDelayed(updateKeyHighlight , SCAN_DELAY); //set delay for the initial post
 			break;
 		case SCANNING_ROW:
-			timerHandler.removeCallbacks(updateKeyDrawables);
+			timerHandler.removeCallbacks(updateKeyHighlight);
 			startIndex = mFirstColKeyPtr.get(mScanCount%mFirstColKeyPtr.size()).intValue();
 			if((mScanCount+1)%mFirstColKeyPtr.size()==0) endIndex = startIndex + 6;
 			else endIndex = mFirstColKeyPtr.get((mScanCount+1)%mFirstColKeyPtr.size()).intValue();
@@ -599,10 +599,10 @@ public class TeklaIME  extends InputMethodService
 			mScanState = ScanState.SCANNING_COLUMN;
 			mCurrScanRow = mScanCount%mFirstColKeyPtr.size();
 			mScanCount = 0;
-			timerHandler.postDelayed(updateKeyDrawables , SCAN_DELAY); //set delay for the initial post
+			timerHandler.postDelayed(updateKeyHighlight , SCAN_DELAY); //set delay for the initial post
 			break;
 		case SCANNING_COLUMN:
-			timerHandler.removeCallbacks(updateKeyDrawables);
+			timerHandler.removeCallbacks(updateKeyHighlight);
 			mScanState = ScanState.IDLE;
 			startIndex = mFirstColKeyPtr.get(mCurrScanRow).intValue();
 			if(mCurrScanRow==mFirstColKeyPtr.size()-1) colCount = 6;
@@ -740,7 +740,7 @@ public class TeklaIME  extends InputMethodService
         }
     }
     
-	private Runnable updateKeyDrawables = new Runnable() {
+	private Runnable updateKeyHighlight = new Runnable() {
 		public void run() {
 
 			Keyboard kb = mKeyboardView.getKeyboard();
