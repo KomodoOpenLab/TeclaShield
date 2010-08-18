@@ -4,6 +4,7 @@
 	<string name="app_name">Tekla</string>
 
 	<!-- Switch Event Provider Strings -->
+	
 	<string name="start_button">Start</string>
 	<string name="stop_button">Stop</string>
 	<string name="sep_started">Switch Event Provider Started</string>
@@ -13,6 +14,7 @@
 	<string name="sep_disconnected">Switch Event Provider Disconnected</string>
 	
 	<!-- Input Method Strings -->
+	<string name="kbd_name">Tekla keyboard</string>
 
 	<!-- Symbols that are commonly considered word separators in this language -->
 	<string name="word_separators">\u0020.,;:!?\n()[]*&amp;@{}/&lt;&gt;_+=|&quot;</string>
