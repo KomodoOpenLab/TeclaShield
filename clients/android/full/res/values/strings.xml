@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    
+    <string name="app_name">Tekla</string>
+
+
+<string name="sep_started">Switch Event Provider Started</string>
+<string name="sep_label">Switch Event Provider</string>
+<string name="start_button">Start</string>
+<string name="stop_button">Stop</string>
+<string name="sep_stopped">Switch Event Provider Stopped</string>
+<string name="sep_connected">Switch Event Provider Connected</string>
+<string name="sep_disconnected">Switch Event Provider Disconnected</string>
+</resources>
