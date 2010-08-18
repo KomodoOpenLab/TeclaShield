@@ -9,7 +9,7 @@ public class BootReceiver extends BroadcastReceiver {
 	@Override
 	public void onReceive(Context context, Intent intent) {
 		Intent serviceIntent = new Intent();
-		serviceIntent.setAction("ca.idi.tekla.sep.SEPService");
+		serviceIntent.setAction(SEPService.INTENT);
 		context.startService(serviceIntent);
 	}
 }

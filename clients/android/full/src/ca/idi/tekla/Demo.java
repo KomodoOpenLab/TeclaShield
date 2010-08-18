@@ -17,13 +17,6 @@ public class Demo extends Activity {
 	private EditText outEditText;
 	private String logText = "";
 
-	//Constants
-	static final private String FWD_ACTION = "ca.idi.tekla.sep.FWD_SWITCH_ACTION";
-	static final private String BACK_ACTION = "ca.idi.tekla.sep.BACK_SWITCH_ACTION";
-	static final private String RIGHT_ACTION = "ca.idi.tekla.sep.LEFT_SWITCH_ACTION";
-	static final private String LEFT_ACTION = "ca.idi.tekla.sep.RIGHT_SWITCH_ACTION";
-	//static final private String NONE_ACTION = "ca.idi.tekla.sep.NONE_SWITCH_ACTION";
-
 	/** Called when the activity is first created. */
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -36,11 +29,12 @@ public class Demo extends Activity {
         outEditText = (EditText) findViewById(R.id.EditText01);
         
         //Intents & Intent Filters
-        final Intent serviceIntent = new Intent(this, SEPService.class );
-        IntentFilter fwdIntentFilter = new IntentFilter(FWD_ACTION);
-        IntentFilter backIntentFilter = new IntentFilter(BACK_ACTION);
-        IntentFilter rightIntentFilter = new IntentFilter(RIGHT_ACTION);
-        IntentFilter leftIntentFilter = new IntentFilter(LEFT_ACTION);
+        final Intent serviceIntent = new Intent();
+        serviceIntent.setAction(SEPService.INTENT);
+        IntentFilter fwdIntentFilter = new IntentFilter(SEPService.FWD_ACTION);
+        IntentFilter backIntentFilter = new IntentFilter(SEPService.BACK_ACTION);
+        IntentFilter rightIntentFilter = new IntentFilter(SEPService.RIGHT_ACTION);
+        IntentFilter leftIntentFilter = new IntentFilter(SEPService.LEFT_ACTION);
         //IntentFilter noneIntentFilter = new IntentFilter(NONE_ACTION);
 
         outEditText.setText("");
@@ -79,16 +73,16 @@ public class Demo extends Activity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			String action = intent.getAction();
-			if (action.compareTo(FWD_ACTION) == 0) {
+			if (action.compareTo(SEPService.FWD_ACTION) == 0) {
 				updateOutText("F");
 			}
-			if (action.compareTo(BACK_ACTION) == 0) {
+			if (action.compareTo(SEPService.BACK_ACTION) == 0) {
 				updateOutText("B");
 			}
-			if (action.compareTo(RIGHT_ACTION) == 0) {
+			if (action.compareTo(SEPService.RIGHT_ACTION) == 0) {
 				updateOutText("R");
 			}
-			if (action.compareTo(LEFT_ACTION) == 0) {
+			if (action.compareTo(SEPService.LEFT_ACTION) == 0) {
 				updateOutText("L");
 			}
 		}

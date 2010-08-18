@@ -30,10 +30,11 @@ public class SEPService extends Service implements Runnable {
     private OutputStream outStream;
     
 	//Constants
-	static final private String FWD_ACTION = "ca.idi.tekla.sep.FWD_SWITCH_ACTION";
-	static final private String BACK_ACTION = "ca.idi.tekla.sep.BACK_SWITCH_ACTION";
-	static final private String RIGHT_ACTION = "ca.idi.tekla.sep.RIGHT_SWITCH_ACTION";
-	static final private String LEFT_ACTION = "ca.idi.tekla.sep.LEFT_SWITCH_ACTION";
+	static final public String INTENT = "ca.idi.tekla.sep.SEPService";
+	static final public String FWD_ACTION = "ca.idi.tekla.sep.FWD_SWITCH_ACTION";
+	static final public String BACK_ACTION = "ca.idi.tekla.sep.BACK_SWITCH_ACTION";
+	static final public String RIGHT_ACTION = "ca.idi.tekla.sep.RIGHT_SWITCH_ACTION";
+	static final public String LEFT_ACTION = "ca.idi.tekla.sep.LEFT_SWITCH_ACTION";
 	//static final private String NONE_ACTION = "ca.idi.tekla.sep.NONE_SWITCH_ACTION";
 
     Intent fwdIntent = new Intent(FWD_ACTION);
