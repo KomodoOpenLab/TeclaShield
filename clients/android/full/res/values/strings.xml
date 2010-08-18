@@ -1,14 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    
-    <string name="app_name">Tekla</string>
 
+	<string name="app_name">Tekla</string>
 
-<string name="sep_started">Switch Event Provider Started</string>
-<string name="sep_label">Switch Event Provider</string>
-<string name="start_button">Start</string>
-<string name="stop_button">Stop</string>
-<string name="sep_stopped">Switch Event Provider Stopped</string>
-<string name="sep_connected">Switch Event Provider Connected</string>
-<string name="sep_disconnected">Switch Event Provider Disconnected</string>
+	<!-- Switch Event Provider Strings -->
+	<string name="start_button">Start</string>
+	<string name="stop_button">Stop</string>
+	<string name="sep_started">Switch Event Provider Started</string>
+	<string name="sep_label">Switch Event Provider</string>
+	<string name="sep_stopped">Switch Event Provider Stopped</string>
+	<string name="sep_connected">Switch Event Provider Connected</string>
+	<string name="sep_disconnected">Switch Event Provider Disconnected</string>
+	
+	<!-- Input Method Strings -->
+
+	<!-- Symbols that are commonly considered word separators in this language -->
+	<string name="word_separators">\u0020.,;:!?\n()[]*&amp;@{}/&lt;&gt;_+=|&quot;</string>
+
+	<!-- Labels on soft keys -->
+	<string name="label_go_key">Go</string>
+	<string name="label_next_key">Next</string>
+	<string name="label_send_key">Send</string>
+	
 </resources>

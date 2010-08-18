@@ -15,8 +15,12 @@ import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Binder;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Looper;
 import android.widget.Toast;
@@ -30,11 +34,11 @@ public class SEPService extends Service implements Runnable {
     private OutputStream outStream;
     
 	//Constants
-	static final public String INTENT = "ca.idi.tekla.sep.SEPService";
-	static final public String FWD_ACTION = "ca.idi.tekla.sep.FWD_SWITCH_ACTION";
-	static final public String BACK_ACTION = "ca.idi.tekla.sep.BACK_SWITCH_ACTION";
-	static final public String RIGHT_ACTION = "ca.idi.tekla.sep.RIGHT_SWITCH_ACTION";
-	static final public String LEFT_ACTION = "ca.idi.tekla.sep.LEFT_SWITCH_ACTION";
+    public static final String INTENT = "ca.idi.tekla.sep.SEPService";
+    public static final String FWD_ACTION = "ca.idi.tekla.sep.FWD_SWITCH_ACTION";
+    public static final String BACK_ACTION = "ca.idi.tekla.sep.BACK_SWITCH_ACTION";
+    public static final String RIGHT_ACTION = "ca.idi.tekla.sep.RIGHT_SWITCH_ACTION";
+    public static final String LEFT_ACTION = "ca.idi.tekla.sep.LEFT_SWITCH_ACTION";
 	//static final private String NONE_ACTION = "ca.idi.tekla.sep.NONE_SWITCH_ACTION";
 
     Intent fwdIntent = new Intent(FWD_ACTION);
@@ -68,8 +72,11 @@ public class SEPService extends Service implements Runnable {
 	
     @Override
 	public void onCreate() {
-        mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+        //Intents & Intent Filters
+        IntentFilter btStateFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
+    	registerReceiver(btStateReceiver, btStateFilter);
 
+        mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 	}
 	
     @Override
@@ -82,11 +89,11 @@ public class SEPService extends Service implements Runnable {
             mNM.cancel(R.string.sep_started);
         } catch (IOException e) {
         	e.printStackTrace();
-        	Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        	showToast(e.getMessage());
         }
 
         // Tell the user we stopped.
-        Toast.makeText(this, R.string.sep_stopped, Toast.LENGTH_SHORT).show();
+        showToast(R.string.sep_stopped);
   }
     
     @Override
@@ -96,55 +103,35 @@ public class SEPService extends Service implements Runnable {
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
-		//TODO Launch a background thread to do processing.
-		if((flags & START_FLAG_RETRY) == 0) {
-			// TODO If it�s a restart, do something.
-			
-		} else if((flags & START_FLAG_REDELIVERY) == 0) {
-			
-		} else {
-			// TODO Alternative background process.
-			
-		}
 
-        Thread thread = new Thread(this);
-        thread.start();
-		
-        // Tell the user we started.
-        //Toast.makeText(this, R.string.sep_started, Toast.LENGTH_SHORT).show();
-
+		// Set up local bluetooth
+		btAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (btAdapter == null) {
+            // Device does not support Bluetooth
+            showToast("Device does not support Bluetooth");
+        	stopSelf();
+        } else {
+	        if (!btAdapter.isEnabled()) {
+	            // Bluetooth not enabled
+	        	showToast("Bluetooth not enabled");
+	            Intent enableBTIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+	            enableBTIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+	            startActivity(enableBTIntent);
+	        } else {
+	        	if (connect2Server()) {
+	        		startBroadcasting();
+	        	} else {
+	        		showToast("Failed to connect external input.");
+	        	}
+	        }
+        }
+        
         return Service.START_STICKY;
 	}
 	
 	@Override
 	public void run() {
 		Looper.prepare();
-		
-		// set up local bluetooth
-		btAdapter = BluetoothAdapter.getDefaultAdapter();
-        if (btAdapter == null) {
-            // Device does not support Bluetooth
-            Toast.makeText(this, "No Bluetooth Adaptor", Toast.LENGTH_SHORT).show();
-        	stopSelf();
-        }
-        if (!btAdapter.isEnabled()) {
-            // Bluetooth not enabled
-            //Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-        	//startActivityForResult(enableBtIntent, 0);
-            Toast.makeText(this, "Bluetooth not enabled", Toast.LENGTH_SHORT).show();
-        	stopSelf();
-        }
-        
-        // connect to server app
-        try {
-        	BluetoothDevice btServer = btAdapter.getRemoteDevice(server_address);
-            clientSocket = btServer.createRfcommSocketToServiceRecord(uuid);
-            clientSocket.connect();
-		} catch (IOException e) {
-			e.printStackTrace();
-			Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
-			return;
-		}
 		
         // Display a notification about us starting.  We put an icon in the status bar.
         showNotification();
@@ -179,6 +166,46 @@ public class SEPService extends Service implements Runnable {
 	
 	}
 	
+	// Bluetooth State Events will be processed here
+	private BroadcastReceiver btStateReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			Bundle extras = intent.getExtras();
+			int state = extras.getInt(BluetoothAdapter.EXTRA_STATE);
+			if (state == BluetoothAdapter.STATE_ON) {
+	        	if (connect2Server()) {
+	        		startBroadcasting();
+	        	} else {
+		            showToast("Failed to connect external input.");
+	        	}
+			}
+		}
+	};
+	
+	/**
+	* Connects to bluetooth server.
+	*/
+	private boolean connect2Server() {
+		Boolean success = false;
+        try {
+        	BluetoothDevice btServer = btAdapter.getRemoteDevice(server_address);
+            clientSocket = btServer.createRfcommSocketToServiceRecord(uuid);
+            clientSocket.connect();
+            success = true;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return success;
+	}
+	
+	/**
+	* Executes the run() thread.
+	*/
+	private void startBroadcasting() {
+		Thread thread = new Thread(this);
+        thread.start();
+	}
+	
     /**
      * Show a notification while this service is running.
      */
@@ -209,6 +236,14 @@ public class SEPService extends Service implements Runnable {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
+	}
+
+	private void showToast(String msg) {
+		Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+	}
+
+	private void showToast(int resid) {
+		Toast.makeText(this, resid, Toast.LENGTH_SHORT).show();
 	}
 
 }

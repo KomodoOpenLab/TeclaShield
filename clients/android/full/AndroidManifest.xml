@@ -1,32 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-      android:versionCode="1"
-      android:versionName="1.0" package="ca.idi.tekla">
-    <application android:label="@string/app_name" android:debuggable="true">
-        <activity
-        	android:name=".Demo"
-        	android:label="@string/app_name">
-        	<intent-filter>
-            	<action android:name="android.intent.action.MAIN" />
-            	<category android:name="android.intent.category.LAUNCHER" />
-        	</intent-filter>
+<manifest
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:versionCode="1"
+	android:versionName="1.0" package="ca.idi.tekla">
+	<application
+		android:label="@string/app_name"
+		android:debuggable="true">
+		<activity android:name=".Demo"
+			android:label="@string/app_name">
+			<intent-filter>
+				<action android:name="android.intent.action.MAIN" />
+				<category android:name="android.intent.category.LAUNCHER" />
+			</intent-filter>
 		</activity>
 		<service
 			android:name=".sep.SEPService"
 			android:enabled="true">
 			<intent-filter>
-			 <action android:name="ca.idi.tekla.sep.SEPService" />
+				<action android:name="ca.idi.tekla.sep.SEPService" />
 			</intent-filter>
 		</service>
-		<receiver android:name=".sep.BootReceiver">
+		<service
+			android:name=".ime.TeklaIME"
+			android:permission="android.permission.BIND_INPUT_METHOD">
 			<intent-filter>
-				<action	android:name="android.intent.action.BOOT_COMPLETED" />
-				<category android:name="android.intent.category.HOME" />
+				<action android:name="android.view.InputMethod" />
 			</intent-filter>
-		</receiver>
+			<meta-data
+				android:name="android.view.im"
+				android:resource="@xml/method"/>
+		</service>
 	</application>
-    <uses-sdk android:minSdkVersion="6"/>
+	<uses-sdk android:minSdkVersion="6"/>
 	<uses-permission android:name="android.permission.BLUETOOTH"/>
 	<uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
-	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"></uses-permission>
 </manifest> 
