@@ -156,11 +156,11 @@ public class SEPService extends Service implements Runnable {
 						switchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_BACK);
 						sendBroadcast(switchEventIntent);
 						break;
-					case 0x0D:
+					case 0x0E:
 						switchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_RIGHT);
 						sendBroadcast(switchEventIntent);
 						break;
-					case 0x0E:
+					case 0x0D:
 						switchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_LEFT);
 						sendBroadcast(switchEventIntent);
 						break;

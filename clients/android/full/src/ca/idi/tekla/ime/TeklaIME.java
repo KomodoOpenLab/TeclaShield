@@ -4,12 +4,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import ca.idi.tekla.R;
+import ca.idi.tekla.sep.SEPService;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.inputmethodservice.Keyboard.Key;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.os.PowerManager;
+import android.os.SystemClock;
 import android.text.method.MetaKeyKeyListener;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
@@ -37,7 +45,7 @@ public class TeklaIME  extends InputMethodService
     }
     private ScanState mScanState;
     private int mScanCount, mCurrScanRow;
-    private ArrayList<Integer> mFirstColKeyPtr;
+    private ArrayList<Integer> firstKeysIndexes;
 
     // variables from the Soft Keyboard Sample 
     private int mLastDisplayWidth;
@@ -59,6 +67,14 @@ public class TeklaIME  extends InputMethodService
     public void onCreate() {
     	super.onCreate(); 
         mWordSeparators = getResources().getString(R.string.word_separators);     
+
+        //Intents & Intent Filters
+        startService(new Intent(SEPService.INTENT_START_SERVICE));
+        IntentFilter sepServiceFilter = new IntentFilter(SEPService.ACTION_SWITCH_EVENT_RECEIVED);
+    	registerReceiver(sepBroadcastReceiver, sepServiceFilter);
+    	
+        // Use the following line to debug IME service.
+        android.os.Debug.waitForDebugger();
     }
     
     /**
@@ -81,30 +97,30 @@ public class TeklaIME  extends InputMethodService
     }
 
     private void setQwertyKeyPointers() {
-    	mFirstColKeyPtr = new ArrayList<Integer>(5);
-    	mFirstColKeyPtr.add(new Integer(0));
-    	mFirstColKeyPtr.add(new Integer(10));
-    	mFirstColKeyPtr.add(new Integer(19));
-    	mFirstColKeyPtr.add(new Integer(28));
-    	mFirstColKeyPtr.add(new Integer(33));    	
+    	firstKeysIndexes = new ArrayList<Integer>(5);
+    	firstKeysIndexes.add(new Integer(0));
+    	firstKeysIndexes.add(new Integer(10));
+    	firstKeysIndexes.add(new Integer(19));
+    	firstKeysIndexes.add(new Integer(28));
+    	firstKeysIndexes.add(new Integer(33));    	
     }
 
     private void setSymbolsKeyPointers() { 
-    	mFirstColKeyPtr = new ArrayList<Integer>(5);
-    	mFirstColKeyPtr.add(new Integer(0));
-    	mFirstColKeyPtr.add(new Integer(10));
-    	mFirstColKeyPtr.add(new Integer(20));
-    	mFirstColKeyPtr.add(new Integer(29));
-    	mFirstColKeyPtr.add(new Integer(34));   	
+    	firstKeysIndexes = new ArrayList<Integer>(5);
+    	firstKeysIndexes.add(new Integer(0));
+    	firstKeysIndexes.add(new Integer(10));
+    	firstKeysIndexes.add(new Integer(20));
+    	firstKeysIndexes.add(new Integer(29));
+    	firstKeysIndexes.add(new Integer(34));   	
     }
 
     private void setShiftedSymbolsKeyPointers() {
-    	mFirstColKeyPtr = new ArrayList<Integer>(5);
-    	mFirstColKeyPtr.add(new Integer(0));
-    	mFirstColKeyPtr.add(new Integer(10));
-    	mFirstColKeyPtr.add(new Integer(20));
-    	mFirstColKeyPtr.add(new Integer(29));
-    	mFirstColKeyPtr.add(new Integer(34));
+    	firstKeysIndexes = new ArrayList<Integer>(5);
+    	firstKeysIndexes.add(new Integer(0));
+    	firstKeysIndexes.add(new Integer(10));
+    	firstKeysIndexes.add(new Integer(20));
+    	firstKeysIndexes.add(new Integer(29));
+    	firstKeysIndexes.add(new Integer(34));
     	
     }
         
@@ -426,7 +442,9 @@ public class TeklaIME  extends InputMethodService
     public View onCreateCandidatesView() {
         mCandidateView = new CandidateView(this);
         mCandidateView.setService(this);
-        return mCandidateView;
+        return null; // Do not create a candidate view
+        //TODO: Implement functional candidate view?
+        //return mCandidateView;
     }
 
 	/**
@@ -503,7 +521,6 @@ public class TeklaIME  extends InputMethodService
     @Override
     public void onWindowHidden() {
     	showWindow(true); // Never hide the window!
-        //Toast.makeText(this, "Window Hidden", Toast.LENGTH_SHORT).show();
     }
 
 	/**
@@ -573,114 +590,237 @@ public class TeklaIME  extends InputMethodService
 	*/
 	@Override
 	public void onKey(int primaryCode, int[] keyCodes) {
+//		// TODO: Uncomment code below to allow for direct touch functionality.
+//		// TODO: Add optional direct touch functionality to settings.
+//		/*
+//		if(primaryCode == 19) {
+//	    	keyDownUp(KeyEvent.KEYCODE_DPAD_UP);
+//	    } else if(primaryCode == 20) {
+//	    	keyDownUp(KeyEvent.KEYCODE_DPAD_DOWN);
+//	    } else if(primaryCode == 21) {
+//	    	keyDownUp(KeyEvent.KEYCODE_DPAD_LEFT);
+//	    } else if(primaryCode == 22) {
+//	    	keyDownUp(KeyEvent.KEYCODE_DPAD_RIGHT);
+//	    } else if(primaryCode == 23) {
+//	    	keyDownUp(KeyEvent.KEYCODE_DPAD_CENTER);
+//	    } else if(primaryCode == 4) {
+//	    	keyDownUp(KeyEvent.KEYCODE_BACK);
+//	    } 		
+//		*/
+	}
+
+	// Switch Event Provider Intents will be processed here
+	private BroadcastReceiver sepBroadcastReceiver = new BroadcastReceiver() {
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+			pm.userActivity(SystemClock.uptimeMillis(), true);
+			Bundle extras = intent.getExtras();
+			switch(extras.getInt(SEPService.EXTRA_SWITCH_EVENT)) {
+			case SEPService.SWITCH_FWD:
+				selectFocused();
+				break;
+			case SEPService.SWITCH_BACK:
+				stepBack();
+				break;
+			case SEPService.SWITCH_RIGHT:
+				focusNext();
+				break;
+			case SEPService.SWITCH_LEFT:
+				focusPrev();
+				break;
+			}
+		}
+	};
+	
+	private void selectFocused() {
 		Keyboard kb = mKeyboardView.getKeyboard();
 		List<Key> kl = kb.getKeys();
 		Key k;
-		int startIndex, endIndex, colCount, sel;
+		int firstKeyIndex, colCount, sel;
+
+		clearAllHighlights();
 		switch (mScanState) {
-		case IDLE:
-			for(int i=0; i<mFirstColKeyPtr.get(1).intValue(); ++i) {
-				k = kl.get(i);
-				k.pressed = true;
-			}
-			mScanState = ScanState.SCANNING_ROW;
-			mScanCount = 0;
-			timerHandler.postDelayed(updateKeyHighlight , SCAN_DELAY); //set delay for the initial post
-			break;
-		case SCANNING_ROW:
-			timerHandler.removeCallbacks(updateKeyHighlight);
-			startIndex = mFirstColKeyPtr.get(mScanCount%mFirstColKeyPtr.size()).intValue();
-			if((mScanCount+1)%mFirstColKeyPtr.size()==0) endIndex = startIndex + 6;
-			else endIndex = mFirstColKeyPtr.get((mScanCount+1)%mFirstColKeyPtr.size()).intValue();
-			for(int i=startIndex+1; i<endIndex; ++i) {
-				k = kl.get(i);
-				k.pressed = false;
-			}
-			mScanState = ScanState.SCANNING_COLUMN;
-			mCurrScanRow = mScanCount%mFirstColKeyPtr.size();
-			mScanCount = 0;
-			timerHandler.postDelayed(updateKeyHighlight , SCAN_DELAY); //set delay for the initial post
-			break;
-		case SCANNING_COLUMN:
-			timerHandler.removeCallbacks(updateKeyHighlight);
-			mScanState = ScanState.IDLE;
-			startIndex = mFirstColKeyPtr.get(mCurrScanRow).intValue();
-			if(mCurrScanRow==mFirstColKeyPtr.size()-1) colCount = 6;
-			else colCount = mFirstColKeyPtr.get(mCurrScanRow+1).intValue() - startIndex;
-			sel = startIndex+(mScanCount%colCount);
-			k = kl.get(sel);
-			k.pressed = false;
-			if(mCurrScanRow==mFirstColKeyPtr.size()-1) { // UI Navigation 
-				switch (mScanCount%6) {
-				case 0: keyDownUp(KeyEvent.KEYCODE_DPAD_UP); break;
-				case 1: keyDownUp(KeyEvent.KEYCODE_DPAD_DOWN); break;
-				case 2: keyDownUp(KeyEvent.KEYCODE_DPAD_LEFT); break;
-				case 3: keyDownUp(KeyEvent.KEYCODE_DPAD_RIGHT); break;
-				case 4: keyDownUp(KeyEvent.KEYCODE_DPAD_CENTER); break;
-				case 5: keyDownUp(KeyEvent.KEYCODE_BACK); break;
-				default: break;
+			case IDLE:
+				break;
+			case SCANNING_ROW:
+				mCurrScanRow = mScanCount%firstKeysIndexes.size();
+				mScanState = ScanState.SCANNING_COLUMN;
+				mScanCount = 0;
+				break;
+			case SCANNING_COLUMN:
+				firstKeyIndex = firstKeysIndexes.get(mCurrScanRow).intValue();
+				// if we are in the last row...
+				if(mCurrScanRow + 1 == firstKeysIndexes.size())
+					colCount = kl.size() - firstKeyIndex;
+				else
+					colCount = firstKeysIndexes.get(mCurrScanRow+1).intValue() - firstKeyIndex;
+				sel = firstKeyIndex + (mScanCount%colCount);
+				k = kl.get(sel);
+				if(mCurrScanRow==firstKeysIndexes.size()-1) { // UI Navigation 
+					switch (mScanCount%6) {
+					case 0: keyDownUp(KeyEvent.KEYCODE_DPAD_UP); break;
+					case 1: keyDownUp(KeyEvent.KEYCODE_DPAD_DOWN); break;
+					case 2: keyDownUp(KeyEvent.KEYCODE_DPAD_LEFT); break;
+					case 3: keyDownUp(KeyEvent.KEYCODE_DPAD_RIGHT); break;
+					case 4: keyDownUp(KeyEvent.KEYCODE_DPAD_CENTER); break;
+					case 5: keyDownUp(KeyEvent.KEYCODE_BACK); break;
+					default: break;
+					}
+				} else {
+					if (isWordSeparator(k.codes[0])) {
+			            // Handle separator
+			            if (mComposing.length() > 0) {
+			                commitTyped(getCurrentInputConnection());
+			            }
+			            sendKey(k.codes[0]);
+			            updateShiftKeyState(getCurrentInputEditorInfo());
+			        } else if (k.codes[0] == Keyboard.KEYCODE_DELETE) {
+			            handleBackspace();
+			        } else if (k.codes[0] == Keyboard.KEYCODE_SHIFT) {
+			            handleShift();
+			        } else if (k.codes[0] == Keyboard.KEYCODE_CANCEL) {
+			            handleClose();
+			            return;
+			        } else if (k.codes[0] == TeklaKeyboardView.KEYCODE_OPTIONS) {
+			            // Show a menu or somethin'
+			        } else if (k.codes[0] == Keyboard.KEYCODE_MODE_CHANGE
+			                && mTeklaKeyboard != null) {
+			            Keyboard current = mKeyboardView.getKeyboard();
+			            if (current == mSymbolsKeyboard || current == mSymbolsShiftedKeyboard) {
+			                current = mTeklaKeyboard;
+			                setQwertyKeyPointers();
+			            } else {
+			                current = mSymbolsKeyboard;
+			                setSymbolsKeyPointers();
+			            }
+			            mKeyboardView.setKeyboard(current);
+			            if (current == mSymbolsKeyboard) {
+			                current.setShifted(false);
+			            }
+			        } else {
+			            // handleCharacter(k.codes[0], keyCodes);
+			        }
 				}
-			} else {
-				if (isWordSeparator(k.codes[0])) {
-		            // Handle separator
-		            if (mComposing.length() > 0) {
-		                commitTyped(getCurrentInputConnection());
-		            }
-		            sendKey(k.codes[0]);
-		            updateShiftKeyState(getCurrentInputEditorInfo());
-		        } else if (k.codes[0] == Keyboard.KEYCODE_DELETE) {
-		            handleBackspace();
-		        } else if (k.codes[0] == Keyboard.KEYCODE_SHIFT) {
-		            handleShift();
-		        } else if (k.codes[0] == Keyboard.KEYCODE_CANCEL) {
-		            handleClose();
-		            return;
-		        } else if (k.codes[0] == TeklaKeyboardView.KEYCODE_OPTIONS) {
-		            // Show a menu or somethin'
-		        } else if (k.codes[0] == Keyboard.KEYCODE_MODE_CHANGE
-		                && mTeklaKeyboard != null) {
-		            Keyboard current = mKeyboardView.getKeyboard();
-		            if (current == mSymbolsKeyboard || current == mSymbolsShiftedKeyboard) {
-		                current = mTeklaKeyboard;
-		                setQwertyKeyPointers();
-		            } else {
-		                current = mSymbolsKeyboard;
-		                setSymbolsKeyPointers();
-		            }
-		            mKeyboardView.setKeyboard(current);
-		            if (current == mSymbolsKeyboard) {
-		                current.setShifted(false);
-		            }
-		        } else {
-		            handleCharacter(k.codes[0], keyCodes);
-		        }
-		      	
-			}
-			
-			break;
+				mScanState = ScanState.SCANNING_ROW;
+				mScanCount = 0;
+				break;
 		}
-		mKeyboardView.invalidateAllKeys(); // Redraw keyboard
+		updateHighlight();
+		redrawSoftKeyboard();
+	}
+
+	private void stepBack() {
 		
-		// TODO: Uncomment code below to allow for direct touch functionality.
-		// TODO: Add optional direct touch functionality to settings.
-		/*
-		if(primaryCode == 19) {
-	    	keyDownUp(KeyEvent.KEYCODE_DPAD_UP);
-	    } else if(primaryCode == 20) {
-	    	keyDownUp(KeyEvent.KEYCODE_DPAD_DOWN);
-	    } else if(primaryCode == 21) {
-	    	keyDownUp(KeyEvent.KEYCODE_DPAD_LEFT);
-	    } else if(primaryCode == 22) {
-	    	keyDownUp(KeyEvent.KEYCODE_DPAD_RIGHT);
-	    } else if(primaryCode == 23) {
-	    	keyDownUp(KeyEvent.KEYCODE_DPAD_CENTER);
-	    } else if(primaryCode == 4) {
-	    	keyDownUp(KeyEvent.KEYCODE_BACK);
-	    } 		
-		*/
+	}
+
+	private void focusFirst() {
+		mScanState = ScanState.SCANNING_ROW;
+		mScanCount = 0;
+		updateHighlight();
+		redrawSoftKeyboard();
+	}
+		
+	private void focusNext() {
+		
+		if (mScanState == ScanState.IDLE) {
+			focusFirst();
+		} else {
+			clearAllHighlights();
+			++mScanCount;
+			updateHighlight();
+			redrawSoftKeyboard();
+		}
+	};
+
+	private void focusPrev() {
+		if (mScanState == ScanState.IDLE) {
+			focusLast();
+		} else {
+			clearAllHighlights();
+			--mScanCount;
+			updateHighlight();
+			redrawSoftKeyboard();
+		}
+	};
+
+	private void focusLast() {
+		mScanState = ScanState.SCANNING_ROW;
+		mScanCount = -1;
+		updateHighlight();
+		redrawSoftKeyboard();
+	}
+		
+	private void clearAllHighlights() {
+		Keyboard kb = mKeyboardView.getKeyboard();
+		List<Key> kl = kb.getKeys();
+		
+		for (int i=0;i < kl.size();i++) {
+			kl.get(i).pressed = false;
+		}
+	}
+		
+	private void updateHighlight() {
+		Keyboard kb = mKeyboardView.getKeyboard();
+		List<Key> kl = kb.getKeys();
+		Key k;
+		int firstKeyIndex, lastKeyIndex, colCount;
+
+		switch(mScanState) {
+			case SCANNING_ROW:
+//				if(mScanCount/mFirstColKeyPtr.size()==3 &&
+//						mScanCount%mFirstColKeyPtr.size()==0) {
+//					mScanState = ScanState.IDLE;
+//					break;
+//				}
+				if (mScanCount < 0) mScanCount = firstKeysIndexes.size() - 1;
+				firstKeyIndex = firstKeysIndexes.get(mScanCount%firstKeysIndexes.size()).intValue();
+				// if we are in the last row...
+				if((mScanCount+1)%firstKeysIndexes.size()==0)
+					lastKeyIndex = kl.size();
+				else
+					lastKeyIndex = firstKeysIndexes.get((mScanCount+1)%firstKeysIndexes.size()).intValue();
+				for(int i=firstKeyIndex; i<lastKeyIndex; ++i) {
+					k = kl.get(i);
+					k.pressed = true;
+				}
+				break;
+			case SCANNING_COLUMN:
+				firstKeyIndex = firstKeysIndexes.get(mCurrScanRow%firstKeysIndexes.size()).intValue();
+				if((mCurrScanRow+1)%firstKeysIndexes.size()==0)
+					colCount = kl.size() - firstKeyIndex;
+				else
+					colCount = firstKeysIndexes.get((mCurrScanRow+1)%firstKeysIndexes.size()).intValue() - firstKeyIndex;
+				if (mScanCount < 0) mScanCount = colCount - 1;
+
+//				if(mScanCount/colCount==3 && mScanCount%colCount==0) {
+//					mScanState = ScanState.IDLE;
+//					break;
+//				}
+				k = kl.get(firstKeysIndexes.get(mCurrScanRow).intValue()+(mScanCount%colCount));
+				k.pressed = true;
+				break;				
+			}
+	}
+		
+	@Override
+	public void swipeUp() {
+		selectFocused();
+	}
+	@Override
+	public void swipeDown() {
+		// TODO Auto-generated method stub
 	}
 
 	@Override
+	public void swipeRight() {
+		focusNext();
+	}
+	@Override
+	public void swipeLeft() {
+		focusPrev();
+	}
+
 	public void onPress(int primaryCode) {
 		// TODO Auto-generated method stub
 	}
@@ -703,26 +843,6 @@ public class TeklaIME  extends InputMethodService
         updateShiftKeyState(getCurrentInputEditorInfo());
 	}
 
-	@Override
-	public void swipeDown() {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void swipeLeft() {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void swipeRight() {
-		// TODO Auto-generated method stub
-	}
-
-	@Override
-	public void swipeUp() {
-		// TODO Auto-generated method stub
-	}
-
     public void pickSuggestionManually(int index) {
         if (mCompletionOn && mCompletions != null && index >= 0
                 && index < mCompletions.length) {
@@ -740,80 +860,53 @@ public class TeklaIME  extends InputMethodService
         }
     }
     
-	private Runnable updateKeyHighlight = new Runnable() {
-		public void run() {
+	private void clearCurrentHighlight() {
+		Keyboard kb = mKeyboardView.getKeyboard();
+		List<Key> kl = kb.getKeys();
+		Key k;
+		
+		int firstKeyIndex, endIndex, colCount;
 
-			Keyboard kb = mKeyboardView.getKeyboard();
-			List<Key> kl = kb.getKeys();
-			Key k;
-			int startIndex, endIndex, colCount;
-			
-			switch(mScanState) {
+		switch(mScanState) {
 			case IDLE:
 				return;
 			case SCANNING_ROW:
-				startIndex = mFirstColKeyPtr.get(mScanCount%mFirstColKeyPtr.size()).intValue();
-				if((mScanCount+1)%mFirstColKeyPtr.size()==0) endIndex = startIndex + 6;
-				else endIndex = mFirstColKeyPtr.get((mScanCount+1)%mFirstColKeyPtr.size()).intValue();
-				for(int i=startIndex; i<endIndex; ++i) {
+				firstKeyIndex = firstKeysIndexes.get(mScanCount%firstKeysIndexes.size()).intValue();
+				if((mScanCount+1)%firstKeysIndexes.size()==0)
+					endIndex = firstKeyIndex + 6;
+				else
+					endIndex = firstKeysIndexes.get((mScanCount+1)%firstKeysIndexes.size()).intValue();
+				for(int i=firstKeyIndex; i<endIndex; ++i) {
 					k = kl.get(i);
 					k.pressed = false;
 				}
 				break;
 			case SCANNING_COLUMN:
-				startIndex = mFirstColKeyPtr.get(mCurrScanRow%mFirstColKeyPtr.size()).intValue();
-				if((mCurrScanRow+1)%mFirstColKeyPtr.size()==0) colCount = 6;
-				else colCount = mFirstColKeyPtr.get((mCurrScanRow+1)%mFirstColKeyPtr.size()).intValue() - startIndex;
-				k = kl.get(mFirstColKeyPtr.get(mCurrScanRow).intValue()+(mScanCount%colCount));
+				firstKeyIndex = firstKeysIndexes.get(mCurrScanRow%firstKeysIndexes.size()).intValue();
+				if((mCurrScanRow+1)%firstKeysIndexes.size()==0)
+					colCount = kl.size() - firstKeyIndex;
+				else
+					colCount = firstKeysIndexes.get((mCurrScanRow+1)%firstKeysIndexes.size()).intValue() - firstKeyIndex;
+				k = kl.get(firstKeysIndexes.get(mCurrScanRow).intValue()+(mScanCount%colCount));
 				k.pressed = false;
 				break;
-			}
-			
-			++mScanCount;
-			
-			switch(mScanState) {
-			case SCANNING_ROW:
-				if(mScanCount/mFirstColKeyPtr.size()==3 &&
-						mScanCount%mFirstColKeyPtr.size()==0) {
-					mScanState = ScanState.IDLE;
-					break;
-				}
-				startIndex = mFirstColKeyPtr.get(mScanCount%mFirstColKeyPtr.size()).intValue();
-				if((mScanCount+1)%mFirstColKeyPtr.size()==0) endIndex = startIndex + 6;
-				else endIndex = mFirstColKeyPtr.get((mScanCount+1)%mFirstColKeyPtr.size()).intValue();
-				for(int i=startIndex; i<endIndex; ++i) {
-					k = kl.get(i);
-					k.pressed = true;
-				}
-				break;
-			case SCANNING_COLUMN:
-				startIndex = mFirstColKeyPtr.get(mCurrScanRow%mFirstColKeyPtr.size()).intValue();
-				if((mCurrScanRow+1)%mFirstColKeyPtr.size()==0) colCount = 6;
-				else colCount = mFirstColKeyPtr.get((mCurrScanRow+1)%mFirstColKeyPtr.size()).intValue() - startIndex;
-				if(mScanCount/colCount==3 && mScanCount%colCount==0) {
-					mScanState = ScanState.IDLE;
-					break;
-				}
-				k = kl.get(mFirstColKeyPtr.get(mCurrScanRow).intValue()+(mScanCount%colCount));
-				k.pressed = true;
-				break;				
-			}
-			
-			// Should't mess with GUI from within a thread,
-			// we'll use a handler for that.
-			Message msg = Message.obtain();
-			msg.what = REDRAW_KEYBOARD;
-			uiDrawHandler.sendMessage(msg);  
-			
-			//Do this again in SCAN_DELAY milliseconds           
-			timerHandler.postDelayed(this, SCAN_DELAY);
 		}
-	};
-	
+	}
+
 	/**
-	* Helper handler to perform UI drawing operations.
+	* Helper method to perform UI drawing operations
+	* using a handler.
 	*/
-	private Handler uiDrawHandler = new Handler() {
+	private void redrawSoftKeyboard () {
+		// Should't mess with GUI from within a thread,
+		// and threads call this method, so we'll use a
+		// handler to take care of it.
+		Message msg = Message.obtain();
+		msg.what = REDRAW_KEYBOARD;
+		redrawHandler.sendMessage(msg);  
+	}
+	
+	private Handler redrawHandler = new Handler() {
 		@Override
 		public void handleMessage(Message msg) {
 			switch (msg.what) {
