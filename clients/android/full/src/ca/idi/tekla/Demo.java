@@ -1,6 +1,6 @@
 package ca.idi.tekla;
 
-import ca.idi.tekla.sep.SEPService;
+import ca.idi.tekla.sep.SwitchEventProvider;
 import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -30,8 +30,8 @@ public class Demo extends Activity {
         
         //Intents & Intent Filters
         final Intent serviceIntent = new Intent();
-        serviceIntent.setAction(SEPService.INTENT_START_SERVICE);
-        IntentFilter switchEventFilter = new IntentFilter(SEPService.ACTION_SWITCH_EVENT_RECEIVED);
+        serviceIntent.setAction(SwitchEventProvider.INTENT_START_SERVICE);
+        IntentFilter switchEventFilter = new IntentFilter(SwitchEventProvider.ACTION_SWITCH_EVENT_RECEIVED);
 
         outEditText.setText("");
 
@@ -65,17 +65,17 @@ public class Demo extends Activity {
 		@Override
 		public void onReceive(Context context, Intent intent) {
 			Bundle extras = intent.getExtras();
-			switch (extras.getInt(SEPService.EXTRA_SWITCH_EVENT)) {
-				case SEPService.SWITCH_FWD:
+			switch (extras.getInt(SwitchEventProvider.EXTRA_SWITCH_EVENT)) {
+				case SwitchEventProvider.SWITCH_FWD:
 					updateOutText("F");
 					break;
-				case SEPService.SWITCH_BACK:
+				case SwitchEventProvider.SWITCH_BACK:
 					updateOutText("B");
 					break;
-				case SEPService.SWITCH_RIGHT:
+				case SwitchEventProvider.SWITCH_RIGHT:
 					updateOutText("R");
 					break;
-				case SEPService.SWITCH_LEFT:
+				case SwitchEventProvider.SWITCH_LEFT:
 					updateOutText("L");
 					break;
 			}

@@ -25,7 +25,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.widget.Toast;
 
-public class SEPService extends Service implements Runnable {
+public class SwitchEventProvider extends Service implements Runnable {
 
     private NotificationManager mNM;
 	private BluetoothAdapter btAdapter;
@@ -59,8 +59,8 @@ public class SEPService extends Service implements Runnable {
      * IPC.
      */
     public class LocalBinder extends Binder {
-    	SEPService getService() {
-            return SEPService.this;
+    	SwitchEventProvider getService() {
+            return SwitchEventProvider.this;
         }
     }
 
@@ -77,20 +77,21 @@ public class SEPService extends Service implements Runnable {
         mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 	}
 	
-    @Override
+	@Override
 	public void onDestroy() {
-        /* Call this from the main Activity to shutdown the connection */
-        try {
-            // Cancel the persistent notification.
-            mNM.cancel(R.string.sep_started);
-            // Close socket
-        	clientSocket.close();
-        } catch (IOException e) {
-        	e.printStackTrace();
-        	showToast(e.getMessage());
-        }
-  }
-    
+		/* Call this from the main Activity to shutdown the connection */
+		try {
+			// Cancel the persistent notification.
+			mNM.cancel(R.string.sep_started);
+			// Close socket
+			if (clientSocket != null)
+				clientSocket.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+			showToast(e.getMessage());
+		}
+	}
+
     @Override
 	public IBinder onBind(Intent arg0) {
 		return mBinder;
@@ -104,11 +105,12 @@ public class SEPService extends Service implements Runnable {
         if (btAdapter == null) {
             // Device does not support Bluetooth
             showToast("Device does not support Bluetooth");
-        	stopSelf();
+    		stopSelf();
+            return Service.START_NOT_STICKY;
         } else {
 	        if (!btAdapter.isEnabled()) {
 	            // Bluetooth not enabled
-	        	showToast("Bluetooth not enabled");
+	        	// showToast("Bluetooth not enabled");
 	            Intent enableBTIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
 	            enableBTIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 	            startActivity(enableBTIntent);
@@ -116,8 +118,9 @@ public class SEPService extends Service implements Runnable {
 	        	if (connect2Server()) {
 	        		startBroadcasting();
 	        	} else {
-	        		showToast("Failed to connect external input.");
+	        		showToast("Failed to connect Tekla shield");
 	        		stopSelf();
+	                return Service.START_NOT_STICKY;
 	        	}
 	        }
         }
