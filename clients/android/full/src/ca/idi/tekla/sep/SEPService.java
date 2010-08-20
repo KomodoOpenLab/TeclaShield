@@ -81,17 +81,14 @@ public class SEPService extends Service implements Runnable {
 	public void onDestroy() {
         /* Call this from the main Activity to shutdown the connection */
         try {
-            // Close socket
-        	clientSocket.close();
             // Cancel the persistent notification.
             mNM.cancel(R.string.sep_started);
+            // Close socket
+        	clientSocket.close();
         } catch (IOException e) {
         	e.printStackTrace();
         	showToast(e.getMessage());
         }
-
-        // Tell the user we stopped.
-        showToast(R.string.sep_stopped);
   }
     
     @Override
@@ -120,6 +117,7 @@ public class SEPService extends Service implements Runnable {
 	        		startBroadcasting();
 	        	} else {
 	        		showToast("Failed to connect external input.");
+	        		stopSelf();
 	        	}
 	        }
         }
@@ -172,7 +170,9 @@ public class SEPService extends Service implements Runnable {
 		}
 	}
 	
-	// Bluetooth State Events will be processed here
+	/**
+	* Bluetooth State Events will be processed here
+	*/
 	private BroadcastReceiver btStateReceiver = new BroadcastReceiver() {
 		@Override
 		public void onReceive(Context context, Intent intent) {
