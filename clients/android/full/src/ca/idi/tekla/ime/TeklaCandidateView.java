@@ -31,7 +31,7 @@ import java.util.List;
 
 import ca.idi.tekla.R;
 
-public class CandidateView extends View {
+public class TeklaCandidateView extends View {
 
     private static final int OUT_OF_BOUNDS = -1;
 
@@ -71,7 +71,7 @@ public class CandidateView extends View {
      * @param context
      * @param attrs
      */
-    public CandidateView(Context context) {
+    public TeklaCandidateView(Context context) {
         super(context);
         mSelectionHighlight = context.getResources().getDrawable(
                 android.R.drawable.list_selector_background);

@@ -10,6 +10,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
@@ -17,6 +18,7 @@ import android.inputmethodservice.Keyboard.Key;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.SystemClock;
+import android.preference.PreferenceManager;
 import android.text.method.MetaKeyKeyListener;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
@@ -24,6 +26,7 @@ import android.view.View;
 import android.view.inputmethod.CompletionInfo;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
+import android.widget.Toast;
 
 public class TeklaInputMethod extends InputMethodService 
 	implements KeyboardView.OnKeyboardActionListener {
@@ -40,7 +43,7 @@ public class TeklaInputMethod extends InputMethodService
 	private KeyboardView mKeyboardView; 
     private TeklaKeyboard mHardKeysKeyboard, mQwertyKeyboard,
 		mSymbolsKeyboard, mSymbolsShiftKeyboard;
-    private TeklaIMEHelper mTeklaIMEHelper = new TeklaIMEHelper();
+    private TeklaIMEHelper mTeklaIMEHelper;
     
     private enum ScanState {
     	SCANNING_ROW, SCANNING_COLUMN
@@ -58,28 +61,34 @@ public class TeklaInputMethod extends InputMethodService
     private boolean mCapsLock;
     private long mLastShiftTime;
     private CompletionInfo[] mCompletions;
-    private CandidateView mCandidateView;
+    private TeklaCandidateView mCandidateView;
     private long mMetaState;
     
-    /**
-     * Main initialization of the input method component.  Be sure to call
-     * to super class.
-     */
-    @Override
-    public void onCreate() {
-    	super.onCreate(); 
-        mWordSeparators = getResources().getString(R.string.word_separators);     
+	/**
+	* Main initialization of the input method component.  Be sure to call
+	* to super class.
+	*/
+	@Override
+	public void onCreate() {
+		super.onCreate(); 
+		
+		// Use the following line to debug IME service.
+		// android.os.Debug.waitForDebugger();
 
-        //Intents & Intent Filters
-        startService(new Intent(SwitchEventProvider.INTENT_START_SERVICE));
-        IntentFilter sepServiceFilter = new IntentFilter(SwitchEventProvider.ACTION_SWITCH_EVENT_RECEIVED);
-    	registerReceiver(sepBroadcastReceiver, sepServiceFilter);
-    	
-        // Use the following line to debug IME service.
-        android.os.Debug.waitForDebugger();
-        
-    }
-    
+		mTeklaIMEHelper = new TeklaIMEHelper(this);
+
+		// Retrieve preferences
+		retrievePreferences();
+
+		mWordSeparators = getResources().getString(R.string.word_separators);     
+		//Intents & Intent Filters
+		if (mTeklaIMEHelper.connect2shield) {
+			IntentFilter sepServiceFilter = new IntentFilter(SwitchEventProvider.ACTION_SWITCH_EVENT_RECEIVED);
+			registerReceiver(sepBroadcastReceiver, sepServiceFilter);
+			startService(new Intent(SwitchEventProvider.INTENT_START_SERVICE));
+		}
+	}
+
     /**
      * This is the point where you can do all of your UI initialization.  It
      * is called after creation and any configuration change.
@@ -125,6 +134,8 @@ public class TeklaInputMethod extends InputMethodService
 	@Override
 	public void onStartInput(EditorInfo attribute, boolean restarting) {
 		super.onStartInput(attribute, restarting);
+		
+		retrievePreferences();
 		
 	    // Reset our state.  We want to do this even if restarting, because
         // the underlying state of the text editor could have changed in any way.
@@ -201,6 +212,10 @@ public class TeklaInputMethod extends InputMethodService
             default:
                 // For all unknown input types default to
             	// the current keyboard and features
+            	if (mTeklaIMEHelper.alwaysShowKeyboard)
+            		mKeyboardType = KeyboardType.HARD_KEYS;
+            	else
+            		mKeyboardType = KeyboardType.QWERTY;
         }
         mImeOptions = attribute.imeOptions;
 	}
@@ -238,7 +253,7 @@ public class TeklaInputMethod extends InputMethodService
      */
     @Override
     public View onCreateCandidatesView() {
-        mCandidateView = new CandidateView(this);
+        mCandidateView = new TeklaCandidateView(this);
         mCandidateView.setService(this);
         return null; // Do not create a candidate view
         //TODO: Implement functional candidate view?
@@ -355,20 +370,24 @@ public class TeklaInputMethod extends InputMethodService
 
 	@Override
 	public void swipeUp() {
-		selectFocused();
+		// TODO: Fix highlighting to enable this
+		// selectFocused();
 	}
 	@Override
 	public void swipeDown() {
-		stepBack();
+		// TODO: Fix highlighting to enable this
+		// stepBack();
 	}
 
 	@Override
 	public void swipeRight() {
-		focusNext();
+		// TODO: Fix highlighting to enable this
+		// focusNext();
 	}
 	@Override
 	public void swipeLeft() {
-		focusPrev();
+		// TODO: Fix highlighting to enable this
+		// focusPrev();
 	}
 
 	@Override
@@ -387,19 +406,11 @@ public class TeklaInputMethod extends InputMethodService
 	/**
 	* This is called every time the soft IME window is hidden from the user.
 	*/
-    @Override
-    public void onWindowHidden() {
-    	showWindow(true); // Never hide the window!
-    }
-
-	/**
-	* This is called to determine weather the IME window should be
-	* shown to the user.
-	*/
-    @Override
-    public boolean onEvaluateInputViewShown() {
-    	return true; // Always encourage the IME window to be displayed.
-    }
+	@Override
+	public void onWindowHidden() {
+		if (mTeklaIMEHelper.alwaysShowKeyboard)
+			showWindow(true); // Don't hide the window!
+	}
 
 	/**
 	* This is called to determine weather the IME window should be
@@ -846,6 +857,22 @@ public class TeklaInputMethod extends InputMethodService
 			new KeyEvent(KeyEvent.ACTION_DOWN, keyEventCode));
 		getCurrentInputConnection().sendKeyEvent(
 			new KeyEvent(KeyEvent.ACTION_UP, keyEventCode));
+	}
+
+	private void retrievePreferences() {
+		// Get the xml/preferences.xml preferences
+		SharedPreferences prefs = PreferenceManager
+		                .getDefaultSharedPreferences(getBaseContext());
+		mTeklaIMEHelper.alwaysShowKeyboard = prefs.getBoolean("always_show_keyboard", true);
+		mTeklaIMEHelper.connect2shield = prefs.getBoolean("connect2shield", true);
+	}
+	
+	private void showToast(String msg) {
+		Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+	}
+
+	private void showToast(int resid) {
+		Toast.makeText(this, resid, Toast.LENGTH_SHORT).show();
 	}
 
 }

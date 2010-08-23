@@ -5,12 +5,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
 
-import ca.idi.tekla.Demo;
-import ca.idi.tekla.R;
-
-import android.app.Notification;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -27,7 +21,6 @@ import android.widget.Toast;
 
 public class SwitchEventProvider extends Service implements Runnable {
 
-    private NotificationManager mNM;
 	private BluetoothAdapter btAdapter;
 	private BluetoothSocket clientSocket;
     private InputStream inStream;
@@ -73,19 +66,16 @@ public class SwitchEventProvider extends Service implements Runnable {
         //Intents & Intent Filters
         IntentFilter btStateFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
     	registerReceiver(btStateReceiver, btStateFilter);
-
-        mNM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 	}
 	
 	@Override
 	public void onDestroy() {
 		/* Call this from the main Activity to shutdown the connection */
 		try {
-			// Cancel the persistent notification.
-			mNM.cancel(R.string.sep_started);
 			// Close socket
 			if (clientSocket != null)
 				clientSocket.close();
+			unregisterReceiver(btStateReceiver);
 		} catch (IOException e) {
 			e.printStackTrace();
 			showToast(e.getMessage());
@@ -132,9 +122,6 @@ public class SwitchEventProvider extends Service implements Runnable {
 	public void run() {
 		Looper.prepare();
 		
-        // Display a notification about us starting.  We put an icon in the status bar.
-        showNotification();
-
         try {
 			inStream = clientSocket.getInputStream();
 			outStream = clientSocket.getOutputStream();
@@ -215,30 +202,6 @@ public class SwitchEventProvider extends Service implements Runnable {
         thread.start();
 	}
 	
-    /**
-     * Show a notification while this service is running.
-     */
-    private void showNotification() {
-        // In this sample, we'll use the same text for the ticker and the expanded notification
-        CharSequence text = getText(R.string.sep_started);
-
-        // Set the icon, scrolling text and timestamp
-        Notification notification = new Notification(R.drawable.meadl_status, text,
-                System.currentTimeMillis());
-
-        // The PendingIntent to launch our activity if the user selects this notification
-        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
-                new Intent(this, Demo.class), 0);
-
-        // Set the info for the views that show in the notification panel.
-        notification.setLatestEventInfo(this, getText(R.string.sep_label),
-                       text, contentIntent);
-
-        // Send the notification.
-        // We use a layout id because it is a unique number.  We use it later to cancel.
-        mNM.notify(R.string.sep_started, notification);
-    }
-
     public void write(byte b) {
 		try {
 			outStream.write(b);

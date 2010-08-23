@@ -9,9 +9,6 @@
 	<string name="stop_button">Stop</string>
 	<string name="sep_started">Switch Event Provider Started</string>
 	<string name="sep_label">Switch Event Provider</string>
-	<string name="sep_stopped">Switch Event Provider Stopped</string>
-	<string name="sep_connected">Switch Event Provider Connected</string>
-	<string name="sep_disconnected">Switch Event Provider Disconnected</string>
 	
 	<!-- Input Method Strings -->
 	<string name="kbd_name">Tekla keyboard</string>
@@ -24,5 +21,7 @@
 	<string name="label_next_key">Next</string>
 	<string name="label_send_key">Send</string>
 	
-<string name="ime_settings">Tekla Keyboard Settings</string>
+	<!-- Preferences -->
+	<string name="always_show_keyboard">Always show keyboard</string>
+	<string name="connect2shield">Connect to Tekla shield</string>
 </resources>
