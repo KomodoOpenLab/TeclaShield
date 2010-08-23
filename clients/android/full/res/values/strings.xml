@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+	<string name="app_name">Tekla</string>
+
+	<!-- Switch Event Provider Strings -->
+	
+	<string name="start_button">Start</string>
+	<string name="stop_button">Stop</string>
+	<string name="sep_started">Switch Event Provider Started</string>
+	<string name="sep_label">Switch Event Provider</string>
+	
+	<!-- Input Method Strings -->
+	<string name="kbd_name">Tekla keyboard</string>
+
+	<!-- Symbols that are commonly considered word separators in this language -->
+	<string name="word_separators">\u0020.,;:!?\n()[]*&amp;@{}/&lt;&gt;_+=|&quot;</string>
+
+	<!-- Labels on soft keys -->
+	<string name="label_go_key">Go</string>
+	<string name="label_next_key">Next</string>
+	<string name="label_send_key">Send</string>
+	
+	<!-- Preferences -->
+	<string name="always_show_keyboard">Always show keyboard</string>
+	<string name="connect2shield">Connect to Tekla shield</string>
+</resources>
