@@ -1,17 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PreferenceScreen
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:key="main_screen">
-    <CheckBoxPreference
-            android:key="always_show_keyboard"
-            android:title="@string/always_show_keyboard"
-            android:persistent="true"
-            android:defaultValue="true"
-            />
-    <CheckBoxPreference
-            android:key="connect2shield"
-            android:title="@string/connect2shield"
-            android:persistent="true"
-            android:defaultValue="true"
-            />
+	xmlns:android="http://schemas.android.com/apk/res/android"
+	android:key="main_screen">
+	<CheckBoxPreference
+		android:key="persistent_keyboard"
+		android:title="@string/always_show_keyboard"
+		android:persistent="true"
+		android:defaultValue="true"
+		/>
+	<PreferenceCategory
+		android:title="Tekla Shield">
+		<CheckBoxPreference
+			android:key="connect_shield"
+			android:title="@string/connect_shield"
+			android:persistent="true"
+			android:defaultValue="true"
+			/>
+        <EditTextPreference
+				android:title="Tekla shield ID"
+				android:key="shield_mac"
+				android:persistent="true"
+				android:defaultValue=""
+                />
+	</PreferenceCategory>
 </PreferenceScreen>

@@ -1,9 +1,12 @@
 package ca.idi.tekla.ime;
 
 import ca.idi.tekla.R;
+import ca.idi.tekla.sep.SwitchEventProvider;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.inputmethodservice.KeyboardView;
 import android.os.Handler;
 import android.os.Message;
@@ -18,15 +21,16 @@ public class TeklaIMEHelper {
 
 
     // Preferences
-    public boolean alwaysShowKeyboard;
-	public boolean connect2shield;
+    public boolean persistentKeyboard;
+	public boolean connectShield;
+	public String shieldMac;
 
 	public TeklaIMEHelper (Context context) {
 		this.context = context;
 		mNotificationManager = (NotificationManager)
 			this.context.getSystemService(Context.NOTIFICATION_SERVICE);
 	}
-
+	
     /**
      * Show a notification while this service is running.
      */

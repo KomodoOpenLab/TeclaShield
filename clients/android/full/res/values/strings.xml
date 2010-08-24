@@ -12,6 +12,7 @@
 	
 	<!-- Input Method Strings -->
 	<string name="kbd_name">Tekla keyboard</string>
+	<string name="kbd_settings">Tekla keyboard settings</string>
 
 	<!-- Symbols that are commonly considered word separators in this language -->
 	<string name="word_separators">\u0020.,;:!?\n()[]*&amp;@{}/&lt;&gt;_+=|&quot;</string>
@@ -23,5 +24,9 @@
 	
 	<!-- Preferences -->
 	<string name="always_show_keyboard">Always show keyboard</string>
-	<string name="connect2shield">Connect to Tekla shield</string>
+	<string name="connect_shield">Connect to Tekla shield</string>
+	<string name="persistent_checked_summary">The soft keyboard will stay on screen</string>
+	<string name="persistent_unchecked_summary">The soft keyboard will be shown only when entering text</string>
+	<string name="shield_checked_summary">Will search for shield</string>
+	<string name="shield_unchecked_summary">Check to connect to a Tekla shield</string>
 </resources>

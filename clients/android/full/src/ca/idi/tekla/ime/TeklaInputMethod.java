@@ -82,11 +82,8 @@ public class TeklaInputMethod extends InputMethodService
 
 		mWordSeparators = getResources().getString(R.string.word_separators);     
 		//Intents & Intent Filters
-		if (mTeklaIMEHelper.connect2shield) {
-			IntentFilter sepServiceFilter = new IntentFilter(SwitchEventProvider.ACTION_SWITCH_EVENT_RECEIVED);
-			registerReceiver(sepBroadcastReceiver, sepServiceFilter);
-			startService(new Intent(SwitchEventProvider.INTENT_START_SERVICE));
-		}
+		if (mTeklaIMEHelper.connectShield)
+			startSwitchEventProvider();
 	}
 
     /**
@@ -136,6 +133,7 @@ public class TeklaInputMethod extends InputMethodService
 		super.onStartInput(attribute, restarting);
 		
 		retrievePreferences();
+        showWindow(mTeklaIMEHelper.persistentKeyboard);
 		
 	    // Reset our state.  We want to do this even if restarting, because
         // the underlying state of the text editor could have changed in any way.
@@ -212,10 +210,7 @@ public class TeklaInputMethod extends InputMethodService
             default:
                 // For all unknown input types default to
             	// the current keyboard and features
-            	if (mTeklaIMEHelper.alwaysShowKeyboard)
-            		mKeyboardType = KeyboardType.HARD_KEYS;
-            	else
-            		mKeyboardType = KeyboardType.QWERTY;
+           		// mKeyboardType = KeyboardType.QWERTY;
         }
         mImeOptions = attribute.imeOptions;
 	}
@@ -408,8 +403,8 @@ public class TeklaInputMethod extends InputMethodService
 	*/
 	@Override
 	public void onWindowHidden() {
-		if (mTeklaIMEHelper.alwaysShowKeyboard)
-			showWindow(true); // Don't hide the window!
+		showKeyboard(KeyboardType.HARD_KEYS, null);
+		showWindow(mTeklaIMEHelper.persistentKeyboard);
 	}
 
 	/**
@@ -520,22 +515,38 @@ public class TeklaInputMethod extends InputMethodService
 			pm.userActivity(SystemClock.uptimeMillis(), true);
 			Bundle extras = intent.getExtras();
 			switch(extras.getInt(SwitchEventProvider.EXTRA_SWITCH_EVENT)) {
-			case SwitchEventProvider.SWITCH_FWD:
-				selectFocused();
-				break;
-			case SwitchEventProvider.SWITCH_BACK:
-				stepBack();
-				break;
-			case SwitchEventProvider.SWITCH_RIGHT:
-				focusNext();
-				break;
-			case SwitchEventProvider.SWITCH_LEFT:
-				focusPrev();
-				break;
-			}
+				case SwitchEventProvider.SWITCH_FWD:
+					selectFocused();
+					break;
+				case SwitchEventProvider.SWITCH_BACK:
+					stepBack();
+					break;
+				case SwitchEventProvider.SWITCH_RIGHT:
+					focusNext();
+					break;
+				case SwitchEventProvider.SWITCH_LEFT:
+					focusPrev();
+					break;
+				}
 		}
 	};
 	
+	private void startSwitchEventProvider() {
+		Thread thread = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				IntentFilter sepServiceFilter = new IntentFilter(SwitchEventProvider.ACTION_SWITCH_EVENT_RECEIVED);
+				registerReceiver(sepBroadcastReceiver, sepServiceFilter);
+				Intent sepIntent = new Intent(SwitchEventProvider.INTENT_START_SERVICE);
+				sepIntent.putExtra(SwitchEventProvider.EXTRA_SHIELD_MAC, mTeklaIMEHelper.shieldMac);
+				startService(sepIntent);
+			}
+			
+		});
+		thread.start();
+	}
+    
 	private void updateHighlight() {
 		Keyboard kb = mKeyboardView.getKeyboard();
 		List<Key> kl = kb.getKeys();
@@ -863,16 +874,9 @@ public class TeklaInputMethod extends InputMethodService
 		// Get the xml/preferences.xml preferences
 		SharedPreferences prefs = PreferenceManager
 		                .getDefaultSharedPreferences(getBaseContext());
-		mTeklaIMEHelper.alwaysShowKeyboard = prefs.getBoolean("always_show_keyboard", true);
-		mTeklaIMEHelper.connect2shield = prefs.getBoolean("connect2shield", true);
+		mTeklaIMEHelper.persistentKeyboard = prefs.getBoolean("persistent_keyboard", true);
+		mTeklaIMEHelper.connectShield = prefs.getBoolean("connect_shield", true);
+		mTeklaIMEHelper.shieldMac = prefs.getString("shield_mac", "");
 	}
 	
-	private void showToast(String msg) {
-		Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-	}
-
-	private void showToast(int resid) {
-		Toast.makeText(this, resid, Toast.LENGTH_SHORT).show();
-	}
-
 }
