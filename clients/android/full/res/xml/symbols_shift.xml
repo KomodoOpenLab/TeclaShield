@@ -70,9 +70,9 @@
     <Row android:rowEdgeFlags="bottom">
         <Key android:codes="-2" android:keyLabel="ABC" android:keyWidth="15%p"
         	 android:keyEdgeFlags="left" />
+        <Key android:codes="8230" android:keyLabel="…" android:keyWidth="15%p" />
         <Key android:codes="32" android:keyIcon="@drawable/sym_keyboard_space" android:keyWidth="30%p" 
                 android:isRepeatable="true"/>
-        <Key android:codes="8230" android:keyLabel="…" android:keyWidth="15%p" />
         <Key android:codes="10" android:keyIcon="@drawable/sym_keyboard_return"
                 android:keyWidth="20%p" android:keyEdgeFlags="right" />
         <Key android:codes="-3" android:keyIcon="@drawable/sym_keyboard_hide" 

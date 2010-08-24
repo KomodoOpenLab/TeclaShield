@@ -674,9 +674,11 @@ public class TeklaInputMethod extends InputMethodService
 			mKeyboardView.setKeyboard(curKeyboard);
 			mKeyboardType = type;
 			setFirstKeyPointers(type);
-			updateHighlight();
 			if (type != KeyboardType.HARD_KEYS)
 				focusFirst();
+			else
+				mScanRowCount = 0;
+				updateHighlight();
 		}
 	}
 
