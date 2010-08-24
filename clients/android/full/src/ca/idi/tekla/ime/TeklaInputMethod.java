@@ -10,7 +10,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
@@ -18,7 +17,6 @@ import android.inputmethodservice.Keyboard.Key;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.SystemClock;
-import android.preference.PreferenceManager;
 import android.text.method.MetaKeyKeyListener;
 import android.view.KeyCharacterMap;
 import android.view.KeyEvent;
@@ -26,7 +24,6 @@ import android.view.View;
 import android.view.inputmethod.CompletionInfo;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
-import android.widget.Toast;
 
 public class TeklaInputMethod extends InputMethodService 
 	implements KeyboardView.OnKeyboardActionListener {
@@ -76,14 +73,12 @@ public class TeklaInputMethod extends InputMethodService
 		// android.os.Debug.waitForDebugger();
 
 		mTeklaIMEHelper = new TeklaIMEHelper(this);
-
-		// Retrieve preferences
-		retrievePreferences();
+        mKeyboardType = KeyboardType.HARD_KEYS;
 
 		mWordSeparators = getResources().getString(R.string.word_separators);     
 		//Intents & Intent Filters
-		if (mTeklaIMEHelper.connectShield)
-			startSwitchEventProvider();
+		IntentFilter sepServiceFilter = new IntentFilter(SwitchEventProvider.ACTION_SWITCH_EVENT_RECEIVED);
+		registerReceiver(sepBroadcastReceiver, sepServiceFilter);
 	}
 
     /**
@@ -117,7 +112,7 @@ public class TeklaInputMethod extends InputMethodService
         mKeyboardView = (KeyboardView) getLayoutInflater().inflate(
                 R.layout.tekla_keyboardview, null);
         mKeyboardView.setOnKeyboardActionListener(this);
-        showKeyboard(KeyboardType.HARD_KEYS, null);
+        showKeyboard(mKeyboardType, null);
         
         return mKeyboardView;
     }
@@ -132,8 +127,14 @@ public class TeklaInputMethod extends InputMethodService
 	public void onStartInput(EditorInfo attribute, boolean restarting) {
 		super.onStartInput(attribute, restarting);
 		
-		retrievePreferences();
-        showWindow(mTeklaIMEHelper.persistentKeyboard);
+        if (mTeklaIMEHelper.retrievePersistentKeyboard())
+        	showWindow(true);
+        else
+        	hideWindow();
+        if (mTeklaIMEHelper.retrieveConnectShield())
+        	startSwitchEventProvider();
+        else
+        	stopSwitchEventProvider();
 		
 	    // Reset our state.  We want to do this even if restarting, because
         // the underlying state of the text editor could have changed in any way.
@@ -404,7 +405,10 @@ public class TeklaInputMethod extends InputMethodService
 	@Override
 	public void onWindowHidden() {
 		showKeyboard(KeyboardType.HARD_KEYS, null);
-		showWindow(mTeklaIMEHelper.persistentKeyboard);
+        if (mTeklaIMEHelper.retrievePersistentKeyboard())
+        	showWindow(true);
+        else
+        	hideWindow();
 	}
 
 	/**
@@ -442,9 +446,10 @@ public class TeklaInputMethod extends InputMethodService
 				if (mKeyboardType == KeyboardType.HARD_KEYS)
 					mScanState = ScanState.SCANNING_COLUMN;
 					// Because it only has one row
-				else
+				else {
 					mScanState = ScanState.SCANNING_ROW;
-				focusFirst();
+					focusFirst();
+				}
 				break;
 		}
 	}
@@ -536,17 +541,36 @@ public class TeklaInputMethod extends InputMethodService
 
 			@Override
 			public void run() {
-				IntentFilter sepServiceFilter = new IntentFilter(SwitchEventProvider.ACTION_SWITCH_EVENT_RECEIVED);
-				registerReceiver(sepBroadcastReceiver, sepServiceFilter);
 				Intent sepIntent = new Intent(SwitchEventProvider.INTENT_START_SERVICE);
-				sepIntent.putExtra(SwitchEventProvider.EXTRA_SHIELD_MAC, mTeklaIMEHelper.shieldMac);
-				startService(sepIntent);
+				sepIntent.putExtra(SwitchEventProvider.EXTRA_SHIELD_MAC, mTeklaIMEHelper.retrieveShieldMac());
+				startSEPService(sepIntent);
 			}
 			
 		});
 		thread.start();
 	}
     
+	private void stopSwitchEventProvider() {
+		Thread thread = new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				Intent sepIntent = new Intent(SwitchEventProvider.INTENT_START_SERVICE);
+				stopSEPService(sepIntent);
+			}
+			
+		});
+		thread.start();
+	}
+	
+	private Boolean startSEPService(Intent sepIntent) {
+		return startService(sepIntent) == null? false:true;
+	}
+	
+	private Boolean stopSEPService(Intent sepIntent) {
+		return stopService(sepIntent);
+	}
+	
 	private void updateHighlight() {
 		Keyboard kb = mKeyboardView.getKeyboard();
 		List<Key> kl = kb.getKeys();
@@ -650,7 +674,9 @@ public class TeklaInputMethod extends InputMethodService
 			mKeyboardView.setKeyboard(curKeyboard);
 			mKeyboardType = type;
 			setFirstKeyPointers(type);
-			focusFirst();
+			updateHighlight();
+			if (type != KeyboardType.HARD_KEYS)
+				focusFirst();
 		}
 	}
 
@@ -870,13 +896,4 @@ public class TeklaInputMethod extends InputMethodService
 			new KeyEvent(KeyEvent.ACTION_UP, keyEventCode));
 	}
 
-	private void retrievePreferences() {
-		// Get the xml/preferences.xml preferences
-		SharedPreferences prefs = PreferenceManager
-		                .getDefaultSharedPreferences(getBaseContext());
-		mTeklaIMEHelper.persistentKeyboard = prefs.getBoolean("persistent_keyboard", true);
-		mTeklaIMEHelper.connectShield = prefs.getBoolean("connect_shield", true);
-		mTeklaIMEHelper.shieldMac = prefs.getString("shield_mac", "");
-	}
-	
 }

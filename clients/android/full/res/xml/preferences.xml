@@ -4,22 +4,23 @@
 	android:key="main_screen">
 	<CheckBoxPreference
 		android:key="persistent_keyboard"
-		android:title="@string/always_show_keyboard"
+		android:title="@string/persistent_title"
+		android:summary="@string/persistent_summary"
 		android:persistent="true"
-		android:defaultValue="true"
+		android:defaultValue="false"
 		/>
 	<PreferenceCategory
 		android:title="Tekla Shield">
 		<CheckBoxPreference
 			android:key="connect_shield"
-			android:title="@string/connect_shield"
+			android:title="@string/shield_title"
 			android:persistent="true"
-			android:defaultValue="true"
+			android:defaultValue="false"
 			/>
-        <EditTextPreference
-				android:title="Tekla shield ID"
-				android:key="shield_mac"
-				android:persistent="true"
+        <Preference
+                android:key="shield_mac"
+                android:title="No shield found"
+                android:enabled="false"
 				android:defaultValue=""
                 />
 	</PreferenceCategory>

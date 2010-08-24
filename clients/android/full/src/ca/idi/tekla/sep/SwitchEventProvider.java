@@ -5,6 +5,12 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.UUID;
 
+import ca.idi.tekla.R;
+import ca.idi.tekla.TeklaIMESettings;
+
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -37,6 +43,9 @@ public class SwitchEventProvider extends Service implements Runnable {
     private InputStream inStream;
     private OutputStream outStream;
     private String mServerAddress;
+
+    private NotificationManager mNotificationManager;
+    private Boolean mAlreadyStarted;
     
     private Intent mSwitchEventIntent;
     
@@ -69,6 +78,8 @@ public class SwitchEventProvider extends Service implements Runnable {
     	mSwitchEventIntent = new Intent(ACTION_SWITCH_EVENT_RECEIVED);
         IntentFilter btStateFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
     	registerReceiver(btStateReceiver, btStateFilter);
+    	mAlreadyStarted = false;
+    	mNotificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 	}
 	
 	@Override
@@ -79,6 +90,8 @@ public class SwitchEventProvider extends Service implements Runnable {
 			if (clientSocket != null)
 				clientSocket.close();
 			unregisterReceiver(btStateReceiver);
+			cancelNotification();
+    		mAlreadyStarted = true;
 		} catch (IOException e) {
 			e.printStackTrace();
 			showToast(e.getMessage());
@@ -93,39 +106,43 @@ public class SwitchEventProvider extends Service implements Runnable {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 
-		Bundle extras = intent.getExtras();
-		mServerAddress = extras.getString(EXTRA_SHIELD_MAC);
-		BluetoothAdapter.getDefaultAdapter();
-		if (BluetoothAdapter.checkBluetoothAddress(mServerAddress)){
-			// Set up local bluetooth
-			btAdapter = BluetoothAdapter.getDefaultAdapter();
-	        if (btAdapter == null) {
-	            // Device does not support Bluetooth
-	            showToast("Device does not support Bluetooth");
+		if (!mAlreadyStarted) {
+			Bundle extras = intent.getExtras();
+			mServerAddress = extras.getString(EXTRA_SHIELD_MAC);
+			BluetoothAdapter.getDefaultAdapter();
+			if (BluetoothAdapter.checkBluetoothAddress(mServerAddress)){
+				// Set up local bluetooth
+				btAdapter = BluetoothAdapter.getDefaultAdapter();
+		        if (btAdapter == null) {
+		            // Device does not support Bluetooth
+		            showToast("Device does not support Bluetooth");
+		    		stopSelf();
+		            return Service.START_NOT_STICKY;
+		        } else {
+			        if (!btAdapter.isEnabled()) {
+			            // Bluetooth not enabled
+			        	// showToast("Bluetooth not enabled");
+			            Intent enableBTIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+			            enableBTIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+			            startActivity(enableBTIntent);
+			        } else {
+						// Bluetooth supported and enabled
+			        	if (connect2Server(mServerAddress)) {
+			        		startBroadcasting();
+							showNotification();
+			        		mAlreadyStarted = true;
+			        	} else {
+			        		showToast("Failed to connect Tekla shield");
+			        		stopSelf();
+			                return Service.START_NOT_STICKY;
+			        	}
+			        }
+		        }
+		        
+			} else {
 	    		stopSelf();
 	            return Service.START_NOT_STICKY;
-	        } else {
-		        if (!btAdapter.isEnabled()) {
-		            // Bluetooth not enabled
-		        	// showToast("Bluetooth not enabled");
-		            Intent enableBTIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-		            enableBTIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		            startActivity(enableBTIntent);
-		        } else {
-					// Bluetooth supported and enabled
-		        	if (connect2Server(mServerAddress)) {
-		        		startBroadcasting();
-		        	} else {
-		        		showToast("Failed to connect Tekla shield");
-		        		stopSelf();
-		                return Service.START_NOT_STICKY;
-		        	}
-		        }
-	        }
-	        
-		} else {
-    		stopSelf();
-            return Service.START_NOT_STICKY;
+			}
 		}
         return Service.START_STICKY;
 	}
@@ -222,12 +239,37 @@ public class SwitchEventProvider extends Service implements Runnable {
 		}
 	}
 
-	private void showToast(String msg) {
-		Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+    /**
+     * Show a notification while this service is running.
+     */
+    private void showNotification() {
+        // In this sample, we'll use the same text for the ticker and the expanded notification
+        CharSequence text = getText(R.string.sep_started);
+
+        // Set the icon, scrolling text and timestamp
+        Notification notification = new Notification(R.drawable.tekla_status, text,
+                System.currentTimeMillis());
+
+        // The PendingIntent to launch our activity if the user selects this notification
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0,
+                new Intent(this, TeklaIMESettings.class), 0);
+
+        // Set the info for the views that show in the notification panel.
+        notification.setLatestEventInfo(this, getText(R.string.sep_label),
+                       text, contentIntent);
+
+        // Send the notification.
+        // We use a layout id because it is a unique number.  We use it later to cancel.
+        mNotificationManager.notify(R.string.sep_started, notification);
+    }
+
+	private void cancelNotification() {
+		// Cancel the persistent notification.
+		mNotificationManager.cancel(R.string.sep_started);
 	}
 
-	private void showToast(int resid) {
-		Toast.makeText(this, resid, Toast.LENGTH_SHORT).show();
+	private void showToast(String msg) {
+		Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
 	}
 
 }
