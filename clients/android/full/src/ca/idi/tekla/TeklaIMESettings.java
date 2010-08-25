@@ -39,25 +39,23 @@ public class TeklaIMESettings extends PreferenceActivity {
 	    mPersistentKeyboard = (CheckBoxPreference) findPreference(PREF_PERSISTENT_KEYBOARD);
 	    mConnectShield = (CheckBoxPreference) findPreference(PREF_CONNECT_SHIELD);
         mShieldDetails = (Preference) findPreference(PREF_SHIELD_MAC);
-        mShieldFound = false;
 	    
         //Intents & Intent Filters
     	registerReceiver(mBTActionReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
     	registerReceiver(mBTActionReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
 
+		mShieldFound = false;
     	refreshContent();
 	}
 
 	@Override
-	public boolean  onPreferenceTreeClick (PreferenceScreen preferenceScreen, Preference preference) {
-		Boolean handled = false;
-		
-		refreshContent();
+	public boolean onPreferenceTreeClick (PreferenceScreen preferenceScreen, Preference preference) {
+
 		if (preference.getKey().equals(PREF_CONNECT_SHIELD)) {
 			discoverShield();
-			handled = true;
+			return true;
 		}
-		return handled;
+		return super.onPreferenceTreeClick(preferenceScreen, preference);
 	}
 
 	private void discoverShield() {
@@ -85,6 +83,7 @@ public class TeklaIMESettings extends PreferenceActivity {
 		
 		@Override
 		public void onReceive(Context context, Intent intent) {
+			mShieldFound = false;
 			if (intent.getAction().equals(BluetoothDevice.ACTION_FOUND) && !mShieldFound) {
 				BluetoothDevice dev = intent.getExtras().getParcelable(BluetoothDevice.EXTRA_DEVICE);
 				if ((dev.getName() != null) && (dev.getName().startsWith("FireFly"))) {
@@ -108,7 +107,6 @@ public class TeklaIMESettings extends PreferenceActivity {
 	
 	private void refreshContent() {
 		if (BluetoothAdapter.checkBluetoothAddress(retrieveShieldMac())) {
-			mShieldFound = true;
 			mShieldDetails.setTitle(retrieveShieldName());
 			String summary = "Device address: " + retrieveShieldMac();
 			mShieldDetails.setSummary(summary);
