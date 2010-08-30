@@ -83,7 +83,6 @@ public class TeklaIMESettings extends PreferenceActivity {
 		
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			mShieldFound = false;
 			if (intent.getAction().equals(BluetoothDevice.ACTION_FOUND) && !mShieldFound) {
 				BluetoothDevice dev = intent.getExtras().getParcelable(BluetoothDevice.EXTRA_DEVICE);
 				if ((dev.getName() != null) && (dev.getName().startsWith("FireFly"))) {
