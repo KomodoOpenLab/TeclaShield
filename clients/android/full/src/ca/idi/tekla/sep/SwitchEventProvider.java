@@ -28,9 +28,23 @@ import android.widget.Toast;
 public class SwitchEventProvider extends Service implements Runnable {
 
 	//Constants
+	/**
+	 * Intent string used to start and stop the switch event
+	 * provider service. {@link #EXTRA_SHIELD_MAC}
+	 * must be provided to start the service.
+	*/
     public static final String INTENT_START_SERVICE = "ca.idi.tekla.sep.SEPService";
+	/**
+	 * Intent string used to broadcast switch events. The
+	 * type of event will be packaged as an extra using
+	 * the {@link #EXTRA_SWITCH_EVENT} string.
+	*/
     public static final String ACTION_SWITCH_EVENT_RECEIVED = "ca.idi.tekla.sep.action.SWITCH_EVENT_RECEIVED";
     public static final String EXTRA_SWITCH_EVENT = "ca.idi.tekla.sep.extra.SWITCH_EVENT";
+	/**
+	 * Refers to the MAC address sent with {@link #INTENT_START_SERVICE}
+	 * to connect to the Tekla shield.
+	*/
     public static final String EXTRA_SHIELD_MAC = "ca.idi.tekla.sep.extra.SHIELD_MAC";
     public static final int SWITCH_FWD = 10;
     public static final int SWITCH_BACK = 20;
