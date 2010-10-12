@@ -18,7 +18,7 @@
 */
 -->
 
-<com.android.inputmethod.latin.LatinKeyboardView
+<ca.idi.tekla.ime.TeklaKeyboardView
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@android:id/keyboardView"
         android:layout_alignParentBottom="true"

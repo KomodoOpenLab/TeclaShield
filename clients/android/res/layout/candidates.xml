@@ -18,7 +18,7 @@
 */
 -->
 
-<com.android.inputmethod.latin.CandidateViewContainer
+<ca.idi.tekla.ime.CandidateViewContainer
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:orientation="horizontal"
         android:layout_width="fill_parent"
@@ -47,7 +47,7 @@
             />
     </LinearLayout>
     
-    <com.android.inputmethod.latin.CandidateView
+    <ca.idi.tekla.ime.CandidateView
         android:id="@+id/candidates"
         android:layout_width="wrap_content"
         android:layout_height="@dimen/candidate_strip_height"
@@ -76,4 +76,4 @@
             />
     </LinearLayout>        
     
-</com.android.inputmethod.latin.CandidateViewContainer>
+</ca.idi.tekla.ime.CandidateViewContainer>
