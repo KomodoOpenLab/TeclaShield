@@ -11,41 +11,60 @@
  
  */
 
-// Variables will change:
-int switchState = 0x0F;         // current state of the button
-int lastSwitchState = 0x0F;     // previous state of the button
-int inByte;
+#define FILTER_MAX = 100;
+
+int switchState;         // current state of the button
+int prevSwitchState;     // previous state of the button
+int inByte;              // input Byte from serial port
+int filterCounter;       // Filter counter
+boolean filterStarted;   // Did the switches state change?
 
 void setup() {
   // initialize pins 0 to 3 as inputs
   // without changing the direction of pins we don't care about
   DDRB = DDRB & 0xF0;
-  // initialize serial communication:
+  // Set switch state variables
+  switchState = readSwitches();
+  prevSwitchState = switchState;
+  filterStarted = false;
+  // Init serial communication:
   Serial.begin(115200);
 }
 
+int readSwitches() {
+  return PINB & 0x0F;
+}
 
 void loop() {
+
   // if incoming byte
-  if (Serial.available() > 0)
-  {
+  if (Serial.available() > 0) {
     // get incoming byte:
     inByte = Serial.read();
-     Serial.write(inByte);
+    // echo incoming byte:
+    Serial.write(inByte);
   }
   
-  // read the pushbutton input pin:
-  switchState = PINB & 0x0F;
+  switchState = readSwitches();
 
-  // compare the switchState to its previous state
-  if (switchState != lastSwitchState) {
-    // if the state has changed, and no incoming byte, send to serial port
-    if (Serial.available() <= 0)
-    {
-      Serial.write(switchState);
-      // save the current state as the last state, 
-      //for next time through the loop
-      lastSwitchState = switchState;
+  if (switchState != prevSwitchState) {
+    // if the state has changed...
+    // Reset filter counter
+    filterStarted = true;
+    filterCounter = 0;
+    // Save the state for next loop cycle
+    prevSwitchState = switchState;
+  }
+  
+  if (filterStarted) {
+    delay(1);
+    filterCounter++;
+    if (filterCounter == 100) {
+      // If filter counter expired:
+      if (Serial.available() <= 0) {
+        Serial.write(switchState);
+      }
+      filterStarted = false;
     }
   }
 }
