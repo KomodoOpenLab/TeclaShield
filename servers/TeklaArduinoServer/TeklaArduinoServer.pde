@@ -11,8 +11,6 @@
  
  */
 
-#define FILTER_MAX = 100;
-
 int switchState;         // current state of the button
 int prevSwitchState;     // previous state of the button
 int inByte;              // input Byte from serial port
@@ -59,7 +57,7 @@ void loop() {
   if (filterStarted) {
     delay(1);
     filterCounter++;
-    if (filterCounter == 100) {
+    if (filterCounter == 75) {
       // If filter counter expired:
       if (Serial.available() <= 0) {
         Serial.write(switchState);
