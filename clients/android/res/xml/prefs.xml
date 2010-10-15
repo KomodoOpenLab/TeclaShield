@@ -37,6 +37,21 @@
             android:defaultValue="true"
             />
 
+	<CheckBoxPreference
+		android:key="persistent_keyboard"
+		android:title="@string/persistent_keyboard"
+		android:summary="@string/persistent_keyboard_summary"
+		android:persistent="true"
+		android:defaultValue="false"
+		/>
+
+	<CheckBoxPreference
+		android:key="connect_shield"
+		android:title="@string/connect_shield"
+		android:persistent="true"
+		android:defaultValue="false"
+		/>
+
     <PreferenceCategory
             android:title="@string/prediction_category"
             android:key="prediction_settings">
@@ -54,7 +69,8 @@
             android:title="@string/show_suggestions"
             android:summary="@string/show_suggestions_summary"
             android:persistent="true"
-            android:defaultValue="true"
+            android:defaultValue="false"
+            android:enabled="false"
             />
 
         <CheckBoxPreference
@@ -64,6 +80,7 @@
             android:persistent="true" 
             android:defaultValue="@bool/enable_autocorrect"
             android:dependency="show_suggestions"
+            android:enabled="false"
             />
             
     </PreferenceCategory>            

@@ -28,6 +28,18 @@
     <!-- Option to play back sound on keypress in soft keyboard -->
     <string name="sound_on_keypress">Sound on keypress</string>
     
+    <!-- Option to the keyboard on the screen -->
+	<string name="persistent_keyboard">Always show keyboard</string>
+    <!-- Option to the keyboard on the screen -->
+	<string name="persistent_keyboard_summary">Keeps the soft keyboard on screen</string>
+
+    <!-- Category title for tekla shield -->
+    
+    <!-- Option to scan and connect to Tekla shields -->
+	<string name="connect_shield">Connect to shield</string>
+    <!-- Option to save Tekla shield MAC address -->
+	<string name="shield_mac"></string>
+
     <!-- Option to enable using nearby keys when correcting/predicting -->
     <string name="hit_correction">Correct typing errors</string>
     
@@ -210,4 +222,6 @@
 	<string name="sep_started">Tekla shield connected</string>
 	<string name="sep_label">Switch event provider</string>
     
+
+
 </resources>

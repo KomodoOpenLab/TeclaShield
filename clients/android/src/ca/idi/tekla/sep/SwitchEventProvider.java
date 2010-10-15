@@ -15,10 +15,7 @@ import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
@@ -39,6 +36,7 @@ public class SwitchEventProvider extends Service implements Runnable {
 	 * type of event will be packaged as an extra using
 	 * the {@link #EXTRA_SWITCH_EVENT} string.
 	*/
+    public static final String ACTION_SEP_SERVICE_STARTED = "ca.idi.tekla.sep.action.SEP_SERVICE_STARTED";
     public static final String ACTION_SWITCH_EVENT_RECEIVED = "ca.idi.tekla.sep.action.SWITCH_EVENT_RECEIVED";
     public static final String EXTRA_SWITCH_EVENT = "ca.idi.tekla.sep.extra.SWITCH_EVENT";
 	/**
@@ -50,21 +48,20 @@ public class SwitchEventProvider extends Service implements Runnable {
     public static final int SWITCH_BACK = 20;
     public static final int SWITCH_RIGHT = 40;
     public static final int SWITCH_LEFT = 80;
-    // public static final int SWITCH_RELEASE = F0;
+    public static final int SWITCH_RELEASE = 160;
 
-	private BluetoothAdapter btAdapter;
-	private BluetoothSocket clientSocket;
-    private InputStream inStream;
+	private BluetoothSocket mBluetoothSocket;
     private OutputStream outStream;
-    private String mServerAddress;
+    private String mShieldAddress;
 
     private NotificationManager mNotificationManager;
-    private Boolean mAlreadyStarted;
+    private Boolean mAlreadyBroadcasting;
     
     private Intent mSwitchEventIntent;
+    private Intent mServiceStartedIntent;
     
 	// hard-code hardware address and UUID here
-	// private String mServerAddress = "00:06:66:02:CB:75"; // BlueSMiRF 1
+	// private String mShieldAddress = "00:06:66:02:CB:75"; // BlueSMiRF 1
 	// private String server_address = "00:06:66:04:13:01"; // BlueSMiRF 2
 	// private String server_address = "00:16:41:89:C8:0A"; // jsilva-laptop
 	// Using "well-known" SPP UUID as specified at:
@@ -90,10 +87,9 @@ public class SwitchEventProvider extends Service implements Runnable {
 	public void onCreate() {
         //Intents & Intent Filters
     	mSwitchEventIntent = new Intent(ACTION_SWITCH_EVENT_RECEIVED);
-        IntentFilter btStateFilter = new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED);
-    	registerReceiver(btStateReceiver, btStateFilter);
-    	mAlreadyStarted = false;
+    	mServiceStartedIntent = new Intent(ACTION_SEP_SERVICE_STARTED);
     	mNotificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+    	mAlreadyBroadcasting = false;
 	}
 	
 	@Override
@@ -101,11 +97,10 @@ public class SwitchEventProvider extends Service implements Runnable {
 		/* Call this from the main Activity to shutdown the connection */
 		try {
 			// Close socket
-			if (clientSocket != null)
-				clientSocket.close();
-			unregisterReceiver(btStateReceiver);
+			if (mBluetoothSocket != null)
+				mBluetoothSocket.close();
 			cancelNotification();
-    		mAlreadyStarted = true;
+    		mAlreadyBroadcasting = true;
 		} catch (IOException e) {
 			e.printStackTrace();
 			showToast(e.getMessage());
@@ -120,40 +115,25 @@ public class SwitchEventProvider extends Service implements Runnable {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 
-		if (!mAlreadyStarted) {
+		if (!mAlreadyBroadcasting) {
 			Bundle extras = intent.getExtras();
-			mServerAddress = extras.getString(EXTRA_SHIELD_MAC);
-			BluetoothAdapter.getDefaultAdapter();
-			if (BluetoothAdapter.checkBluetoothAddress(mServerAddress)){
-				// Set up local bluetooth
-				btAdapter = BluetoothAdapter.getDefaultAdapter();
-		        if (btAdapter == null) {
-		            // Device does not support Bluetooth
-		            showToast("Device does not support Bluetooth");
-		    		stopSelf();
-		            return Service.START_NOT_STICKY;
-		        } else {
-			        if (!btAdapter.isEnabled()) {
-			            // Bluetooth not enabled
-			        	// showToast("Bluetooth not enabled");
-			            Intent enableBTIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-			            enableBTIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			            startActivity(enableBTIntent);
-			        } else {
-						// Bluetooth supported and enabled
-			        	if (connect2Server(mServerAddress)) {
-			        		startBroadcasting();
-							showNotification();
-			        		mAlreadyStarted = true;
-			        	} else {
-			        		showToast("Failed to connect Tekla shield");
-			        		stopSelf();
-			                return Service.START_NOT_STICKY;
-			        	}
-			        }
-		        }
+			mShieldAddress = extras.getString(EXTRA_SHIELD_MAC);
+			if (BluetoothAdapter.checkBluetoothAddress(mShieldAddress)){
+				// Assuming bluetooth is supported and enabled
+	        	if (connect2Shield(mShieldAddress)) {
+	        		startBroadcasting();
+					showNotification();
+	        		mAlreadyBroadcasting = true;
+	        	} else {
+					//TODO: Tekla - Add string to resources
+	        		showToast("Failed to connect Tekla shield");
+	        		stopSelf();
+	                return Service.START_NOT_STICKY;
+	        	}
 		        
 			} else {
+				//TODO: Tekla - Add string to resources
+        		showToast("Invalid MAC Address");
 	    		stopSelf();
 	            return Service.START_NOT_STICKY;
 			}
@@ -164,18 +144,21 @@ public class SwitchEventProvider extends Service implements Runnable {
 	@Override
 	public void run() {
 		Looper.prepare();
-		
+
+		InputStream inStream;
+
         try {
-			inStream = clientSocket.getInputStream();
-			outStream = clientSocket.getOutputStream();
+			inStream = mBluetoothSocket.getInputStream();
+			outStream = mBluetoothSocket.getOutputStream();
 		} catch (IOException e) {
 			e.printStackTrace();
 			return;
 		}
 
+		sendBroadcast(mServiceStartedIntent);
 		while(true) {
 			try {
-				inStream = clientSocket.getInputStream();
+				inStream = mBluetoothSocket.getInputStream();
 				int b = inStream.read();
 				mSwitchEventIntent.removeExtra(EXTRA_SWITCH_EVENT);
 				switch (b) {
@@ -204,32 +187,14 @@ public class SwitchEventProvider extends Service implements Runnable {
 	}
 	
 	/**
-	* Bluetooth State Events will be processed here
-	*/
-	private BroadcastReceiver btStateReceiver = new BroadcastReceiver() {
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			Bundle extras = intent.getExtras();
-			int state = extras.getInt(BluetoothAdapter.EXTRA_STATE);
-			if (state == BluetoothAdapter.STATE_ON) {
-	        	if (connect2Server(mServerAddress)) {
-	        		startBroadcasting();
-	        	} else {
-		            showToast("Failed to connect external input.");
-	        	}
-			}
-		}
-	};
-	
-	/**
 	* Connects to bluetooth server.
 	*/
-	private boolean connect2Server(String serverAddress) {
+	private boolean connect2Shield(String shieldAddress) {
 		Boolean success = false;
         try {
-        	BluetoothDevice btServer = btAdapter.getRemoteDevice(serverAddress);
-            clientSocket = btServer.createRfcommSocketToServiceRecord(uuid);
-            clientSocket.connect();
+        	BluetoothDevice teklaShield = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(shieldAddress);
+            mBluetoothSocket = teklaShield.createRfcommSocketToServiceRecord(uuid);
+            mBluetoothSocket.connect();
             success = true;
 		} catch (IOException e) {
 			e.printStackTrace();
