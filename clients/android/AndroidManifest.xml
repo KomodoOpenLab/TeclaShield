@@ -7,6 +7,12 @@
     	android:label="@string/english_ime_name"
     	android:debuggable="true"
     	>
+		<receiver android:name=".sep.SEPBootReceiver">
+			<intent-filter>
+				<action android:name="android.intent.action.BOOT_COMPLETED" />
+				<category android:name="android.intent.category.HOME" />
+			</intent-filter>
+		</receiver>
 		<service
 			android:name=".ime.TeklaIME"
 			android:label="@string/english_ime_name"
@@ -41,5 +47,7 @@
 	<uses-permission android:name="android.permission.READ_CONTACTS" />
 	<uses-permission android:name="android.permission.BLUETOOTH"/>
 	<uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+	<uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 	<uses-sdk android:minSdkVersion="5"></uses-sdk>
+
 </manifest>

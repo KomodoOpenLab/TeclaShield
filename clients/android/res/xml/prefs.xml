@@ -45,10 +45,9 @@
 		android:defaultValue="false"
 		/>
 
-	<CheckBoxPreference
+	<Preference
 		android:key="connect_shield"
 		android:title="@string/connect_shield"
-		android:persistent="true"
 		android:defaultValue="false"
 		/>
 

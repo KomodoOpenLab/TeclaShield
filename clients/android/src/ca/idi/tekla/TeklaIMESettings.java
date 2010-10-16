@@ -51,47 +51,46 @@ public class TeklaIMESettings extends PreferenceActivity
 
     //Tekla keys & variables
 	public static final String CONNECT_SHIELD_KEY = "connect_shield";
-	public static final String SHIELD_MAC_KEY = "shield_mac";
 	public static final String SHIELD_NAME_KEY = "shield_name";
     
-    private CheckBoxPreference mConnectShield;
+    private Preference mConnectShield;
 	private ProgressDialog mProgressDialog;
 	private BluetoothAdapter mBluetoothAdapter;
 	private boolean mShieldFound;
-    
+	private String mShieldAddress, mShieldName;
+	
     @Override
     protected void onCreate(Bundle icicle) {
         super.onCreate(icicle);
 
 		// Use the following line to debug IME service.
-		android.os.Debug.waitForDebugger();
+		// android.os.Debug.waitForDebugger();
 
         addPreferencesFromResource(R.xml.prefs);
         mQuickFixes = (CheckBoxPreference) findPreference(QUICK_FIXES_KEY);
         mShowSuggestions = (CheckBoxPreference) findPreference(SHOW_SUGGESTIONS_KEY);
+        mConnectShield = (Preference) findPreference(CONNECT_SHIELD_KEY);
 
         // Check bluetooth state to determine if connect_shield preference
         // should be enabled
-        mConnectShield = (CheckBoxPreference) findPreference(CONNECT_SHIELD_KEY);
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		if (mBluetoothAdapter == null) {
 			//TODO: Tekla - Add string to resources
 			mConnectShield.setSummary("Device does not support Bluetooth");
 		    mConnectShield.setEnabled(false);
+		} else if (!mBluetoothAdapter.isEnabled()) {
+			//TODO: Tekla - Add string to resources
+			mConnectShield.setSummary("Bluetooth is not enabled");
+		    mConnectShield.setEnabled(false);
 		} else {
-			if (!mBluetoothAdapter.isEnabled()) {
-				//TODO: Tekla - Add string to resources
-				mConnectShield.setSummary("Bluetooth is not enabled");
-			    mConnectShield.setEnabled(false);
-			} else {
-				//TODO: Tekla - Add string to resources
-				mConnectShield.setSummary("Check to connect to a nearby Tekla shield");
-			}
+			//TODO: Tekla - Add string to resources
+			mConnectShield.setSummary("Click to connect to nearby Tekla shield");
 		}
         //Tekla Intents & Intent Filters
     	registerReceiver(mBroadcastReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
     	registerReceiver(mBroadcastReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
-    	registerReceiver(mBroadcastReceiver, new IntentFilter(SwitchEventProvider.ACTION_SEP_SERVICE_STARTED));
+    	registerReceiver(mBroadcastReceiver, new IntentFilter(SwitchEventProvider.ACTION_SEP_BROADCAST_STARTED));
+    	registerReceiver(mBroadcastReceiver, new IntentFilter(SwitchEventProvider.ACTION_SEP_BROADCAST_STOPPED));
     	
 		getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
     }
@@ -118,9 +117,7 @@ public class TeklaIMESettings extends PreferenceActivity
 	@Override
 	public boolean onPreferenceTreeClick (PreferenceScreen preferenceScreen, Preference preference) {
 
-		if (preference.getKey().equals(CONNECT_SHIELD_KEY) &&
-				mConnectShield.isChecked()) {
-			mConnectShield.setChecked(false);
+		if (preference.getKey().equals(CONNECT_SHIELD_KEY)) {
 			discoverShield();
 			return true;
 		}
@@ -137,7 +134,7 @@ public class TeklaIMESettings extends PreferenceActivity
 	              "Searching for Tekla shields...", true, true);
 	}
 	
-	// Bluetooth intents will be processed here
+	// All intents will be processed here
 	private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
 		
 		@Override
@@ -148,38 +145,44 @@ public class TeklaIMESettings extends PreferenceActivity
 				if ((dev.getName() != null) && (dev.getName().startsWith("FireFly"))) {
 					// Got it!
 					mShieldFound = true;
+					mShieldAddress = dev.getAddress(); 
+					mShieldName = dev.getName(); 
+					//saveShieldName(mShieldName);
 					if (mBluetoothAdapter.isDiscovering())
 						mBluetoothAdapter.cancelDiscovery();
-					String shieldAddress = dev.getAddress(); 
-					String shieldName = dev.getName(); 
-					saveShieldMac(shieldAddress);
-					saveShieldName(shieldName);
-					//TODO: Tekla - Add string to resources
-					mProgressDialog.setMessage("Connecting to Tekla shield "
-							+ shieldName + ": " + shieldAddress);
-					if (!startSwitchEventProvider(shieldAddress)) {
-						mProgressDialog.dismiss();
-						//TODO: Tekla - Add string to resources
-						showToast("Could not connect to Tekla shield");
-					}
 				}
 			}
 
 			if (intent.getAction().equals(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)) {
-				if (!mShieldFound) {
+				if (mShieldFound) {
+					//TODO: Tekla - Add string to resources
+					mProgressDialog.setMessage("Connecting to Tekla shield "
+							+ mShieldName + ": " + mShieldAddress);
+					if(!startSwitchEventProvider(mShieldAddress)) {
+						mProgressDialog.dismiss();
+						//TODO: Tekla - Add string to resources
+						showToast("Could not connect to Tekla shield");
+					}
+				} else {
+					mProgressDialog.dismiss();
 					//TODO: Tekla - Add string to resources
 					showToast("No Tekla shields in range");
-					mProgressDialog.dismiss();
 				}
 			}
 			
-			if (intent.getAction().equals(SwitchEventProvider.ACTION_SEP_SERVICE_STARTED)) {
-				mConnectShield.setChecked(true);
+			if (intent.getAction().equals(SwitchEventProvider.ACTION_SEP_BROADCAST_STARTED)) {
 				mProgressDialog.dismiss();
+			}
+
+			if (intent.getAction().equals(SwitchEventProvider.ACTION_SEP_BROADCAST_STOPPED)) {
+				mProgressDialog.dismiss();
+				//TODO: Tekla - Add string to resources
+				showToast("Could not connect to Tekla shield");
 			}
 
 		}
 	};
+	
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
             String key) {
     	//showToast("debug: onSharedPreferenceChange called with key: " + key);
@@ -187,18 +190,10 @@ public class TeklaIMESettings extends PreferenceActivity
     	//(new BackupManager(this)).dataChanged();
     }
 
-	private boolean startSwitchEventProvider(String shieldAddress) {
+	private boolean startSwitchEventProvider(final String shieldAddress) {
 		Intent sepIntent = new Intent(SwitchEventProvider.INTENT_START_SERVICE);
-		sepIntent.putExtra(SwitchEventProvider.EXTRA_SHIELD_MAC, shieldAddress);
+		sepIntent.putExtra(SwitchEventProvider.EXTRA_SHIELD_ADDRESS, shieldAddress);
 		return startService(sepIntent) == null? false:true;
-	}
-
-	private void saveShieldMac(String mac) {
-		SharedPreferences prefs = PreferenceManager
-			.getDefaultSharedPreferences(getBaseContext());
-		SharedPreferences.Editor editor = prefs.edit();
-		editor.putString(SHIELD_MAC_KEY, mac);
-		editor.commit();
 	}
 
 	private void saveShieldName(String name) {

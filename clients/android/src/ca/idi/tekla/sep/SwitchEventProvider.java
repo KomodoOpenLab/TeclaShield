@@ -3,6 +3,8 @@ package ca.idi.tekla.sep;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.UUID;
 
 import ca.idi.tekla.R;
@@ -15,11 +17,17 @@ import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.SystemClock;
+import android.preference.PreferenceManager;
+import android.content.SharedPreferences;
 import android.widget.Toast;
 
 public class SwitchEventProvider extends Service implements Runnable {
@@ -31,42 +39,48 @@ public class SwitchEventProvider extends Service implements Runnable {
 	 * must be provided to start the service.
 	*/
     public static final String INTENT_START_SERVICE = "ca.idi.tekla.sep.SEPService";
+    public static final String ACTION_SEP_BROADCAST_STARTED = "ca.idi.tekla.sep.action.SEP_BROADCAST_STARTED";
+    public static final String ACTION_SEP_BROADCAST_STOPPED = "ca.idi.tekla.sep.action.SEP_BROADCAST_STOPPED";
 	/**
 	 * Intent string used to broadcast switch events. The
 	 * type of event will be packaged as an extra using
 	 * the {@link #EXTRA_SWITCH_EVENT} string.
 	*/
-    public static final String ACTION_SEP_SERVICE_STARTED = "ca.idi.tekla.sep.action.SEP_SERVICE_STARTED";
     public static final String ACTION_SWITCH_EVENT_RECEIVED = "ca.idi.tekla.sep.action.SWITCH_EVENT_RECEIVED";
     public static final String EXTRA_SWITCH_EVENT = "ca.idi.tekla.sep.extra.SWITCH_EVENT";
 	/**
 	 * Refers to the MAC address sent with {@link #INTENT_START_SERVICE}
 	 * to connect to the Tekla shield.
 	*/
-    public static final String EXTRA_SHIELD_MAC = "ca.idi.tekla.sep.extra.SHIELD_MAC";
+    public static final String EXTRA_SHIELD_ADDRESS = "ca.idi.tekla.sep.extra.SHIELD_ADDRESS";
     public static final int SWITCH_FWD = 10;
     public static final int SWITCH_BACK = 20;
     public static final int SWITCH_RIGHT = 40;
     public static final int SWITCH_LEFT = 80;
     public static final int SWITCH_RELEASE = 160;
 
+	public static final String SHIELD_ADDRESS_KEY = "shield_address";
+
 	private BluetoothSocket mBluetoothSocket;
-    private OutputStream outStream;
-    private String mShieldAddress;
+    private OutputStream mOutStream;
+	private InputStream mInStream;
 
     private NotificationManager mNotificationManager;
-    private Boolean mAlreadyBroadcasting;
+    private Boolean mIsBroadcasting;
+    private Thread mBroadcastingThread;
     
+    private Intent mBroadcastStartedIntent;
+    private Intent mBroadcastStoppedIntent;
     private Intent mSwitchEventIntent;
-    private Intent mServiceStartedIntent;
     
-	// hard-code hardware address and UUID here
+	// hard-code hardware address
 	// private String mShieldAddress = "00:06:66:02:CB:75"; // BlueSMiRF 1
 	// private String server_address = "00:06:66:04:13:01"; // BlueSMiRF 2
 	// private String server_address = "00:16:41:89:C8:0A"; // jsilva-laptop
-	// Using "well-known" SPP UUID as specified at:
+
+    // Using "well-known" SPP UUID as specified at:
 	// http://developer.android.com/reference/android/bluetooth/BluetoothDevice.html#createRfcommSocketToServiceRecord%28java.util.UUID%29
-	private UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+	private static final UUID SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 	
     /**
      * Class for clients to access.  Because we know this service always
@@ -85,26 +99,23 @@ public class SwitchEventProvider extends Service implements Runnable {
 	
     @Override
 	public void onCreate() {
-        //Intents & Intent Filters
+		// Use the following line to debug IME service.
+		android.os.Debug.waitForDebugger();
+
+    	//Intents & Intent Filters
+    	registerReceiver(mBroadcastReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
     	mSwitchEventIntent = new Intent(ACTION_SWITCH_EVENT_RECEIVED);
-    	mServiceStartedIntent = new Intent(ACTION_SEP_SERVICE_STARTED);
+    	mBroadcastStartedIntent = new Intent(ACTION_SEP_BROADCAST_STARTED);
+    	mBroadcastStoppedIntent = new Intent(ACTION_SEP_BROADCAST_STOPPED);
     	mNotificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
-    	mAlreadyBroadcasting = false;
+		mBroadcastingThread = new Thread(this);
+    	mIsBroadcasting = false;
 	}
 	
 	@Override
 	public void onDestroy() {
 		/* Call this from the main Activity to shutdown the connection */
-		try {
-			// Close socket
-			if (mBluetoothSocket != null)
-				mBluetoothSocket.close();
-			cancelNotification();
-    		mAlreadyBroadcasting = true;
-		} catch (IOException e) {
-			e.printStackTrace();
-			showToast(e.getMessage());
-		}
+		stopBroadcasting();
 	}
 
     @Override
@@ -115,53 +126,50 @@ public class SwitchEventProvider extends Service implements Runnable {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 
-		if (!mAlreadyBroadcasting) {
-			Bundle extras = intent.getExtras();
-			mShieldAddress = extras.getString(EXTRA_SHIELD_MAC);
-			if (BluetoothAdapter.checkBluetoothAddress(mShieldAddress)){
-				// Assuming bluetooth is supported and enabled
-	        	if (connect2Shield(mShieldAddress)) {
-	        		startBroadcasting();
-					showNotification();
-	        		mAlreadyBroadcasting = true;
-	        	} else {
-					//TODO: Tekla - Add string to resources
-	        		showToast("Failed to connect Tekla shield");
-	        		stopSelf();
-	                return Service.START_NOT_STICKY;
-	        	}
-		        
-			} else {
-				//TODO: Tekla - Add string to resources
-        		showToast("Invalid MAC Address");
-	    		stopSelf();
-	            return Service.START_NOT_STICKY;
-			}
+		String mShieldAddress = "";
+		
+		if (intent.hasExtra(EXTRA_SHIELD_ADDRESS)) {
+			mShieldAddress = intent.getExtras().getString(EXTRA_SHIELD_ADDRESS);
 		}
-        return Service.START_STICKY;
+			
+		if (BluetoothAdapter.checkBluetoothAddress(mShieldAddress)) {
+			// MAC is valid
+			broadcastFromShield(mShieldAddress);
+		} else {
+			// MAC is invalid
+			if (!mIsBroadcasting) {
+				// Not broadcasting yet
+				// Try with saved MAC address
+				broadcastFromShield(retrieveSavedShieldAddress());
+			} //else ignore (if already broadcasting)
+		}
+		
+		if(!mIsBroadcasting) stopSelf();
+		return mIsBroadcasting? Service.START_STICKY:Service.START_NOT_STICKY;
 	}
 	
 	@Override
 	public void run() {
 		Looper.prepare();
 
-		InputStream inStream;
-
-        try {
-			inStream = mBluetoothSocket.getInputStream();
-			outStream = mBluetoothSocket.getOutputStream();
+		int mByte;
+		
+		try {
+			mInStream = mBluetoothSocket.getInputStream();
+			mOutStream = mBluetoothSocket.getOutputStream();
 		} catch (IOException e) {
 			e.printStackTrace();
+			showToast(e.getMessage());
 			return;
 		}
 
-		sendBroadcast(mServiceStartedIntent);
-		while(true) {
+		sendBroadcast(mBroadcastStartedIntent);
+		mIsBroadcasting = true;
+		while(mIsBroadcasting) {
 			try {
-				inStream = mBluetoothSocket.getInputStream();
-				int b = inStream.read();
+				mByte = mInStream.read();
 				mSwitchEventIntent.removeExtra(EXTRA_SWITCH_EVENT);
-				switch (b) {
+				switch (mByte) {
 					case 0x07:
 						mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_FWD);
 						sendBroadcast(mSwitchEventIntent);
@@ -178,26 +186,112 @@ public class SwitchEventProvider extends Service implements Runnable {
 						mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_LEFT);
 						sendBroadcast(mSwitchEventIntent);
 						break;
+					default:
+						break;
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
+				showToast(e.getMessage());
 				break;
 			}			
 		}
 	}
 	
+	// All intents will be processed here
+	private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			Bundle extras = intent.getExtras();
+			Integer state = extras.getInt(BluetoothAdapter.EXTRA_STATE);
+			if (state.equals(BluetoothAdapter.STATE_TURNING_OFF))
+				stopBroadcasting();
+		}
+		
+	};
+	
+	private void saveShieldAddress(String shieldAddress) {
+
+		SharedPreferences prefs = PreferenceManager
+			.getDefaultSharedPreferences(getBaseContext());
+		SharedPreferences.Editor editor = prefs.edit();
+		editor.putString(SHIELD_ADDRESS_KEY, shieldAddress);
+		editor.commit();
+	}
+
+	private String retrieveSavedShieldAddress() {
+
+		SharedPreferences prefs = PreferenceManager
+			.getDefaultSharedPreferences(getBaseContext());
+		String mac = prefs.getString(SHIELD_ADDRESS_KEY, "");
+		if (!BluetoothAdapter.checkBluetoothAddress(mac))
+			mac = "";
+		return mac;
+	}
+
+	private void broadcastFromShield(String mShieldAddress) {
+    	if (connect2Shield(mShieldAddress)) {
+    		startBroadcasting();
+    		saveShieldAddress(mShieldAddress);
+    	}
+	}
 	/**
 	* Connects to bluetooth server.
 	*/
 	private boolean connect2Shield(String shieldAddress) {
 		Boolean success = false;
+		BluetoothDevice teklaShield;
+		
+    	stopBroadcasting();
+    	teklaShield = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(shieldAddress);
+    	
+    	// First method to create Bluetooth socket
+   		Method m = null;
+		try {
+			m = teklaShield.getClass().getMethod("createRfcommSocket", new Class[] {int.class});
+			mBluetoothSocket = (BluetoothSocket) m.invoke(teklaShield, 1);
+		} catch (SecurityException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (NoSuchMethodException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		success = createSocket();
+		
+		if (!success) {
+	    	// Second method to create Bluetooth socket
+	    	try {
+	            mBluetoothSocket = teklaShield.createRfcommSocketToServiceRecord(SPP_UUID);
+			} catch (IOException e) {
+				e.printStackTrace();
+				showToast("CreateSocket: " + e.getMessage());
+			}
+			success = createSocket();
+		}
+		return success;
+	}
+	
+	private boolean createSocket() {
+		boolean success = false;
         try {
-        	BluetoothDevice teklaShield = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(shieldAddress);
-            mBluetoothSocket = teklaShield.createRfcommSocketToServiceRecord(uuid);
-            mBluetoothSocket.connect();
+			mBluetoothSocket.connect();
             success = true;
 		} catch (IOException e) {
+			// TODO Auto-generated catch block
+            success = false;
 			e.printStackTrace();
+			//showToast(e.getMessage());
 		}
 		return success;
 	}
@@ -206,18 +300,33 @@ public class SwitchEventProvider extends Service implements Runnable {
 	* Executes the run() thread.
 	*/
 	private void startBroadcasting() {
-		Thread thread = new Thread(this);
-        thread.start();
+		mBroadcastingThread.start();
+		showNotification();
 	}
 	
-    public void write(byte b) {
-		try {
-			outStream.write(b);
-		} catch (IOException e) {
-			e.printStackTrace();
+	private void stopBroadcasting() {
+		// Close socket if it exists
+		if (mBluetoothSocket != null) {
+			try {
+				mBluetoothSocket.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				showToast(e.getMessage());
+			}
 		}
+		// Stop broadcasting thread
+    	mIsBroadcasting = false;
+    	while(mBroadcastingThread.isAlive()) {
+    		// Wait for the thread to die
+    		SystemClock.sleep(1);
+    	}
+    	if (mBroadcastingThread.getState() == Thread.State.TERMINATED)
+    		mBroadcastingThread = new Thread(this);
+    	cancelNotification();
+		sendBroadcast(mBroadcastStoppedIntent);
 	}
-
+	
     /**
      * Show a notification while this service is running.
      */
@@ -237,6 +346,11 @@ public class SwitchEventProvider extends Service implements Runnable {
         notification.setLatestEventInfo(this, getText(R.string.sep_label),
                        text, contentIntent);
 
+        // Add sound and type.
+        notification.defaults |= Notification.DEFAULT_SOUND;
+        notification.flags |= Notification.FLAG_ONGOING_EVENT;
+        notification.flags |= Notification.FLAG_NO_CLEAR;
+        
         // Send the notification.
         // We use a layout id because it is a unique number.  We use it later to cancel.
         mNotificationManager.notify(R.string.sep_started, notification);
@@ -245,6 +359,15 @@ public class SwitchEventProvider extends Service implements Runnable {
 	private void cancelNotification() {
 		// Cancel the persistent notification.
 		mNotificationManager.cancel(R.string.sep_started);
+	}
+
+    private void write(byte mByte) {
+		try {
+			mOutStream.write(mByte);
+		} catch (IOException e) {
+			e.printStackTrace();
+			showToast(e.getMessage());
+		}
 	}
 
 	private void showToast(String msg) {
