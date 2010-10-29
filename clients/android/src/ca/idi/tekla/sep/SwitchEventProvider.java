@@ -25,6 +25,7 @@ import android.os.Binder;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.PowerManager;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.content.SharedPreferences;
@@ -168,27 +169,28 @@ public class SwitchEventProvider extends Service implements Runnable {
 		while(mIsBroadcasting) {
 			try {
 				mByte = mInStream.read();
+		    	// Clean up intent
 				mSwitchEventIntent.removeExtra(EXTRA_SWITCH_EVENT);
 				switch (mByte) {
 					case 0x07:
 						mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_FWD);
-						sendBroadcast(mSwitchEventIntent);
 						break;
 					case 0x0B:
 						mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_BACK);
-						sendBroadcast(mSwitchEventIntent);
 						break;
 					case 0x0E:
 						mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_RIGHT);
-						sendBroadcast(mSwitchEventIntent);
 						break;
 					case 0x0D:
 						mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_LEFT);
-						sendBroadcast(mSwitchEventIntent);
 						break;
 					default:
 						break;
 				}
+		    	// Poke the user activity timer
+				PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+				pm.userActivity(SystemClock.uptimeMillis(), true);
+				sendBroadcast(mSwitchEventIntent);
 			} catch (IOException e) {
 				e.printStackTrace();
 				showToast(e.getMessage());

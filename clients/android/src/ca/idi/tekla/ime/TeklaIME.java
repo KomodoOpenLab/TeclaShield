@@ -1026,9 +1026,6 @@ public class TeklaIME extends InputMethodService
     }
 
     private void processSwitchEvent(Intent intent) {
-    	// Poke the user activity timer
-		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-		pm.userActivity(SystemClock.uptimeMillis(), true);
 		Bundle extras = intent.getExtras();
 		switch(extras.getInt(SwitchEventProvider.EXTRA_SWITCH_EVENT)) {
 			case SwitchEventProvider.SWITCH_FWD:
