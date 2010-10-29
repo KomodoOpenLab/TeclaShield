@@ -321,10 +321,11 @@ public class SwitchEventProvider extends Service implements Runnable {
     		// Wait for the thread to die
     		SystemClock.sleep(1);
     	}
-    	if (mBroadcastingThread.getState() == Thread.State.TERMINATED)
+    	if (mBroadcastingThread.getState() == Thread.State.TERMINATED) {
     		mBroadcastingThread = new Thread(this);
+    		sendBroadcast(mBroadcastStoppedIntent);
+    	}
     	cancelNotification();
-		sendBroadcast(mBroadcastStoppedIntent);
 	}
 	
     /**

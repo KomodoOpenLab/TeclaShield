@@ -50,7 +50,7 @@ public class TeklaIMESettings extends PreferenceActivity
     private CheckBoxPreference mShowSuggestions;
 
     //Tekla keys & variables
-	public static final String CONNECT_SHIELD_KEY = "connect_shield";
+	public static final String SHIELD_CONNECT_KEY = "shield_connect";
 	public static final String SHIELD_NAME_KEY = "shield_name";
     
     private Preference mConnectShield;
@@ -69,22 +69,19 @@ public class TeklaIMESettings extends PreferenceActivity
         addPreferencesFromResource(R.xml.prefs);
         mQuickFixes = (CheckBoxPreference) findPreference(QUICK_FIXES_KEY);
         mShowSuggestions = (CheckBoxPreference) findPreference(SHOW_SUGGESTIONS_KEY);
-        mConnectShield = (Preference) findPreference(CONNECT_SHIELD_KEY);
+        mConnectShield = (Preference) findPreference(SHIELD_CONNECT_KEY);
 
-        // Check bluetooth state to determine if connect_shield preference
+        // Check bluetooth state to determine if shield_connect preference
         // should be enabled
 		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 		if (mBluetoothAdapter == null) {
-			//TODO: Tekla - Add string to resources
-			mConnectShield.setSummary("Device does not support Bluetooth");
+			mConnectShield.setSummary(R.string.shield_connect_summary_BT_nosupport);
 		    mConnectShield.setEnabled(false);
 		} else if (!mBluetoothAdapter.isEnabled()) {
-			//TODO: Tekla - Add string to resources
-			mConnectShield.setSummary("Bluetooth is not enabled");
+			mConnectShield.setSummary(R.string.shield_connect_summary_BT_disabled);
 		    mConnectShield.setEnabled(false);
 		} else {
-			//TODO: Tekla - Add string to resources
-			mConnectShield.setSummary("Click to connect to nearby Tekla shield");
+			mConnectShield.setSummary(R.string.shield_connect_summary);
 		}
         //Tekla Intents & Intent Filters
     	registerReceiver(mBroadcastReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
@@ -117,7 +114,7 @@ public class TeklaIMESettings extends PreferenceActivity
 	@Override
 	public boolean onPreferenceTreeClick (PreferenceScreen preferenceScreen, Preference preference) {
 
-		if (preference.getKey().equals(CONNECT_SHIELD_KEY)) {
+		if (preference.getKey().equals(SHIELD_CONNECT_KEY)) {
 			discoverShield();
 			return true;
 		}
@@ -161,7 +158,7 @@ public class TeklaIMESettings extends PreferenceActivity
 					if(!startSwitchEventProvider(mShieldAddress)) {
 						mProgressDialog.dismiss();
 						//TODO: Tekla - Add string to resources
-						showToast("Could not connect to Tekla shield");
+						showToast("Could not send intent");
 					}
 				} else {
 					mProgressDialog.dismiss();
@@ -177,7 +174,7 @@ public class TeklaIMESettings extends PreferenceActivity
 			if (intent.getAction().equals(SwitchEventProvider.ACTION_SEP_BROADCAST_STOPPED)) {
 				mProgressDialog.dismiss();
 				//TODO: Tekla - Add string to resources
-				showToast("Could not connect to Tekla shield");
+				showToast("Service STOPPED");
 			}
 
 		}

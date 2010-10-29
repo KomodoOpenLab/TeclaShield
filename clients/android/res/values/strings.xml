@@ -216,7 +216,10 @@
 	<string name="persistent_keyboard_summary">Shows a small navigation keyboard when not entering text</string>
 
     <!-- Option to scan and connect to Tekla shields -->
-	<string name="connect_shield">Connect to shield</string>
+	<string name="shield_connect">Connect to shield</string>
+	<string name="shield_connect_summary_BT_nosupport">Bluetooth is not supported</string>
+	<string name="shield_connect_summary_BT_disabled">Bluetooth is disabled</string>
+	<string name="shield_connect_summary">Click to connect to a nearby Tekla shield</string>
     <!-- Option to save Tekla shield MAC address -->
 	<string name="shield_mac"></string>
 

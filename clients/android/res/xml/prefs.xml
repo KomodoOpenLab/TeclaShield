@@ -49,8 +49,8 @@
 			/>
 	
 		<Preference
-			android:key="connect_shield"
-			android:title="@string/connect_shield"
+			android:key="shield_connect"
+			android:title="@string/shield_connect"
 			android:defaultValue="false"
 			/>
     </PreferenceCategory>            
