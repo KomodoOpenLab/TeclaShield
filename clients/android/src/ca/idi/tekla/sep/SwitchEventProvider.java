@@ -169,36 +169,40 @@ public class SwitchEventProvider extends Service implements Runnable {
 		while(mIsBroadcasting) {
 			try {
 				mByte = mInStream.read();
-		    	// Clean up intent
-				mSwitchEventIntent.removeExtra(EXTRA_SWITCH_EVENT);
-				switch (mByte) {
-					case 0x07:
-						mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_FWD);
-						break;
-					case 0x0B:
-						mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_BACK);
-						break;
-					case 0x0E:
-						mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_RIGHT);
-						break;
-					case 0x0D:
-						mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_LEFT);
-						break;
-					default:
-						break;
-				}
-		    	// Poke the user activity timer
-				PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-				pm.userActivity(SystemClock.uptimeMillis(), true);
-				sendBroadcast(mSwitchEventIntent);
 			} catch (IOException e) {
 				e.printStackTrace();
 				showToast(e.getMessage());
 				break;
 			}			
+	    	// Poke the user activity timer
+			PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+			pm.userActivity(SystemClock.uptimeMillis(), true);
+	    	// Clean up intent
+			mSwitchEventIntent.removeExtra(EXTRA_SWITCH_EVENT);
+			switch (mByte) {
+				case 0x07:
+					mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_FWD);
+					sendBroadcast(mSwitchEventIntent);
+					break;
+				case 0x0B:
+					mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_BACK);
+					sendBroadcast(mSwitchEventIntent);
+					break;
+				case 0x0E:
+					mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_RIGHT);
+					sendBroadcast(mSwitchEventIntent);
+					break;
+				case 0x0D:
+					mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_LEFT);
+					sendBroadcast(mSwitchEventIntent);
+					break;
+				default:
+					break;
+			}
 		}
+		stopSelf();
 	}
-	
+
 	// All intents will be processed here
 	private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
 
@@ -207,7 +211,7 @@ public class SwitchEventProvider extends Service implements Runnable {
 			Bundle extras = intent.getExtras();
 			Integer state = extras.getInt(BluetoothAdapter.EXTRA_STATE);
 			if (state.equals(BluetoothAdapter.STATE_TURNING_OFF))
-				stopBroadcasting();
+				stopSelf();
 		}
 		
 	};

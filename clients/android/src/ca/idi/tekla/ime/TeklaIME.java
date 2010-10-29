@@ -27,12 +27,12 @@ import android.content.res.Configuration;
 import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
+import android.inputmethodservice.Keyboard.Key;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.Debug;
 import android.os.Handler;
 import android.os.Message;
-import android.os.PowerManager;
 import android.os.SystemClock;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
@@ -55,17 +55,11 @@ import android.widget.Toast;
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import ca.idi.tekla.R;
 import ca.idi.tekla.TeklaIMESettings;
-import ca.idi.tekla.R.bool;
-import ca.idi.tekla.R.drawable;
-import ca.idi.tekla.R.id;
-import ca.idi.tekla.R.integer;
-import ca.idi.tekla.R.layout;
-import ca.idi.tekla.R.raw;
-import ca.idi.tekla.R.string;
 import ca.idi.tekla.sep.SwitchEventProvider;
 
 /**
@@ -158,7 +152,13 @@ public class TeklaIME extends InputMethodService
 
     private String mWordSeparators;
     private String mSentenceSeparators;
-    
+
+    //Tekla highlighting
+	private static final int REDRAW_KEYBOARD = 99999; //this is a true arbitrary number.
+    private int mScanItemCount = 0;
+    private int mScanRowCount = 0;
+    private int mScanLevel = 0;
+
     Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -1011,7 +1011,7 @@ public class TeklaIME extends InputMethodService
         	if (intent.getAction().equals(AudioManager.RINGER_MODE_CHANGED_ACTION))
         		updateRingerMode();
         	if (intent.getAction().equals(SwitchEventProvider.ACTION_SWITCH_EVENT_RECEIVED))
-        		processSwitchEvent(intent);
+        		handleSwitchEvent(intent);
         }
     };
 
@@ -1025,8 +1025,9 @@ public class TeklaIME extends InputMethodService
         }
     }
 
-    private void processSwitchEvent(Intent intent) {
+    private void handleSwitchEvent(Intent intent) {
 		Bundle extras = intent.getExtras();
+		showWindow(true);
 		switch(extras.getInt(SwitchEventProvider.EXTRA_SWITCH_EVENT)) {
 			case SwitchEventProvider.SWITCH_FWD:
 				//selectFocused();
@@ -1037,14 +1038,63 @@ public class TeklaIME extends InputMethodService
 				showToast("stepBack()");
 				break;
 			case SwitchEventProvider.SWITCH_RIGHT:
-				//focusNext();
-				showToast("focusNext()");
+				focusNext();
 				break;
 			case SwitchEventProvider.SWITCH_LEFT:
-				//focusPrev();
-				showToast("focusPrev()");
+				focusPrev();
 				break;
 		}
+    }
+    
+	private void focusNext() {
+		mScanItemCount++;
+		updateHighlight(mInputView.getKeyboard());
+	}
+
+	private void focusPrev() {
+		mScanItemCount--;
+		updateHighlight(mInputView.getKeyboard());
+	}
+    
+    private void updateHighlight(Keyboard keyboard) {
+        List<Key> keyList = keyboard.getKeys();
+        int totalItems = keyList.size();
+        Key key;
+        // Wrap around
+        if (mScanItemCount > totalItems - 1) {
+        	mScanItemCount = 0;
+        }
+        if (mScanItemCount < 0) {
+        	mScanItemCount = totalItems - 1;
+        }
+    	for (int i=0;i < totalItems;i++) {
+			key = keyList.get(i);
+			if (i == mScanItemCount) {
+				key.pressed = true;
+			} else {
+				key.pressed = false;
+			}
+    	}
+    	redrawInputView();
+    }
+    
+	private Integer getRowCount(Keyboard keyboard) {
+    	int rows = 0;
+    	int coord = 0;
+        List<Key> keyList = keyboard.getKeys();
+    	Key key;
+    	for (Iterator<Key> i = keyList.iterator(); i.hasNext();) {
+			key = i.next();
+    		if (rows == 0) {
+    			rows++;
+    			coord = key.y;
+    		}
+    		if (coord != key.y) {
+    			rows++;
+    			coord = key.y;
+    		}
+    	}
+    	return rows;
     }
     
     private void playKeyClick(int primaryCode) {
@@ -1253,6 +1303,29 @@ public class TeklaIME extends InputMethodService
             }
         }
     }
+
+	public void redrawInputView () {
+		// Should't mess with GUI from within a thread,
+		// and threads call this method, so we'll use a
+		// handler to take care of it.
+		Message msg = Message.obtain();
+		msg.what = REDRAW_KEYBOARD;
+		redrawHandler.sendMessage(msg);  
+	}
+
+	private Handler redrawHandler = new Handler() {
+		@Override
+		public void handleMessage(Message msg) {
+			switch (msg.what) {
+				case REDRAW_KEYBOARD:
+					mInputView.invalidateAllKeys(); // Redraw keyboard
+					break;          
+				default:
+					super.handleMessage(msg);
+					break;          
+			}
+		}
+	};
 
 	private void showToast(String msg) {
 		Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
