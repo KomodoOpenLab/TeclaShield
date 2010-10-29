@@ -1095,7 +1095,10 @@ public class TeklaIME extends InputMethodService
         // If there is no auto text data, then quickfix is forced to "on", so that the other options
         // will continue to work
         if (AutoText.getSize(mInputView) < 1) mQuickFixes = true;
-        mShowSuggestions = sp.getBoolean(PREF_SHOW_SUGGESTIONS, true) & mQuickFixes;
+        //TODO: Tekla - changed default show_suggestions to false
+        //      need to change back when the dictionary is ready!
+        //mShowSuggestions = sp.getBoolean(PREF_SHOW_SUGGESTIONS, true) & mQuickFixes;
+        mShowSuggestions = sp.getBoolean(PREF_SHOW_SUGGESTIONS, false) & mQuickFixes;
         boolean autoComplete = sp.getBoolean(PREF_AUTO_COMPLETE,
                 getResources().getBoolean(R.bool.enable_autocorrect)) & mShowSuggestions;
         mAutoCorrectOn = mSuggest != null && (autoComplete || mQuickFixes);

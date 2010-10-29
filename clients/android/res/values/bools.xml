@@ -18,6 +18,8 @@
 */
 -->
 <resources>
+    <!-- Whether or not showing suggestions should be enabled by default -->
+    <bool name="show_suggestions">false</bool>
     <!-- Whether or not auto-correction should be enabled by default -->
     <bool name="enable_autocorrect">false</bool>
     <!-- Whether this input method should be used as the default for a locale. Override it

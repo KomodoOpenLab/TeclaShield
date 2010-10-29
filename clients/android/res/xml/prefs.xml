@@ -37,19 +37,23 @@
             android:defaultValue="true"
             />
 
-	<CheckBoxPreference
-		android:key="persistent_keyboard"
-		android:title="@string/persistent_keyboard"
-		android:summary="@string/persistent_keyboard_summary"
-		android:persistent="true"
-		android:defaultValue="false"
-		/>
-
-	<Preference
-		android:key="connect_shield"
-		android:title="@string/connect_shield"
-		android:defaultValue="false"
-		/>
+    <PreferenceCategory
+            android:title="@string/shield_category"
+            android:key="shield_settings">
+		<CheckBoxPreference
+			android:key="persistent_keyboard"
+			android:title="@string/persistent_keyboard"
+			android:summary="@string/persistent_keyboard_summary"
+			android:persistent="true"
+			android:defaultValue="false"
+			/>
+	
+		<Preference
+			android:key="connect_shield"
+			android:title="@string/connect_shield"
+			android:defaultValue="false"
+			/>
+    </PreferenceCategory>            
 
     <PreferenceCategory
             android:title="@string/prediction_category"
@@ -68,7 +72,7 @@
             android:title="@string/show_suggestions"
             android:summary="@string/show_suggestions_summary"
             android:persistent="true"
-            android:defaultValue="false"
+            android:defaultValue="@bool/show_suggestions"
             android:enabled="false"
             />
 
