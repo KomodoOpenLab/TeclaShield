@@ -28,9 +28,11 @@ import android.inputmethodservice.InputMethodService;
 import android.inputmethodservice.Keyboard;
 import android.inputmethodservice.KeyboardView;
 import android.media.AudioManager;
+import android.os.Bundle;
 import android.os.Debug;
 import android.os.Handler;
 import android.os.Message;
+import android.os.PowerManager;
 import android.os.SystemClock;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
@@ -48,6 +50,7 @@ import android.view.inputmethod.CompletionInfo;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputConnection;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Toast;
 
 import java.io.FileDescriptor;
 import java.io.PrintWriter;
@@ -63,6 +66,7 @@ import ca.idi.tekla.R.integer;
 import ca.idi.tekla.R.layout;
 import ca.idi.tekla.R.raw;
 import ca.idi.tekla.R.string;
+import ca.idi.tekla.sep.SwitchEventProvider;
 
 /**
  * Input method implementation for Qwerty'ish keyboard.
@@ -193,6 +197,10 @@ public class TeklaIME extends InputMethodService
         // register to receive ringer mode changes for silent mode
         IntentFilter filter = new IntentFilter(AudioManager.RINGER_MODE_CHANGED_ACTION);
         registerReceiver(mReceiver, filter);
+
+        // register to receive switch events from Tekla shield
+		filter = new IntentFilter(SwitchEventProvider.ACTION_SWITCH_EVENT_RECEIVED);
+		registerReceiver(mReceiver, filter);
     }
     
     private void initSuggest(String locale) {
@@ -1000,7 +1008,10 @@ public class TeklaIME extends InputMethodService
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            updateRingerMode();
+        	if (intent.getAction().equals(AudioManager.RINGER_MODE_CHANGED_ACTION))
+        		updateRingerMode();
+        	if (intent.getAction().equals(SwitchEventProvider.ACTION_SWITCH_EVENT_RECEIVED))
+        		processSwitchEvent(intent);
         }
     };
 
@@ -1014,6 +1025,31 @@ public class TeklaIME extends InputMethodService
         }
     }
 
+    private void processSwitchEvent(Intent intent) {
+    	// Poke the user activity timer
+		PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+		pm.userActivity(SystemClock.uptimeMillis(), true);
+		Bundle extras = intent.getExtras();
+		switch(extras.getInt(SwitchEventProvider.EXTRA_SWITCH_EVENT)) {
+			case SwitchEventProvider.SWITCH_FWD:
+				//selectFocused();
+				showToast("selectFocused()");
+				break;
+			case SwitchEventProvider.SWITCH_BACK:
+				//stepBack();
+				showToast("stepBack()");
+				break;
+			case SwitchEventProvider.SWITCH_RIGHT:
+				//focusNext();
+				showToast("focusNext()");
+				break;
+			case SwitchEventProvider.SWITCH_LEFT:
+				//focusPrev();
+				showToast("focusPrev()");
+				break;
+		}
+    }
+    
     private void playKeyClick(int primaryCode) {
         // if mAudioManager is null, we don't have the ringer state yet
         // mAudioManager will be set by updateRingerMode
@@ -1220,6 +1256,11 @@ public class TeklaIME extends InputMethodService
             }
         }
     }
+
+	private void showToast(String msg) {
+		Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+	}
+
 }
 
 

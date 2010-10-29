@@ -84,10 +84,10 @@ public class TeklaIMESettings extends PreferenceActivity
 			mConnectShield.setSummary(R.string.shield_connect_summary);
 		}
         //Tekla Intents & Intent Filters
-    	registerReceiver(mBroadcastReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
-    	registerReceiver(mBroadcastReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
-    	registerReceiver(mBroadcastReceiver, new IntentFilter(SwitchEventProvider.ACTION_SEP_BROADCAST_STARTED));
-    	registerReceiver(mBroadcastReceiver, new IntentFilter(SwitchEventProvider.ACTION_SEP_BROADCAST_STOPPED));
+    	registerReceiver(mReceiver, new IntentFilter(BluetoothAdapter.ACTION_DISCOVERY_FINISHED));
+    	registerReceiver(mReceiver, new IntentFilter(BluetoothDevice.ACTION_FOUND));
+    	registerReceiver(mReceiver, new IntentFilter(SwitchEventProvider.ACTION_SEP_BROADCAST_STARTED));
+    	registerReceiver(mReceiver, new IntentFilter(SwitchEventProvider.ACTION_SEP_BROADCAST_STOPPED));
     	
 		getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
     }
@@ -132,7 +132,7 @@ public class TeklaIMESettings extends PreferenceActivity
 	}
 	
 	// All intents will be processed here
-	private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+	private BroadcastReceiver mReceiver = new BroadcastReceiver() {
 		
 		@Override
 		public void onReceive(Context context, Intent intent) {
