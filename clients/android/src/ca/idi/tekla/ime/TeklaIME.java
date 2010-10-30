@@ -155,9 +155,13 @@ public class TeklaIME extends InputMethodService
 
     //Tekla highlighting
 	private static final int REDRAW_KEYBOARD = 99999; //this is a true arbitrary number.
-    private int mScanItemCount = 0;
-    private int mScanRowCount = 0;
-    private int mScanLevel = 0;
+    private static final int HIGHLIGHT_NEXT = 0x55;
+    private static final int HIGHLIGHT_PREV = 0xAA;
+    private static final int DEPTH_ROW = 0x55;
+    private static final int DEPTH_KEY = 0xAA;
+    private int mScanDepth = DEPTH_ROW;
+    private int mScanKeyCounter = 0;
+    private int mScanRowCounter = 0;
 
     Handler mHandler = new Handler() {
         @Override
@@ -1030,46 +1034,76 @@ public class TeklaIME extends InputMethodService
 		showWindow(true);
 		switch(extras.getInt(SwitchEventProvider.EXTRA_SWITCH_EVENT)) {
 			case SwitchEventProvider.SWITCH_FWD:
-				//selectFocused();
-				showToast("selectFocused()");
+				selectHighlighted();
 				break;
 			case SwitchEventProvider.SWITCH_BACK:
 				//stepBack();
 				showToast("stepBack()");
 				break;
 			case SwitchEventProvider.SWITCH_RIGHT:
-				focusNext();
+				changeHighlight(HIGHLIGHT_NEXT);
 				break;
 			case SwitchEventProvider.SWITCH_LEFT:
-				focusPrev();
+				changeHighlight(HIGHLIGHT_PREV);
 				break;
 		}
     }
     
-	private void focusNext() {
-		mScanItemCount++;
-		updateHighlight(mInputView.getKeyboard());
+	private void selectHighlighted() {
+		Keyboard keyboard = mInputView.getKeyboard();
+
+        if (mScanDepth == DEPTH_ROW) {
+			mScanDepth = DEPTH_KEY;
+			mScanKeyCounter = getRowStart(keyboard, mScanRowCounter);
+    		highlightKeys(keyboard,mScanKeyCounter,mScanKeyCounter);
+		} else {
+			// TODO: Tekla - Send key event
+			showToast("Send key event here!");
+	        if (getRowCount(keyboard) != 1) {
+	        	mScanDepth = DEPTH_ROW;
+	        	mScanRowCounter = 0;
+	    		highlightKeys(keyboard, 0, getRowEnd(keyboard, mScanRowCounter));
+	        }
+		}
 	}
 
-	private void focusPrev() {
-		mScanItemCount--;
-		updateHighlight(mInputView.getKeyboard());
+	private void changeHighlight(int direction) {
+		Keyboard keyboard = mInputView.getKeyboard();
+        int rowCount = getRowCount(keyboard);
+
+        if (rowCount == 1) {
+        	mScanDepth = DEPTH_KEY;
+        	mScanRowCounter = 0;
+        }
+        if (mScanDepth == DEPTH_ROW) {
+        	if (direction == HIGHLIGHT_NEXT) mScanRowCounter++;
+        	if (direction == HIGHLIGHT_PREV) mScanRowCounter--;
+        	mScanRowCounter = wrapCounter(mScanRowCounter, 0, rowCount - 1);
+        }
+        int fromIndex = getRowStart(keyboard, mScanRowCounter);
+        int toIndex = getRowEnd(keyboard, mScanRowCounter);
+        if (mScanDepth == DEPTH_KEY) {
+        	if (direction == HIGHLIGHT_NEXT) mScanKeyCounter++;
+        	if (direction == HIGHLIGHT_PREV) mScanKeyCounter--;
+        	mScanKeyCounter = wrapCounter(mScanKeyCounter, fromIndex, toIndex);
+    		highlightKeys(keyboard,mScanKeyCounter,mScanKeyCounter);
+        } else 
+    		highlightKeys(keyboard,fromIndex,toIndex);
 	}
-    
-    private void updateHighlight(Keyboard keyboard) {
+
+	private int wrapCounter(int counter, int min, int max) {
+        if (counter > max) counter = min;
+        if (counter < min) counter = max;
+        return counter;
+	}
+
+	private void highlightKeys(Keyboard keyboard, int fromIndex, int toIndex) {
         List<Key> keyList = keyboard.getKeys();
-        int totalItems = keyList.size();
-        Key key;
-        // Wrap around
-        if (mScanItemCount > totalItems - 1) {
-        	mScanItemCount = 0;
-        }
-        if (mScanItemCount < 0) {
-        	mScanItemCount = totalItems - 1;
-        }
-    	for (int i=0;i < totalItems;i++) {
+        int totalKeys = keyList.size();
+    	Key key;
+    	for (int i=0;i < totalKeys;i++) {
 			key = keyList.get(i);
-			if (i == mScanItemCount) {
+			if ((i >= fromIndex) && (i <= toIndex)) {
 				key.pressed = true;
 			} else {
 				key.pressed = false;
@@ -1079,22 +1113,70 @@ public class TeklaIME extends InputMethodService
     }
     
 	private Integer getRowCount(Keyboard keyboard) {
-    	int rows = 0;
-    	int coord = 0;
         List<Key> keyList = keyboard.getKeys();
     	Key key;
+    	int rowCounter = 0;
+    	int coord = 0;
     	for (Iterator<Key> i = keyList.iterator(); i.hasNext();) {
 			key = i.next();
-    		if (rows == 0) {
-    			rows++;
+    		if (rowCounter == 0) {
+    			rowCounter++;
     			coord = key.y;
     		}
     		if (coord != key.y) {
-    			rows++;
+    			rowCounter++;
     			coord = key.y;
     		}
     	}
-    	return rows;
+    	return rowCounter;
+    }
+    
+	private Integer getRowStart(Keyboard keyboard, int rowNumber) {
+    	int keyCounter = 0;
+        if (rowNumber != 0) {
+            List<Key> keyList = keyboard.getKeys();
+        	Key key;
+        	int rowCounter = 0;
+        	int prevCoord = keyList.get(0).y;
+        	int thisCoord;
+        	while (rowCounter != rowNumber) {
+    			keyCounter++;
+    			key = keyList.get(keyCounter);
+    			thisCoord = key.y;
+        		if (thisCoord != prevCoord) {
+        			// Changed rows
+        			rowCounter++;
+        			prevCoord = thisCoord;
+        		}
+        	}
+        }
+    	return keyCounter;
+    }
+    
+	private Integer getRowEnd(Keyboard keyboard, int rowNumber) {
+        List<Key> keyList = keyboard.getKeys();
+        int totalKeys = keyList.size();
+    	int keyCounter = 0;
+        if (rowNumber == (getRowCount(keyboard) - 1)) {
+        	keyCounter = totalKeys;
+        } else {
+        	Key key;
+        	int rowCounter = 0;
+        	int prevCoord = keyList.get(0).y;
+        	int thisCoord;
+        	while (rowCounter <= rowNumber) {
+    			keyCounter++;
+    			key = keyList.get(keyCounter);
+    			thisCoord = key.y;
+        		if (thisCoord != prevCoord) {
+        			// Changed rows
+        			rowCounter++;
+        			prevCoord = thisCoord;
+        		}
+        	}
+        	keyCounter--;
+        }
+    	return keyCounter;
     }
     
     private void playKeyClick(int primaryCode) {
