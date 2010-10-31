@@ -1158,7 +1158,7 @@ public class TeklaIME extends InputMethodService
         int totalKeys = keyList.size();
     	int keyCounter = 0;
         if (rowNumber == (getRowCount(keyboard) - 1)) {
-        	keyCounter = totalKeys;
+        	keyCounter = totalKeys - 1;
         } else {
         	Key key;
         	int rowCounter = 0;
