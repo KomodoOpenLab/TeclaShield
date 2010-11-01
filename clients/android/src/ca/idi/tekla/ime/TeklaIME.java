@@ -154,6 +154,7 @@ public class TeklaIME extends InputMethodService
     private String mSentenceSeparators;
 
     //Tekla highlighting
+    //TODO: Tekla - move highlighting code to dedicated class
 	private static final int REDRAW_KEYBOARD = 99999; //this is a true arbitrary number.
     private static final int HIGHLIGHT_NEXT = 0x55;
     private static final int HIGHLIGHT_PREV = 0xAA;
@@ -349,8 +350,10 @@ public class TeklaIME extends InputMethodService
                 updateShiftKeyState(attribute);
                 break;
             default:
-                mKeyboardSwitcher.setKeyboardMode(KeyboardSwitcher.MODE_TEXT,
+                mKeyboardSwitcher.setKeyboardMode(KeyboardSwitcher.MODE_UI,
                         attribute.imeOptions);
+                //mKeyboardSwitcher.setKeyboardMode(KeyboardSwitcher.MODE_TEXT,
+                //        attribute.imeOptions);
                 updateShiftKeyState(attribute);
         }
         mInputView.closing();
@@ -473,7 +476,9 @@ public class TeklaIME extends InputMethodService
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch (keyCode) {
             case KeyEvent.KEYCODE_BACK:
-                if (event.getRepeatCount() == 0 && mInputView != null) {
+            	// FIXME: Tekla - Trying to prevent soft input method
+            	// from consuming the back key
+                /*if (event.getRepeatCount() == 0 && mInputView != null) {
                     if (mInputView.handleBack()) {
                         return true;
                     } else if (mTutorial != null) {
@@ -481,7 +486,8 @@ public class TeklaIME extends InputMethodService
                         mTutorial = null;
                     }
                 }
-                break;
+                break;*/
+                return false;
             case KeyEvent.KEYCODE_DPAD_DOWN:
             case KeyEvent.KEYCODE_DPAD_UP:
             case KeyEvent.KEYCODE_DPAD_LEFT:
@@ -520,6 +526,20 @@ public class TeklaIME extends InputMethodService
         }
         return super.onKeyUp(keyCode, event);
     }
+
+	/**
+	* This is called every time the soft IME window is hidden from the user.
+	*/
+	@Override
+	public void onWindowHidden() {
+		// TODO: Tekla - Retrieve persistent keyboard preference
+		// to decide whether or not to hide the soft keyboard.
+		/*showKeyboard(KeyboardType.HARD_KEYS, null);
+        if (mTeklaIMEHelper.retrievePersistentKeyboard())*/
+        	showWindow(true);
+        /*else
+        	hideWindow();*/
+	}
 
     private void commitTyped(InputConnection inputConnection) {
         if (mPredicting) {
@@ -602,7 +622,7 @@ public class TeklaIME extends InputMethodService
 
     public void onKey(int primaryCode, int[] keyCodes) {
         long when = SystemClock.uptimeMillis();
-        if (primaryCode != Keyboard.KEYCODE_DELETE || 
+		if (primaryCode != Keyboard.KEYCODE_DELETE || 
                 when > mLastKeyTime + QUICK_PRESS) {
             mDeleteCount = 0;
         }
@@ -646,6 +666,12 @@ public class TeklaIME extends InputMethodService
             changeKeyboardMode();
         }
     }
+    
+    private boolean isNavigationKey(int keycode) {
+    	return ((keycode>=KeyEvent.KEYCODE_DPAD_UP)
+    			&& (keycode<=KeyEvent.KEYCODE_DPAD_CENTER))
+    			|| (keycode == KeyEvent.KEYCODE_BACK);
+   	}
     
     public void onText(CharSequence text) {
         InputConnection ic = getCurrentInputConnection();
@@ -706,6 +732,10 @@ public class TeklaIME extends InputMethodService
     }
     
     private void handleCharacter(int primaryCode, int[] keyCodes) {
+		if(isNavigationKey(primaryCode)) { 
+			 // Tekla UI Navigation
+			handleNavigationKey(primaryCode);
+		}
         if (isAlphabet(primaryCode) && isPredictionOn() && !isCursorTouchingWord()) {
             if (!mPredicting) {
                 mPredicting = true;
@@ -1049,6 +1079,7 @@ public class TeklaIME extends InputMethodService
 		}
     }
     
+    //TODO: Tekla - move highlighting code to dedicated class
 	private void selectHighlighted() {
 		Keyboard keyboard = mInputView.getKeyboard();
 
@@ -1057,8 +1088,9 @@ public class TeklaIME extends InputMethodService
 			mScanKeyCounter = getRowStart(keyboard, mScanRowCounter);
     		highlightKeys(keyboard,mScanKeyCounter,mScanKeyCounter);
 		} else {
-			// TODO: Tekla - Send key event
-			showToast("Send key event here!");
+	        List<Key> keyList = keyboard.getKeys();
+	        Key key = keyList.get(mScanKeyCounter);
+			onKey(key.codes[0], key.codes);
 	        if (getRowCount(keyboard) != 1) {
 	        	mScanDepth = DEPTH_ROW;
 	        	mScanRowCounter = 0;
@@ -1385,6 +1417,16 @@ public class TeklaIME extends InputMethodService
             }
         }
     }
+
+	/**
+	* Helper to send a key down / key up pair to the current editor.
+	*/
+	private void handleNavigationKey(int keyEventCode) {
+		getCurrentInputConnection().sendKeyEvent(
+			new KeyEvent(KeyEvent.ACTION_DOWN, keyEventCode));
+		getCurrentInputConnection().sendKeyEvent(
+			new KeyEvent(KeyEvent.ACTION_UP, keyEventCode));
+	}
 
 	public void redrawInputView () {
 		// Should't mess with GUI from within a thread,

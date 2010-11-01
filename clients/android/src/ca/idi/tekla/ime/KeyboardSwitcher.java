@@ -31,6 +31,7 @@ public class KeyboardSwitcher {
     public static final int MODE_URL = 4;
     public static final int MODE_EMAIL = 5;
     public static final int MODE_IM = 6;
+    public static final int MODE_UI = 7;
     
     public static final int MODE_TEXT_QWERTY = 0;
     public static final int MODE_TEXT_ALPHA = 1;
@@ -183,6 +184,8 @@ public class KeyboardSwitcher {
                 return new KeyboardId(R.xml.kbd_qwerty, KEYBOARDMODE_EMAIL, true);
             case MODE_IM:
                 return new KeyboardId(R.xml.kbd_qwerty, KEYBOARDMODE_IM, true);
+            case MODE_UI:
+                return new KeyboardId(R.xml.kbd_ui, KEYBOARDMODE_NORMAL, true);
         }
         return null;
     }
