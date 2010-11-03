@@ -208,7 +208,7 @@
     
 	<!-- Tekla: IME Options Strings -->
     <!-- Category title for tekla shield -->
-    <string name="shield_category">Tekla shield settings</string>
+    <string name="shield_category">Switch access settings</string>
     
     <!-- Option to show the UI navigation keyboard on the screen -->
 	<string name="persistent_keyboard">Always show keyboard</string>
@@ -226,7 +226,5 @@
 	<!-- Tekla: Switch Event Provider Strings -->
 	<string name="sep_started">Tekla shield connected</string>
 	<string name="sep_label">Switch event provider</string>
-    
-
 
 </resources>

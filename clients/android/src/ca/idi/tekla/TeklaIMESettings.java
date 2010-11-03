@@ -19,6 +19,7 @@ package ca.idi.tekla;
 //FIXME: Tekla - Solve backup elsewhere
 //import android.backup.BackupManager;
 import ca.idi.tekla.R;
+import ca.idi.tekla.ime.TeklaIME;
 import ca.idi.tekla.sep.SwitchEventProvider;
 
 import android.app.ProgressDialog;
@@ -34,9 +35,9 @@ import android.preference.CheckBoxPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceGroup;
-import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
 import android.text.AutoText;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
 
 public class TeklaIMESettings extends PreferenceActivity
@@ -50,10 +51,11 @@ public class TeklaIMESettings extends PreferenceActivity
     private CheckBoxPreference mShowSuggestions;
 
     //Tekla keys & variables
+	public static final String PERSISTENT_KEYBOARD_KEY = "persistent_keyboard";
 	public static final String SHIELD_CONNECT_KEY = "shield_connect";
-	public static final String SHIELD_NAME_KEY = "shield_name";
     
-    private Preference mConnectShield;
+    private CheckBoxPreference mPersistentKeyboard;
+    private CheckBoxPreference mConnectShield;
 	private ProgressDialog mProgressDialog;
 	private BluetoothAdapter mBluetoothAdapter;
 	private boolean mShieldFound;
@@ -69,7 +71,8 @@ public class TeklaIMESettings extends PreferenceActivity
         addPreferencesFromResource(R.xml.prefs);
         mQuickFixes = (CheckBoxPreference) findPreference(QUICK_FIXES_KEY);
         mShowSuggestions = (CheckBoxPreference) findPreference(SHOW_SUGGESTIONS_KEY);
-        mConnectShield = (Preference) findPreference(SHIELD_CONNECT_KEY);
+        mPersistentKeyboard = (CheckBoxPreference) findPreference(PERSISTENT_KEYBOARD_KEY);
+        mConnectShield = (CheckBoxPreference) findPreference(SHIELD_CONNECT_KEY);
 
         // Check bluetooth state to determine if shield_connect preference
         // should be enabled
@@ -111,17 +114,7 @@ public class TeklaIMESettings extends PreferenceActivity
         super.onDestroy();
     }
 
-	@Override
-	public boolean onPreferenceTreeClick (PreferenceScreen preferenceScreen, Preference preference) {
-
-		if (preference.getKey().equals(SHIELD_CONNECT_KEY)) {
-			discoverShield();
-			return true;
-		}
-		return super.onPreferenceTreeClick(preferenceScreen, preference);
-	}
-
-	private void discoverShield() {
+    private void discoverShield() {
 		mShieldFound = false;
 		if (mBluetoothAdapter.isDiscovering())
 			mBluetoothAdapter.cancelDiscovery();
@@ -144,7 +137,6 @@ public class TeklaIMESettings extends PreferenceActivity
 					mShieldFound = true;
 					mShieldAddress = dev.getAddress(); 
 					mShieldName = dev.getName(); 
-					//saveShieldName(mShieldName);
 					if (mBluetoothAdapter.isDiscovering())
 						mBluetoothAdapter.cancelDiscovery();
 				}
@@ -154,36 +146,63 @@ public class TeklaIMESettings extends PreferenceActivity
 				if (mShieldFound) {
 					//TODO: Tekla - Add string to resources
 					mProgressDialog.setMessage("Connecting to Tekla shield "
-							+ mShieldName + ": " + mShieldAddress);
+							+ mShieldName);
 					if(!startSwitchEventProvider(mShieldAddress)) {
 						mProgressDialog.dismiss();
 						//TODO: Tekla - Add string to resources
-						showToast("Could not send intent");
+						showToast("Could not start switch event provider");
 					}
 				} else {
 					mProgressDialog.dismiss();
+					mConnectShield.setChecked(false);
 					//TODO: Tekla - Add string to resources
 					showToast("No Tekla shields in range");
 				}
 			}
 			
 			if (intent.getAction().equals(SwitchEventProvider.ACTION_SEP_BROADCAST_STARTED)) {
+				//Success!
 				mProgressDialog.dismiss();
+				mPersistentKeyboard.setChecked(true);
 			}
 
 			if (intent.getAction().equals(SwitchEventProvider.ACTION_SEP_BROADCAST_STOPPED)) {
 				mProgressDialog.dismiss();
+				mConnectShield.setChecked(false);
 				//TODO: Tekla - Add string to resources
-				showToast("Service STOPPED");
+				showToast("Shield disconnected");
 			}
-
 		}
 	};
 	
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
             String key) {
-    	//showToast("debug: onSharedPreferenceChange called with key: " + key);
+		if (key.equals(PERSISTENT_KEYBOARD_KEY)) {
+	    	InputMethodManager imeManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+	    	imeManager.toggleSoftInput(0, 0);
+	    	if (mPersistentKeyboard.isChecked()) {
+				// Show keyboard immediately if Tekla IME is selected
+				sendBroadcast(new Intent(TeklaIME.ACTION_SHOW_IME));
+			} else {
+				// Hide keyboard immediately if Tekla IME is selected
+				sendBroadcast(new Intent(TeklaIME.ACTION_HIDE_IME));
+				mConnectShield.setChecked(false);
+			}
+		}
+		if (key.equals(SHIELD_CONNECT_KEY)) {
+			if (mConnectShield.isChecked()) {
+				// Connect to shield but also keep connection alive
+				discoverShield();
+			} else {
+				// TODO: Tekla - Find out how to disconnect
+				// switch event provider without breaking
+				// connection with other potential clients.
+				// Should perhaps use Binding?
+				stopService(new Intent(SwitchEventProvider.INTENT_STOP_SERVICE));
+			}
+		}
     	//FIXME: Tekla - Solve backup elsewhere
+    	//showToast("debug: onSharedPreferenceChange called with key: " + key);
     	//(new BackupManager(this)).dataChanged();
     }
 
@@ -191,14 +210,6 @@ public class TeklaIMESettings extends PreferenceActivity
 		Intent sepIntent = new Intent(SwitchEventProvider.INTENT_START_SERVICE);
 		sepIntent.putExtra(SwitchEventProvider.EXTRA_SHIELD_ADDRESS, shieldAddress);
 		return startService(sepIntent) == null? false:true;
-	}
-
-	private void saveShieldName(String name) {
-		SharedPreferences prefs = PreferenceManager
-			.getDefaultSharedPreferences(getBaseContext());
-		SharedPreferences.Editor editor = prefs.edit();
-		editor.putString(SHIELD_NAME_KEY, name);
-		editor.commit();
 	}
 
 	private void showToast(String msg) {

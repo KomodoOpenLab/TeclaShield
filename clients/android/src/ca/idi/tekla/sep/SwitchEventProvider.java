@@ -40,6 +40,7 @@ public class SwitchEventProvider extends Service implements Runnable {
 	 * must be provided to start the service.
 	*/
     public static final String INTENT_START_SERVICE = "ca.idi.tekla.sep.SEPService";
+    public static final String INTENT_STOP_SERVICE = "ca.idi.tekla.sep.SEPService";
     public static final String ACTION_SEP_BROADCAST_STARTED = "ca.idi.tekla.sep.action.SEP_BROADCAST_STARTED";
     public static final String ACTION_SEP_BROADCAST_STOPPED = "ca.idi.tekla.sep.action.SEP_BROADCAST_STOPPED";
 	/**

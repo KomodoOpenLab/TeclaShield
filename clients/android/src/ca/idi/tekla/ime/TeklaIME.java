@@ -76,6 +76,9 @@ public class TeklaIME extends InputMethodService
     private static final String PREF_QUICK_FIXES = "quick_fixes";
     private static final String PREF_SHOW_SUGGESTIONS = "show_suggestions";
     private static final String PREF_AUTO_COMPLETE = "auto_complete";
+    // Tekla preference constants
+    private static final String PREF_PERSISTENT_KEYBOARD = "persistent_keyboard";
+    private static final String PREF_SHIELD_CONNECT = "shield_connect";
 
     private static final int MSG_UPDATE_SUGGESTIONS = 0;
     private static final int MSG_START_TUTORIAL = 1;
@@ -153,6 +156,11 @@ public class TeklaIME extends InputMethodService
     private String mWordSeparators;
     private String mSentenceSeparators;
 
+    // Tekla preference variables
+    public static final String ACTION_SHOW_IME = "ca.idi.tekla.ime.action.SHOW_IME";
+    public static final String ACTION_HIDE_IME = "ca.idi.tekla.ime.action.HIDE_IME";
+    private boolean mPersistentKeyboardOn;
+    private int mLastKeyboardMode = 0;
     //Tekla highlighting
     //TODO: Tekla - move highlighting code to dedicated class
 	private static final int REDRAW_KEYBOARD = 99999; //this is a true arbitrary number.
@@ -191,6 +199,8 @@ public class TeklaIME extends InputMethodService
 
     @Override public void onCreate() {
         super.onCreate();
+		// Use the following line to debug IME service.
+		 android.os.Debug.waitForDebugger();
         //setStatusIcon(R.drawable.ime_qwerty);
         mKeyboardSwitcher = new KeyboardSwitcher(this);
         final Configuration conf = getResources().getConfiguration();
@@ -205,6 +215,12 @@ public class TeklaIME extends InputMethodService
 
         // register to receive switch events from Tekla shield
 		filter = new IntentFilter(SwitchEventProvider.ACTION_SWITCH_EVENT_RECEIVED);
+		registerReceiver(mReceiver, filter);
+
+        // register to receive show/hide IME events from Settings window
+		filter = new IntentFilter(ACTION_SHOW_IME);
+		registerReceiver(mReceiver, filter);
+		filter = new IntentFilter(ACTION_HIDE_IME);
 		registerReceiver(mReceiver, filter);
     }
     
@@ -253,7 +269,7 @@ public class TeklaIME extends InputMethodService
         mKeyboardSwitcher.setInputView(mInputView);
         mKeyboardSwitcher.makeKeyboards(true);
         mInputView.setOnKeyboardActionListener(this);
-        mKeyboardSwitcher.setKeyboardMode(KeyboardSwitcher.MODE_TEXT, 0);
+        mKeyboardSwitcher.setKeyboardMode(KeyboardSwitcher.MODE_UI, 0);
         return mInputView;
     }
 
@@ -349,11 +365,14 @@ public class TeklaIME extends InputMethodService
                 }
                 updateShiftKeyState(attribute);
                 break;
-            default:
+            case EditorInfo.TYPE_NULL:
                 mKeyboardSwitcher.setKeyboardMode(KeyboardSwitcher.MODE_UI,
                         attribute.imeOptions);
-                //mKeyboardSwitcher.setKeyboardMode(KeyboardSwitcher.MODE_TEXT,
-                //        attribute.imeOptions);
+                updateShiftKeyState(attribute);
+                break;
+            default:
+                mKeyboardSwitcher.setKeyboardMode(KeyboardSwitcher.MODE_TEXT,
+                        attribute.imeOptions);
                 updateShiftKeyState(attribute);
         }
         mInputView.closing();
@@ -532,13 +551,10 @@ public class TeklaIME extends InputMethodService
 	*/
 	@Override
 	public void onWindowHidden() {
-		// TODO: Tekla - Retrieve persistent keyboard preference
-		// to decide whether or not to hide the soft keyboard.
-		/*showKeyboard(KeyboardType.HARD_KEYS, null);
-        if (mTeklaIMEHelper.retrievePersistentKeyboard())*/
+        if (mPersistentKeyboardOn) {
         	showWindow(true);
-        /*else
-        	hideWindow();*/
+            mKeyboardSwitcher.setKeyboardMode(KeyboardSwitcher.MODE_UI, 0);
+        }
 	}
 
     private void commitTyped(InputConnection inputConnection) {
@@ -656,7 +672,9 @@ public class TeklaIME extends InputMethodService
             default:
                 if (isWordSeparator(primaryCode)) {
                     handleSeparator(primaryCode);
-                } else {
+                } else if (isNavigationKey(primaryCode)) {
+                	handleNavigationKey(primaryCode);
+                } else { 
                     handleCharacter(primaryCode, keyCodes);
                 }
                 // Cancel the just reverted state
@@ -666,12 +684,6 @@ public class TeklaIME extends InputMethodService
             changeKeyboardMode();
         }
     }
-    
-    private boolean isNavigationKey(int keycode) {
-    	return ((keycode>=KeyEvent.KEYCODE_DPAD_UP)
-    			&& (keycode<=KeyEvent.KEYCODE_DPAD_CENTER))
-    			|| (keycode == KeyEvent.KEYCODE_BACK);
-   	}
     
     public void onText(CharSequence text) {
         InputConnection ic = getCurrentInputConnection();
@@ -732,10 +744,6 @@ public class TeklaIME extends InputMethodService
     }
     
     private void handleCharacter(int primaryCode, int[] keyCodes) {
-		if(isNavigationKey(primaryCode)) { 
-			 // Tekla UI Navigation
-			handleNavigationKey(primaryCode);
-		}
         if (isAlphabet(primaryCode) && isPredictionOn() && !isCursorTouchingWord()) {
             if (!mPredicting) {
                 mPredicting = true;
@@ -770,6 +778,13 @@ public class TeklaIME extends InputMethodService
         TextEntryState.typedCharacter((char) primaryCode, isWordSeparator(primaryCode));
     }
 
+    private boolean isNavigationKey(int keycode) {
+    	return ((keycode>=KeyEvent.KEYCODE_DPAD_UP)
+    			&& (keycode<=KeyEvent.KEYCODE_DPAD_CENTER))
+    			|| (keycode == KeyEvent.KEYCODE_BACK)
+    			|| (keycode == Keyboard.KEYCODE_DONE);
+   	}
+    
     private void handleSeparator(int primaryCode) {
         boolean pickedDefault = false;
         // Handle separator
@@ -812,9 +827,10 @@ public class TeklaIME extends InputMethodService
     
     private void handleClose() {
         commitTyped(getCurrentInputConnection());
-        requestHideSelf(0);
-        mInputView.closing();
+       	//requestHideSelf(0);
+       	mInputView.closing();
         TextEntryState.endSession();
+        hideWindow();
     }
 
     private void checkToggleCapsLock() {
@@ -1046,6 +1062,10 @@ public class TeklaIME extends InputMethodService
         		updateRingerMode();
         	if (intent.getAction().equals(SwitchEventProvider.ACTION_SWITCH_EVENT_RECEIVED))
         		handleSwitchEvent(intent);
+        	if (intent.getAction().equals(ACTION_SHOW_IME))
+        		showWindow(true);
+        	if (intent.getAction().equals(ACTION_HIDE_IME))
+        		hideWindow();
         }
     };
 
@@ -1302,6 +1322,8 @@ public class TeklaIME extends InputMethodService
         mCorrectionMode = autoComplete
                 ? Suggest.CORRECTION_FULL
                 : (mQuickFixes ? Suggest.CORRECTION_BASIC : Suggest.CORRECTION_NONE);
+        // Load Tekla settings
+        mPersistentKeyboardOn = sp.getBoolean(PREF_PERSISTENT_KEYBOARD, false);
     }
 
     private void showOptionsMenu() {
@@ -1422,10 +1444,19 @@ public class TeklaIME extends InputMethodService
 	* Helper to send a key down / key up pair to the current editor.
 	*/
 	private void handleNavigationKey(int keyEventCode) {
-		getCurrentInputConnection().sendKeyEvent(
-			new KeyEvent(KeyEvent.ACTION_DOWN, keyEventCode));
-		getCurrentInputConnection().sendKeyEvent(
-			new KeyEvent(KeyEvent.ACTION_UP, keyEventCode));
+		if (keyEventCode == Keyboard.KEYCODE_DONE) {
+			if (mKeyboardSwitcher.getKeyboardMode() != KeyboardSwitcher.MODE_UI) {
+				mLastKeyboardMode = mKeyboardSwitcher.getKeyboardMode();
+				mKeyboardSwitcher.setKeyboardMode(KeyboardSwitcher.MODE_UI, 0);
+			}
+			else
+				mKeyboardSwitcher.setKeyboardMode(mLastKeyboardMode, 0);
+		} else {
+			getCurrentInputConnection().sendKeyEvent(
+					new KeyEvent(KeyEvent.ACTION_DOWN, keyEventCode));
+			getCurrentInputConnection().sendKeyEvent(
+					new KeyEvent(KeyEvent.ACTION_UP, keyEventCode));
+		}
 	}
 
 	public void redrawInputView () {

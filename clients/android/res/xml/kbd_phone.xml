@@ -59,9 +59,12 @@
         <Key android:codes="32" android:keyIcon="@drawable/sym_keyboard_space" 
                 android:iconPreview="@drawable/sym_keyboard_feedback_space"
                 android:isRepeatable="true"/>
-        <Key android:codes="10" android:keyIcon="@drawable/sym_keyboard_return"
+        <!-- <Key android:codes="10" android:keyIcon="@drawable/sym_keyboard_return"
                 android:keyWidth="20%p"
-                android:keyEdgeFlags="right"/>
+                android:keyEdgeFlags="right"/> -->
+		<Key android:codes="-4" android:keyIcon="@drawable/sym_keyboard_done" 
+			android:iconPreview="@drawable/sym_keyboard_feedback_done"
+			android:keyWidth="20%p" android:keyEdgeFlags="right"/>
     </Row>
     
 </Keyboard>
