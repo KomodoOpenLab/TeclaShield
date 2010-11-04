@@ -1065,7 +1065,7 @@ public class TeklaIME extends InputMethodService
         	if (intent.getAction().equals(ACTION_SHOW_IME))
         		showWindow(true);
         	if (intent.getAction().equals(ACTION_HIDE_IME))
-        		hideWindow();
+        		handleClose();
         }
     };
 
@@ -1087,8 +1087,7 @@ public class TeklaIME extends InputMethodService
 				selectHighlighted();
 				break;
 			case SwitchEventProvider.SWITCH_BACK:
-				//stepBack();
-				showToast("stepBack()");
+				stepBack();
 				break;
 			case SwitchEventProvider.SWITCH_RIGHT:
 				changeHighlight(HIGHLIGHT_NEXT);
@@ -1098,8 +1097,17 @@ public class TeklaIME extends InputMethodService
 				break;
 		}
     }
+
+	private void stepBack() {
+		Keyboard keyboard = mInputView.getKeyboard();
+        if (getRowCount(keyboard) != 1) {
+    		mScanDepth = DEPTH_ROW;		
+    		highlightKeys(keyboard,
+    				getRowStart(keyboard, mScanRowCounter),
+    				getRowEnd(keyboard, mScanRowCounter));
+        }
+	}
     
-    //TODO: Tekla - move highlighting code to dedicated class
 	private void selectHighlighted() {
 		Keyboard keyboard = mInputView.getKeyboard();
 
@@ -1116,6 +1124,7 @@ public class TeklaIME extends InputMethodService
 	        	mScanRowCounter = 0;
 	    		highlightKeys(keyboard, 0, getRowEnd(keyboard, mScanRowCounter));
 	        }
+	        mScanKeyCounter = 0;
 		}
 	}
 
@@ -1447,7 +1456,7 @@ public class TeklaIME extends InputMethodService
 		if (keyEventCode == Keyboard.KEYCODE_DONE) {
 			if (mKeyboardSwitcher.getKeyboardMode() != KeyboardSwitcher.MODE_UI) {
 				mLastKeyboardMode = mKeyboardSwitcher.getKeyboardMode();
-				mKeyboardSwitcher.setKeyboardMode(KeyboardSwitcher.MODE_UI, 0);
+				handleClose();
 			}
 			else
 				mKeyboardSwitcher.setKeyboardMode(mLastKeyboardMode, 0);
