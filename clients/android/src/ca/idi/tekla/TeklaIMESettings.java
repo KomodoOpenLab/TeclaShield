@@ -179,16 +179,18 @@ public class TeklaIMESettings extends PreferenceActivity
             String key) {
 		if (key.equals(PERSISTENT_KEYBOARD_KEY)) {
 	    	InputMethodManager imeManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-	    	// Trying to force initialization of IME so it can listen to intents (if it is Tekla)
-    		imeManager.toggleSoftInput(0, 0);
-    		imeManager.toggleSoftInput(0, 0);
+	    	// Trying to force initialization of IME so it can respond
+	    	// to the commands below (if it is Tekla)
+	    	while (!imeManager.isActive()) {
+		    	imeManager.toggleSoftInput(0, 0);
+		    	imeManager.toggleSoftInput(0, 0);
+	    	}
 	    	if (mPersistentKeyboard.isChecked()) {
 				// Show keyboard immediately if Tekla IME is selected
-	    		imeManager.showSoftInput(this.getCurrentFocus(), InputMethodManager.SHOW_FORCED);
-				sendBroadcast(new Intent(TeklaIME.ACTION_SHOW_IME));
+	    		imeManager.sendAppPrivateCommand(null, TeklaIME.ACTION_SHOW_IME, null);
 			} else {
 				// Hide keyboard immediately if Tekla IME is selected
-				sendBroadcast(new Intent(TeklaIME.ACTION_HIDE_IME));
+	    		imeManager.sendAppPrivateCommand(null, TeklaIME.ACTION_HIDE_IME, null);
 				mConnectShield.setChecked(false);
 			}
 		}

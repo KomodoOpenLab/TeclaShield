@@ -156,12 +156,11 @@ public class TeklaIME extends InputMethodService
     private String mWordSeparators;
     private String mSentenceSeparators;
 
-    // Tekla preference variables
+    // Tekla constants and variables
     public static final String ACTION_SHOW_IME = "ca.idi.tekla.ime.action.SHOW_IME";
     public static final String ACTION_HIDE_IME = "ca.idi.tekla.ime.action.HIDE_IME";
     private boolean mPersistentKeyboardOn;
     private int mLastKeyboardMode = KeyboardSwitcher.MODE_TEXT;
-    //Tekla highlighting
     //TODO: Tekla - move highlighting code to dedicated class
 	private static final int REDRAW_KEYBOARD = 99999; //this is a true arbitrary number.
     private static final int HIGHLIGHT_NEXT = 0x55;
@@ -216,15 +215,9 @@ public class TeklaIME extends InputMethodService
         // register to receive switch events from Tekla shield
 		filter = new IntentFilter(SwitchEventProvider.ACTION_SWITCH_EVENT_RECEIVED);
 		registerReceiver(mReceiver, filter);
-
-        // register to receive show/hide IME events from Settings window
-		filter = new IntentFilter(ACTION_SHOW_IME);
-		registerReceiver(mReceiver, filter);
-		filter = new IntentFilter(ACTION_HIDE_IME);
-		registerReceiver(mReceiver, filter);
     }
     
-    private void initSuggest(String locale) {
+	private void initSuggest(String locale) {
         mLocale = locale;
         mSuggest = new Suggest(this, R.raw.main);
         mSuggest.setCorrectionMode(mCorrectionMode);
@@ -408,6 +401,32 @@ public class TeklaIME extends InputMethodService
     }
 
     @Override
+    public boolean onEvaluateInputViewShown() {
+		return mPersistentKeyboardOn? true:super.onEvaluateInputViewShown();
+    }
+    
+    @Override
+    public void onAppPrivateCommand(String action, Bundle data) {
+		updateInputViewShown();
+    	if (action.equals(ACTION_SHOW_IME)) {
+    		// Force show IME
+			mPersistentKeyboardOn = true;
+    		while(!isInputViewShown()) {
+        		showWindow(true);
+        		updateInputViewShown();
+    		}
+    	}
+    	if (action.equals(ACTION_HIDE_IME)) {
+    		// Force hide IME
+			mPersistentKeyboardOn = false;
+    		while(isInputViewShown()) {
+        		hideWindow();
+        		updateInputViewShown();
+    		}
+    	}
+    }
+    
+    @Override
     public void onUpdateSelection(int oldSelStart, int oldSelEnd,
             int newSelStart, int newSelEnd,
             int candidatesStart, int candidatesEnd) {
@@ -551,6 +570,7 @@ public class TeklaIME extends InputMethodService
 	*/
 	@Override
 	public void onWindowHidden() {
+    	super.onWindowHidden();
         if (mPersistentKeyboardOn) {
         	showWindow(true);
             mKeyboardSwitcher.setKeyboardMode(KeyboardSwitcher.MODE_UI, 0);
@@ -792,18 +812,22 @@ public class TeklaIME extends InputMethodService
 		if (keyEventCode == Keyboard.KEYCODE_DONE) {
 			if (mKeyboardSwitcher.getKeyboardMode() != KeyboardSwitcher.MODE_UI) {
 				mLastKeyboardMode = mKeyboardSwitcher.getKeyboardMode();
-				handleClose();
+				hideWindow();
 			}
 			else
 				mKeyboardSwitcher.setKeyboardMode(mLastKeyboardMode, 0);
 		} else {
-			getCurrentInputConnection().sendKeyEvent(
-					new KeyEvent(KeyEvent.ACTION_DOWN, keyEventCode));
-			getCurrentInputConnection().sendKeyEvent(
-					new KeyEvent(KeyEvent.ACTION_UP, keyEventCode));
+			keyDownUp(keyEventCode);
 		}
 	}
 
+	private void keyDownUp(int keyEventCode) {
+		getCurrentInputConnection().sendKeyEvent(
+				new KeyEvent(KeyEvent.ACTION_DOWN, keyEventCode));
+		getCurrentInputConnection().sendKeyEvent(
+				new KeyEvent(KeyEvent.ACTION_UP, keyEventCode));
+	}
+	
     private void handleSeparator(int primaryCode) {
         boolean pickedDefault = false;
         // Handle separator
@@ -846,10 +870,9 @@ public class TeklaIME extends InputMethodService
     
     private void handleClose() {
         commitTyped(getCurrentInputConnection());
-       	//requestHideSelf(0);
+       	requestHideSelf(0);
        	mInputView.closing();
         TextEntryState.endSession();
-        hideWindow();
     }
 
     private void checkToggleCapsLock() {
@@ -1081,10 +1104,6 @@ public class TeklaIME extends InputMethodService
         		updateRingerMode();
         	if (intent.getAction().equals(SwitchEventProvider.ACTION_SWITCH_EVENT_RECEIVED))
         		handleSwitchEvent(intent);
-        	if (intent.getAction().equals(ACTION_SHOW_IME))
-        		showWindow(true);
-        	if (intent.getAction().equals(ACTION_HIDE_IME))
-        		handleClose();
         }
     };
 
