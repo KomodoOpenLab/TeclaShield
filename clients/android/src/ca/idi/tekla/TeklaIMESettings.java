@@ -109,6 +109,7 @@ public class TeklaIMESettings extends PreferenceActivity
 
     @Override
     protected void onDestroy() {
+    	unregisterReceiver(mReceiver);
         getPreferenceManager().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(
                 this);
         super.onDestroy();

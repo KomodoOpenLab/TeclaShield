@@ -23,6 +23,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.PowerManager;
@@ -34,6 +35,11 @@ import android.widget.Toast;
 public class SwitchEventProvider extends Service implements Runnable {
 
 	//Constants
+	/**
+	 * "Well-known" Serial Port Profile UUID as specified at:
+	 * http://developer.android.com/reference/android/bluetooth/BluetoothDevice.html#createRfcommSocketToServiceRecord%28java.util.UUID%29
+	*/
+	private static final UUID SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
 	/**
 	 * Intent string used to start and stop the switch event
 	 * provider service. {@link #EXTRA_SHIELD_MAC}
@@ -80,11 +86,33 @@ public class SwitchEventProvider extends Service implements Runnable {
 	// private String server_address = "00:06:66:04:13:01"; // BlueSMiRF 2
 	// private String server_address = "00:16:41:89:C8:0A"; // jsilva-laptop
 
-    // Using "well-known" SPP UUID as specified at:
-	// http://developer.android.com/reference/android/bluetooth/BluetoothDevice.html#createRfcommSocketToServiceRecord%28java.util.UUID%29
-	private static final UUID SPP_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
+	private Handler mHandler = new Handler();
+	private int mPingCounter = 0;
+	private final Runnable pingShield = new Runnable () {
+
+		@Override
+		public void run() {
+			write2Shield((byte) 0x70);
+			mPingCounter++;
+			if (mPingCounter > 5) {
+				// We lost connection, stop pinging
+				mPingCounter = 0;
+				disconnectShield();
+				new Thread(new Runnable() {
+					public void run() {
+						while(!mIsBroadcasting) {
+							connectShield(retrieveSavedShieldAddress());
+							SystemClock.sleep(5000);
+						}
+					}
+				}).start();
+			} else
+				mHandler.postDelayed(this, 5000);
+		}
+		
+	};
 	
-    /**
+	/**
      * Class for clients to access.  Because we know this service always
      * runs in the same process as its clients, we don't need to deal with
      * IPC.
@@ -117,7 +145,7 @@ public class SwitchEventProvider extends Service implements Runnable {
 	@Override
 	public void onDestroy() {
 		/* Call this from the main Activity to shutdown the connection */
-		stopBroadcasting();
+		disconnectShield();
 	}
 
     @Override
@@ -136,13 +164,13 @@ public class SwitchEventProvider extends Service implements Runnable {
 			
 		if (BluetoothAdapter.checkBluetoothAddress(mShieldAddress)) {
 			// MAC is valid
-			broadcastFromShield(mShieldAddress);
+			connectShield(mShieldAddress);
 		} else {
 			// MAC is invalid
 			if (!mIsBroadcasting) {
 				// Not broadcasting yet
 				// Try with saved MAC address
-				broadcastFromShield(retrieveSavedShieldAddress());
+				connectShield(retrieveSavedShieldAddress());
 			} //else ignore (if already broadcasting)
 		}
 		
@@ -166,6 +194,9 @@ public class SwitchEventProvider extends Service implements Runnable {
 		}
 
 		sendBroadcast(mBroadcastStartedIntent);
+		
+		mHandler.postDelayed(pingShield, 1000);
+		
 		mIsBroadcasting = true;
 		while(mIsBroadcasting) {
 			try {
@@ -197,11 +228,13 @@ public class SwitchEventProvider extends Service implements Runnable {
 					mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_LEFT);
 					sendBroadcast(mSwitchEventIntent);
 					break;
+				case 0x70:
+					mPingCounter--;
+					break;
 				default:
 					break;
 			}
 		}
-		stopSelf();
 	}
 
 	// All intents will be processed here
@@ -236,8 +269,8 @@ public class SwitchEventProvider extends Service implements Runnable {
 		return mac;
 	}
 
-	private void broadcastFromShield(String mShieldAddress) {
-    	if (connect2Shield(mShieldAddress)) {
+	private void connectShield(String mShieldAddress) {
+    	if (openSocket(mShieldAddress)) {
     		startBroadcasting();
     		saveShieldAddress(mShieldAddress);
     	}
@@ -245,11 +278,11 @@ public class SwitchEventProvider extends Service implements Runnable {
 	/**
 	* Connects to bluetooth server.
 	*/
-	private boolean connect2Shield(String shieldAddress) {
+	private boolean openSocket(String shieldAddress) {
 		Boolean success = false;
 		BluetoothDevice teklaShield;
 		
-    	stopBroadcasting();
+    	disconnectShield();
     	teklaShield = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(shieldAddress);
     	
     	// First method to create Bluetooth socket
@@ -274,7 +307,7 @@ public class SwitchEventProvider extends Service implements Runnable {
 			e.printStackTrace();
 		}
 
-		success = createSocket();
+		success = connectSocket();
 		
 		if (!success) {
 	    	// Second method to create Bluetooth socket
@@ -284,12 +317,12 @@ public class SwitchEventProvider extends Service implements Runnable {
 				e.printStackTrace();
 				showToast("CreateSocket: " + e.getMessage());
 			}
-			success = createSocket();
+			success = connectSocket();
 		}
 		return success;
 	}
 	
-	private boolean createSocket() {
+	private boolean connectSocket() {
 		boolean success = false;
         try {
 			mBluetoothSocket.connect();
@@ -311,7 +344,9 @@ public class SwitchEventProvider extends Service implements Runnable {
 		showNotification();
 	}
 	
-	private void stopBroadcasting() {
+	private void disconnectShield() {
+		// Stop pinging shield
+		mHandler.removeCallbacks(pingShield);
 		// Close socket if it exists
 		if (mBluetoothSocket != null) {
 			try {
@@ -334,7 +369,7 @@ public class SwitchEventProvider extends Service implements Runnable {
     	}
     	cancelNotification();
 	}
-	
+
     /**
      * Show a notification while this service is running.
      */
@@ -369,7 +404,7 @@ public class SwitchEventProvider extends Service implements Runnable {
 		mNotificationManager.cancel(R.string.sep_started);
 	}
 
-    private void write(byte mByte) {
+    private void write2Shield(byte mByte) {
 		try {
 			mOutStream.write(mByte);
 		} catch (IOException e) {
