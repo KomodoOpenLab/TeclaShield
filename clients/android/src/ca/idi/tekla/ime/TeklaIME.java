@@ -160,7 +160,7 @@ public class TeklaIME extends InputMethodService
     public static final String ACTION_SHOW_IME = "ca.idi.tekla.ime.action.SHOW_IME";
     public static final String ACTION_HIDE_IME = "ca.idi.tekla.ime.action.HIDE_IME";
     private boolean mPersistentKeyboardOn;
-    private int mLastKeyboardMode = 0;
+    private int mLastKeyboardMode = KeyboardSwitcher.MODE_TEXT;
     //Tekla highlighting
     //TODO: Tekla - move highlighting code to dedicated class
 	private static final int REDRAW_KEYBOARD = 99999; //this is a true arbitrary number.
@@ -785,6 +785,25 @@ public class TeklaIME extends InputMethodService
     			|| (keycode == Keyboard.KEYCODE_DONE);
    	}
     
+	/**
+	* Helper to send a key down / key up pair to the current editor.
+	*/
+	private void handleNavigationKey(int keyEventCode) {
+		if (keyEventCode == Keyboard.KEYCODE_DONE) {
+			if (mKeyboardSwitcher.getKeyboardMode() != KeyboardSwitcher.MODE_UI) {
+				mLastKeyboardMode = mKeyboardSwitcher.getKeyboardMode();
+				handleClose();
+			}
+			else
+				mKeyboardSwitcher.setKeyboardMode(mLastKeyboardMode, 0);
+		} else {
+			getCurrentInputConnection().sendKeyEvent(
+					new KeyEvent(KeyEvent.ACTION_DOWN, keyEventCode));
+			getCurrentInputConnection().sendKeyEvent(
+					new KeyEvent(KeyEvent.ACTION_UP, keyEventCode));
+		}
+	}
+
     private void handleSeparator(int primaryCode) {
         boolean pickedDefault = false;
         // Handle separator
@@ -1114,20 +1133,26 @@ public class TeklaIME extends InputMethodService
         if (mScanDepth == DEPTH_ROW) {
 			mScanDepth = DEPTH_KEY;
 			mScanKeyCounter = getRowStart(keyboard, mScanRowCounter);
-    		highlightKeys(keyboard,mScanKeyCounter,mScanKeyCounter);
 		} else {
 	        List<Key> keyList = keyboard.getKeys();
 	        Key key = keyList.get(mScanKeyCounter);
 			onKey(key.codes[0], key.codes);
+			// Get keyboard again in case it changed
+			keyboard = mInputView.getKeyboard();
 	        if (getRowCount(keyboard) != 1) {
 	        	mScanDepth = DEPTH_ROW;
 	        	mScanRowCounter = 0;
-	    		highlightKeys(keyboard, 0, getRowEnd(keyboard, mScanRowCounter));
+		        mScanKeyCounter = 0;
 	        }
-	        mScanKeyCounter = 0;
 		}
+        resetHighlight();
 	}
 
+	private void resetHighlight() {
+		changeHighlight(HIGHLIGHT_NEXT);
+		changeHighlight(HIGHLIGHT_PREV);
+	}
+	
 	private void changeHighlight(int direction) {
 		Keyboard keyboard = mInputView.getKeyboard();
         int rowCount = getRowCount(keyboard);
@@ -1448,25 +1473,6 @@ public class TeklaIME extends InputMethodService
             }
         }
     }
-
-	/**
-	* Helper to send a key down / key up pair to the current editor.
-	*/
-	private void handleNavigationKey(int keyEventCode) {
-		if (keyEventCode == Keyboard.KEYCODE_DONE) {
-			if (mKeyboardSwitcher.getKeyboardMode() != KeyboardSwitcher.MODE_UI) {
-				mLastKeyboardMode = mKeyboardSwitcher.getKeyboardMode();
-				handleClose();
-			}
-			else
-				mKeyboardSwitcher.setKeyboardMode(mLastKeyboardMode, 0);
-		} else {
-			getCurrentInputConnection().sendKeyEvent(
-					new KeyEvent(KeyEvent.ACTION_DOWN, keyEventCode));
-			getCurrentInputConnection().sendKeyEvent(
-					new KeyEvent(KeyEvent.ACTION_UP, keyEventCode));
-		}
-	}
 
 	public void redrawInputView () {
 		// Should't mess with GUI from within a thread,

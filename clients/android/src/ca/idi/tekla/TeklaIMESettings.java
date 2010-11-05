@@ -179,7 +179,8 @@ public class TeklaIMESettings extends PreferenceActivity
             String key) {
 		if (key.equals(PERSISTENT_KEYBOARD_KEY)) {
 	    	InputMethodManager imeManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-	    	imeManager.toggleSoftInput(0, 0);
+	    	// Trying to force initialization of IME so it can listen to intents (if it is Tekla)
+	    	imeManager.restartInput(this.getCurrentFocus());
 	    	if (mPersistentKeyboard.isChecked()) {
 				// Show keyboard immediately if Tekla IME is selected
 				sendBroadcast(new Intent(TeklaIME.ACTION_SHOW_IME));
