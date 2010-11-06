@@ -78,7 +78,6 @@ public class TeklaIME extends InputMethodService
     private static final String PREF_AUTO_COMPLETE = "auto_complete";
     // Tekla preference constants
     private static final String PREF_PERSISTENT_KEYBOARD = "persistent_keyboard";
-    private static final String PREF_SHIELD_CONNECT = "shield_connect";
 
     private static final int MSG_UPDATE_SUGGESTIONS = 0;
     private static final int MSG_START_TUTORIAL = 1;
@@ -199,7 +198,7 @@ public class TeklaIME extends InputMethodService
     @Override public void onCreate() {
         super.onCreate();
 		// Use the following line to debug IME service.
-		 android.os.Debug.waitForDebugger();
+		// android.os.Debug.waitForDebugger();
         //setStatusIcon(R.drawable.ime_qwerty);
         mKeyboardSwitcher = new KeyboardSwitcher(this);
         final Configuration conf = getResources().getConfiguration();

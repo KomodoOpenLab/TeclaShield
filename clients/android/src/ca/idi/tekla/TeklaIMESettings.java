@@ -32,10 +32,8 @@ import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
-import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceGroup;
-import android.preference.PreferenceScreen;
 import android.text.AutoText;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
@@ -93,6 +91,7 @@ public class TeklaIMESettings extends PreferenceActivity
     	registerReceiver(mReceiver, new IntentFilter(SwitchEventProvider.ACTION_SEP_BROADCAST_STOPPED));
     	
 		getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+		
     }
 
     @Override
@@ -120,9 +119,7 @@ public class TeklaIMESettings extends PreferenceActivity
 		if (mBluetoothAdapter.isDiscovering())
 			mBluetoothAdapter.cancelDiscovery();
 		mBluetoothAdapter.startDiscovery();
-		//TODO: Tekla - Add strings to resources
-	    mProgressDialog = ProgressDialog.show(this, "Please wait...", 
-	              "Searching for Tekla shields...", true, true);
+		showDialog();
 	}
 	
 	// All intents will be processed here
@@ -149,12 +146,12 @@ public class TeklaIMESettings extends PreferenceActivity
 					mProgressDialog.setMessage("Connecting to Tekla shield "
 							+ mShieldName);
 					if(!startSwitchEventProvider(mShieldAddress)) {
-						mProgressDialog.dismiss();
+						closeDialog();
 						//TODO: Tekla - Add string to resources
 						showToast("Could not start switch event provider");
 					}
 				} else {
-					mProgressDialog.dismiss();
+					closeDialog();
 					mConnectShield.setChecked(false);
 					//TODO: Tekla - Add string to resources
 					showToast("No Tekla shields in range");
@@ -163,12 +160,13 @@ public class TeklaIMESettings extends PreferenceActivity
 			
 			if (intent.getAction().equals(SwitchEventProvider.ACTION_SEP_BROADCAST_STARTED)) {
 				//Success!
-				mProgressDialog.dismiss();
+				closeDialog();
 				mPersistentKeyboard.setChecked(true);
+	    		forceShowTeklaIME();
 			}
 
 			if (intent.getAction().equals(SwitchEventProvider.ACTION_SEP_BROADCAST_STOPPED)) {
-				mProgressDialog.dismiss();
+				closeDialog();
 				mConnectShield.setChecked(false);
 				//TODO: Tekla - Add string to resources
 				showToast("Shield disconnected");
@@ -179,19 +177,12 @@ public class TeklaIMESettings extends PreferenceActivity
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
             String key) {
 		if (key.equals(PERSISTENT_KEYBOARD_KEY)) {
-	    	InputMethodManager imeManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-	    	// Trying to force initialization of IME so it can respond
-	    	// to the commands below (if it is Tekla)
-	    	while (!imeManager.isActive()) {
-		    	imeManager.toggleSoftInput(0, 0);
-		    	imeManager.toggleSoftInput(0, 0);
-	    	}
 	    	if (mPersistentKeyboard.isChecked()) {
 				// Show keyboard immediately if Tekla IME is selected
-	    		imeManager.sendAppPrivateCommand(null, TeklaIME.ACTION_SHOW_IME, null);
+	    		forceShowTeklaIME();
 			} else {
 				// Hide keyboard immediately if Tekla IME is selected
-	    		imeManager.sendAppPrivateCommand(null, TeklaIME.ACTION_HIDE_IME, null);
+	    		forceHideTeklaIME();
 				mConnectShield.setChecked(false);
 			}
 		}
@@ -212,12 +203,42 @@ public class TeklaIMESettings extends PreferenceActivity
     	//(new BackupManager(this)).dataChanged();
     }
 
+    private void forceShowTeklaIME() {
+    	makeIMEActive().sendAppPrivateCommand(null, TeklaIME.ACTION_SHOW_IME, null);
+    }
+    
+    private void forceHideTeklaIME() {
+    	makeIMEActive().sendAppPrivateCommand(null, TeklaIME.ACTION_HIDE_IME, null);
+    }
+    
+    private InputMethodManager makeIMEActive() {
+    	InputMethodManager imeManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+    	// Trying to force initialization of IME so it can respond
+    	// to the commands below (if it is Tekla)
+    	while (!imeManager.isActive()) {
+	    	imeManager.toggleSoftInput(0, 0);
+	    	imeManager.toggleSoftInput(0, 0);
+    	}
+    	return imeManager;
+    }
+    
 	private boolean startSwitchEventProvider(final String shieldAddress) {
 		Intent sepIntent = new Intent(SwitchEventProvider.INTENT_START_SERVICE);
 		sepIntent.putExtra(SwitchEventProvider.EXTRA_SHIELD_ADDRESS, shieldAddress);
 		return startService(sepIntent) == null? false:true;
 	}
 
+	private void showDialog() {
+		//TODO: Tekla - Add strings to resources
+	    mProgressDialog = ProgressDialog.show(this, "Please wait...", 
+	              "Searching for Tekla shields...", true, true);
+	}
+	
+	private void closeDialog() {
+		if (mProgressDialog != null)
+			mProgressDialog.dismiss();
+	}
+	
 	private void showToast(String msg) {
 		Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
 	}

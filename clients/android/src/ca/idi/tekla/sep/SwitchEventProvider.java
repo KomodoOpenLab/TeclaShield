@@ -10,10 +10,12 @@ import java.util.UUID;
 import ca.idi.tekla.R;
 import ca.idi.tekla.TeklaIMESettings;
 
+import android.app.KeyguardManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.app.KeyguardManager.KeyguardLock;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
@@ -28,6 +30,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.PowerManager;
 import android.os.SystemClock;
+import android.os.PowerManager.WakeLock;
 import android.preference.PreferenceManager;
 import android.content.SharedPreferences;
 import android.widget.Toast;
@@ -86,33 +89,17 @@ public class SwitchEventProvider extends Service implements Runnable {
 	// private String server_address = "00:06:66:04:13:01"; // BlueSMiRF 2
 	// private String server_address = "00:16:41:89:C8:0A"; // jsilva-laptop
 
-	private Handler mHandler = new Handler();
+    private static final long PING_DELAY = 5000;
+    private static final int PING_TIMEOUT_COUNTER = 4;
+    private boolean mKeepReconnecting;
 	private int mPingCounter = 0;
-	private final Runnable pingShield = new Runnable () {
+	private Handler mHandler;
+    private Thread mReconnectThread;
+    
+    private KeyguardManager mKeyguardManager;
+    private KeyguardLock mKeyguardLock;
 
-		@Override
-		public void run() {
-			write2Shield((byte) 0x70);
-			mPingCounter++;
-			if (mPingCounter > 5) {
-				// We lost connection, stop pinging
-				mPingCounter = 0;
-				disconnectShield();
-				new Thread(new Runnable() {
-					public void run() {
-						while(!mIsBroadcasting) {
-							connectShield(retrieveSavedShieldAddress());
-							SystemClock.sleep(5000);
-						}
-					}
-				}).start();
-			} else
-				mHandler.postDelayed(this, 5000);
-		}
-		
-	};
-	
-	/**
+    /**
      * Class for clients to access.  Because we know this service always
      * runs in the same process as its clients, we don't need to deal with
      * IPC.
@@ -130,22 +117,36 @@ public class SwitchEventProvider extends Service implements Runnable {
     @Override
 	public void onCreate() {
 		// Use the following line to debug IME service.
-		android.os.Debug.waitForDebugger();
+		// android.os.Debug.waitForDebugger();
 
-    	//Intents & Intent Filters
-    	registerReceiver(mBroadcastReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+    	mKeyguardManager = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
+    	mKeyguardLock = mKeyguardManager.newKeyguardLock("");
+
+		//Intents & Intent Filters
+    	registerReceiver(mReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
+    	registerReceiver(mReceiver, new IntentFilter(Intent.ACTION_SCREEN_OFF));
     	mSwitchEventIntent = new Intent(ACTION_SWITCH_EVENT_RECEIVED);
     	mBroadcastStartedIntent = new Intent(ACTION_SEP_BROADCAST_STARTED);
     	mBroadcastStoppedIntent = new Intent(ACTION_SEP_BROADCAST_STOPPED);
+
     	mNotificationManager = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
 		mBroadcastingThread = new Thread(this);
+        mHandler = new Handler();
     	mIsBroadcasting = false;
+    	mKeepReconnecting = true;
 	}
 	
 	@Override
 	public void onDestroy() {
-		/* Call this from the main Activity to shutdown the connection */
+		// Stop reconnect thread
+		mKeepReconnecting = false;
+    	while(mReconnectThread.isAlive()) {
+    		// Wait for the thread to die
+    		SystemClock.sleep(1);
+    	}
+		unregisterReceiver(mReceiver);
 		disconnectShield();
+		super.onDestroy();
 	}
 
     @Override
@@ -195,7 +196,7 @@ public class SwitchEventProvider extends Service implements Runnable {
 
 		sendBroadcast(mBroadcastStartedIntent);
 		
-		mHandler.postDelayed(pingShield, 1000);
+		mHandler.postDelayed(mPingingRunnable, 1000);
 		
 		mIsBroadcasting = true;
 		while(mIsBroadcasting) {
@@ -206,27 +207,20 @@ public class SwitchEventProvider extends Service implements Runnable {
 				showToast(e.getMessage());
 				break;
 			}			
-	    	// Poke the user activity timer
-			PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-			pm.userActivity(SystemClock.uptimeMillis(), true);
 	    	// Clean up intent
 			mSwitchEventIntent.removeExtra(EXTRA_SWITCH_EVENT);
 			switch (mByte) {
 				case 0x07:
-					mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_FWD);
-					sendBroadcast(mSwitchEventIntent);
+					handleSwitchEvent(SWITCH_FWD);
 					break;
 				case 0x0B:
-					mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_BACK);
-					sendBroadcast(mSwitchEventIntent);
+					handleSwitchEvent(SWITCH_BACK);
 					break;
 				case 0x0E:
-					mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_RIGHT);
-					sendBroadcast(mSwitchEventIntent);
+					handleSwitchEvent(SWITCH_RIGHT);
 					break;
 				case 0x0D:
-					mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, SWITCH_LEFT);
-					sendBroadcast(mSwitchEventIntent);
+					handleSwitchEvent(SWITCH_LEFT);
 					break;
 				case 0x70:
 					mPingCounter--;
@@ -237,15 +231,34 @@ public class SwitchEventProvider extends Service implements Runnable {
 		}
 	}
 
+	private void handleSwitchEvent(int switchEvent) {
+		PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
+		WakeLock wl = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK |
+				PowerManager.ON_AFTER_RELEASE, "");
+		wl.acquire(1000);
+		mKeyguardLock.disableKeyguard();
+		// Poke the user activity timer
+		pm.userActivity(SystemClock.uptimeMillis(), true);
+		// Broadcast event
+		mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, switchEvent);
+		sendBroadcast(mSwitchEventIntent);
+	}
+	
 	// All intents will be processed here
-	private BroadcastReceiver mBroadcastReceiver = new BroadcastReceiver() {
+	private BroadcastReceiver mReceiver = new BroadcastReceiver() {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			Bundle extras = intent.getExtras();
-			Integer state = extras.getInt(BluetoothAdapter.EXTRA_STATE);
-			if (state.equals(BluetoothAdapter.STATE_TURNING_OFF))
-				stopSelf();
+			
+			if (intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
+				mKeyguardLock.reenableKeyguard();
+			}
+			if (intent.getAction().equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+				Bundle extras = intent.getExtras();
+				Integer state = extras.getInt(BluetoothAdapter.EXTRA_STATE);
+				if (state.equals(BluetoothAdapter.STATE_TURNING_OFF))
+					stopSelf();
+			}
 		}
 		
 	};
@@ -345,8 +358,8 @@ public class SwitchEventProvider extends Service implements Runnable {
 	}
 	
 	private void disconnectShield() {
-		// Stop pinging shield
-		mHandler.removeCallbacks(pingShield);
+		// Stop pinging
+		mHandler.removeCallbacks(mPingingRunnable);
 		// Close socket if it exists
 		if (mBluetoothSocket != null) {
 			try {
@@ -370,7 +383,45 @@ public class SwitchEventProvider extends Service implements Runnable {
     	cancelNotification();
 	}
 
-    /**
+	private Runnable mPingingRunnable = new Runnable () {
+
+		@Override
+		public void run() {
+			mPingCounter++;
+			if (mPingCounter > PING_TIMEOUT_COUNTER) {
+				// We lost connection, stop pinging
+				mPingCounter = 0;
+				disconnectShield();
+		        mReconnectThread = new Thread(mReconnectRunnable);
+				mReconnectThread.start();
+			} else {
+				write2Shield((byte) 0x70);
+				mHandler.postDelayed(this, PING_DELAY);
+			}
+		}
+		
+	};
+	
+	private Runnable mReconnectRunnable = new Runnable () {
+		@Override
+		public void run() {
+			while(!mIsBroadcasting && mKeepReconnecting) {
+				connectShield(retrieveSavedShieldAddress());
+				SystemClock.sleep(PING_DELAY);
+			}
+		}
+	};
+
+    private void write2Shield(byte mByte) {
+		try {
+			mOutStream.write(mByte);
+		} catch (IOException e) {
+			e.printStackTrace();
+			showToast(e.getMessage());
+		}
+	}
+
+	/**
      * Show a notification while this service is running.
      */
     private void showNotification() {
@@ -402,15 +453,6 @@ public class SwitchEventProvider extends Service implements Runnable {
 	private void cancelNotification() {
 		// Cancel the persistent notification.
 		mNotificationManager.cancel(R.string.sep_started);
-	}
-
-    private void write2Shield(byte mByte) {
-		try {
-			mOutStream.write(mByte);
-		} catch (IOException e) {
-			e.printStackTrace();
-			showToast(e.getMessage());
-		}
 	}
 
 	private void showToast(String msg) {
