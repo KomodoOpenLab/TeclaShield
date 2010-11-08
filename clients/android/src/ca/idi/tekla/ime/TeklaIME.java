@@ -59,6 +59,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import ca.idi.tekla.R;
+import ca.idi.tekla.TeklaHelper;
 import ca.idi.tekla.TeklaIMESettings;
 import ca.idi.tekla.sep.SwitchEventProvider;
 
@@ -76,8 +77,6 @@ public class TeklaIME extends InputMethodService
     private static final String PREF_QUICK_FIXES = "quick_fixes";
     private static final String PREF_SHOW_SUGGESTIONS = "show_suggestions";
     private static final String PREF_AUTO_COMPLETE = "auto_complete";
-    // Tekla preference constants
-    private static final String PREF_PERSISTENT_KEYBOARD = "persistent_keyboard";
 
     private static final int MSG_UPDATE_SUGGESTIONS = 0;
     private static final int MSG_START_TUTORIAL = 1;
@@ -156,9 +155,10 @@ public class TeklaIME extends InputMethodService
     private String mSentenceSeparators;
 
     // Tekla constants and variables
+    private TeklaHelper mTeklaHelper = 
+    	TeklaHelper.getInstance();
     public static final String ACTION_SHOW_IME = "ca.idi.tekla.ime.action.SHOW_IME";
     public static final String ACTION_HIDE_IME = "ca.idi.tekla.ime.action.HIDE_IME";
-    private boolean mPersistentKeyboardOn;
     private int mLastKeyboardMode = KeyboardSwitcher.MODE_TEXT;
     //TODO: Tekla - move highlighting code to dedicated class
 	private static final int REDRAW_KEYBOARD = 99999; //this is a true arbitrary number.
@@ -169,7 +169,7 @@ public class TeklaIME extends InputMethodService
     private int mScanDepth = DEPTH_ROW;
     private int mScanKeyCounter = 0;
     private int mScanRowCounter = 0;
-
+    
     Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
@@ -198,7 +198,7 @@ public class TeklaIME extends InputMethodService
     @Override public void onCreate() {
         super.onCreate();
 		// Use the following line to debug IME service.
-		// android.os.Debug.waitForDebugger();
+		 android.os.Debug.waitForDebugger();
         //setStatusIcon(R.drawable.ime_qwerty);
         mKeyboardSwitcher = new KeyboardSwitcher(this);
         final Configuration conf = getResources().getConfiguration();
@@ -214,6 +214,9 @@ public class TeklaIME extends InputMethodService
         // register to receive switch events from Tekla shield
 		filter = new IntentFilter(SwitchEventProvider.ACTION_SWITCH_EVENT_RECEIVED);
 		registerReceiver(mReceiver, filter);
+		
+		if (mTeklaHelper.getShieldConnect(this))
+			mTeklaHelper.startSwitchEventProvider(this, "");
     }
     
 	private void initSuggest(String locale) {
@@ -401,7 +404,8 @@ public class TeklaIME extends InputMethodService
 
     @Override
     public boolean onEvaluateInputViewShown() {
-		return mPersistentKeyboardOn? true:super.onEvaluateInputViewShown();
+		return mTeklaHelper.getPersistentKeyboard(this)?
+				true:super.onEvaluateInputViewShown();
     }
     
     @Override
@@ -409,20 +413,26 @@ public class TeklaIME extends InputMethodService
 		updateInputViewShown();
     	if (action.equals(ACTION_SHOW_IME)) {
     		// Force show IME
-			mPersistentKeyboardOn = true;
-    		while(!isInputViewShown()) {
-        		showWindow(true);
-        		updateInputViewShown();
-    		}
+			forceShowWindow();
     	}
     	if (action.equals(ACTION_HIDE_IME)) {
     		// Force hide IME
-			mPersistentKeyboardOn = false;
-    		while(isInputViewShown()) {
-        		hideWindow();
-        		updateInputViewShown();
-    		}
+			forceHideWindow();
     	}
+    }
+    
+    private void forceShowWindow() {
+		while(!isInputViewShown()) {
+    		showWindow(true);
+    		updateInputViewShown();
+		}
+    }
+    
+    private void forceHideWindow() {
+		while(isInputViewShown()) {
+    		hideWindow();
+    		updateInputViewShown();
+		}
     }
     
     @Override
@@ -570,7 +580,7 @@ public class TeklaIME extends InputMethodService
 	@Override
 	public void onWindowHidden() {
     	super.onWindowHidden();
-        if (mPersistentKeyboardOn) {
+        if (mTeklaHelper.getPersistentKeyboard(this)) {
         	showWindow(true);
             mKeyboardSwitcher.setKeyboardMode(KeyboardSwitcher.MODE_UI, 0);
         }
@@ -1095,11 +1105,11 @@ public class TeklaIME extends InputMethodService
         //vibrate();
     }
 
-    // receive ringer mode changes to detect silent mode
     private BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
         	if (intent.getAction().equals(AudioManager.RINGER_MODE_CHANGED_ACTION))
+        	    // receive ringer mode changes to detect silent mode
         		updateRingerMode();
         	if (intent.getAction().equals(SwitchEventProvider.ACTION_SWITCH_EVENT_RECEIVED))
         		handleSwitchEvent(intent);
@@ -1374,8 +1384,6 @@ public class TeklaIME extends InputMethodService
         mCorrectionMode = autoComplete
                 ? Suggest.CORRECTION_FULL
                 : (mQuickFixes ? Suggest.CORRECTION_BASIC : Suggest.CORRECTION_NONE);
-        // Load Tekla settings
-        mPersistentKeyboardOn = sp.getBoolean(PREF_PERSISTENT_KEYBOARD, false);
     }
 
     private void showOptionsMenu() {

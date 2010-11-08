@@ -48,10 +48,8 @@ public class TeklaIMESettings extends PreferenceActivity
     private CheckBoxPreference mQuickFixes;
     private CheckBoxPreference mShowSuggestions;
 
-    //Tekla keys & variables
-	public static final String PERSISTENT_KEYBOARD_KEY = "persistent_keyboard";
-	public static final String SHIELD_CONNECT_KEY = "shield_connect";
-    
+    private TeklaHelper mTeklaHelper = 
+    	TeklaHelper.getInstance();
     private CheckBoxPreference mPersistentKeyboard;
     private CheckBoxPreference mConnectShield;
 	private ProgressDialog mProgressDialog;
@@ -69,8 +67,8 @@ public class TeklaIMESettings extends PreferenceActivity
         addPreferencesFromResource(R.xml.prefs);
         mQuickFixes = (CheckBoxPreference) findPreference(QUICK_FIXES_KEY);
         mShowSuggestions = (CheckBoxPreference) findPreference(SHOW_SUGGESTIONS_KEY);
-        mPersistentKeyboard = (CheckBoxPreference) findPreference(PERSISTENT_KEYBOARD_KEY);
-        mConnectShield = (CheckBoxPreference) findPreference(SHIELD_CONNECT_KEY);
+        mPersistentKeyboard = (CheckBoxPreference) findPreference(TeklaHelper.PREF_PERSISTENT_KEYBOARD);
+        mConnectShield = (CheckBoxPreference) findPreference(TeklaHelper.PREF_SHIELD_CONNECT);
 
         // Check bluetooth state to determine if shield_connect preference
         // should be enabled
@@ -176,7 +174,7 @@ public class TeklaIMESettings extends PreferenceActivity
 	
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
             String key) {
-		if (key.equals(PERSISTENT_KEYBOARD_KEY)) {
+		if (key.equals(TeklaHelper.PREF_PERSISTENT_KEYBOARD)) {
 	    	if (mPersistentKeyboard.isChecked()) {
 				// Show keyboard immediately if Tekla IME is selected
 	    		forceShowTeklaIME();
@@ -186,7 +184,7 @@ public class TeklaIMESettings extends PreferenceActivity
 				mConnectShield.setChecked(false);
 			}
 		}
-		if (key.equals(SHIELD_CONNECT_KEY)) {
+		if (key.equals(TeklaHelper.PREF_SHIELD_CONNECT)) {
 			if (mConnectShield.isChecked()) {
 				// Connect to shield but also keep connection alive
 				discoverShield();
@@ -204,31 +202,18 @@ public class TeklaIMESettings extends PreferenceActivity
     }
 
     private void forceShowTeklaIME() {
-    	makeIMEActive().sendAppPrivateCommand(null, TeklaIME.ACTION_SHOW_IME, null);
+    	mTeklaHelper.forceShowTeklaIME(this);
     }
     
     private void forceHideTeklaIME() {
-    	makeIMEActive().sendAppPrivateCommand(null, TeklaIME.ACTION_HIDE_IME, null);
+    	mTeklaHelper.forceHideTeklaIME(this);
     }
     
-    private InputMethodManager makeIMEActive() {
-    	InputMethodManager imeManager = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-    	// Trying to force initialization of IME so it can respond
-    	// to the commands below (if it is Tekla)
-    	while (!imeManager.isActive()) {
-	    	imeManager.toggleSoftInput(0, 0);
-	    	imeManager.toggleSoftInput(0, 0);
-    	}
-    	return imeManager;
+    private boolean startSwitchEventProvider(String shieldAddress) {
+    	return mTeklaHelper.startSwitchEventProvider(this, shieldAddress);
     }
     
-	private boolean startSwitchEventProvider(final String shieldAddress) {
-		Intent sepIntent = new Intent(SwitchEventProvider.INTENT_START_SERVICE);
-		sepIntent.putExtra(SwitchEventProvider.EXTRA_SHIELD_ADDRESS, shieldAddress);
-		return startService(sepIntent) == null? false:true;
-	}
-
-	private void showDialog() {
+    private void showDialog() {
 		//TODO: Tekla - Add strings to resources
 	    mProgressDialog = ProgressDialog.show(this, "Please wait...", 
 	              "Searching for Tekla shields...", true, true);

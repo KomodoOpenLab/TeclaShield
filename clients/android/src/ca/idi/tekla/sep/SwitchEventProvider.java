@@ -8,6 +8,7 @@ import java.lang.reflect.Method;
 import java.util.UUID;
 
 import ca.idi.tekla.R;
+import ca.idi.tekla.TeklaHelper;
 import ca.idi.tekla.TeklaIMESettings;
 
 import android.app.KeyguardManager;
@@ -31,8 +32,6 @@ import android.os.Looper;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.os.PowerManager.WakeLock;
-import android.preference.PreferenceManager;
-import android.content.SharedPreferences;
 import android.widget.Toast;
 
 public class SwitchEventProvider extends Service implements Runnable {
@@ -70,8 +69,6 @@ public class SwitchEventProvider extends Service implements Runnable {
     public static final int SWITCH_LEFT = 80;
     public static final int SWITCH_RELEASE = 160;
 
-	public static final String SHIELD_ADDRESS_KEY = "shield_address";
-
 	private BluetoothSocket mBluetoothSocket;
     private OutputStream mOutStream;
 	private InputStream mInStream;
@@ -99,6 +96,9 @@ public class SwitchEventProvider extends Service implements Runnable {
     private KeyguardManager mKeyguardManager;
     private KeyguardLock mKeyguardLock;
 
+    private TeklaHelper mTeklaHelper = 
+    	TeklaHelper.getInstance();
+
     /**
      * Class for clients to access.  Because we know this service always
      * runs in the same process as its clients, we don't need to deal with
@@ -117,7 +117,7 @@ public class SwitchEventProvider extends Service implements Runnable {
     @Override
 	public void onCreate() {
 		// Use the following line to debug IME service.
-		// android.os.Debug.waitForDebugger();
+		 android.os.Debug.waitForDebugger();
 
     	mKeyguardManager = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
     	mKeyguardLock = mKeyguardManager.newKeyguardLock("");
@@ -133,17 +133,15 @@ public class SwitchEventProvider extends Service implements Runnable {
 		mBroadcastingThread = new Thread(this);
         mHandler = new Handler();
     	mIsBroadcasting = false;
-    	mKeepReconnecting = true;
+    	mKeepReconnecting = false;
+    	
+    	if (mTeklaHelper.getPersistentKeyboard(this))
+    		mTeklaHelper.forceShowTeklaIME(this);
 	}
 	
 	@Override
 	public void onDestroy() {
-		// Stop reconnect thread
-		mKeepReconnecting = false;
-    	while(mReconnectThread.isAlive()) {
-    		// Wait for the thread to die
-    		SystemClock.sleep(1);
-    	}
+		stopReconnectThread();
 		unregisterReceiver(mReceiver);
 		disconnectShield();
 		super.onDestroy();
@@ -157,26 +155,19 @@ public class SwitchEventProvider extends Service implements Runnable {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 
-		String mShieldAddress = "";
+		String shieldAddress = "";
 		
-		if (intent.hasExtra(EXTRA_SHIELD_ADDRESS)) {
-			mShieldAddress = intent.getExtras().getString(EXTRA_SHIELD_ADDRESS);
-		}
+		if (intent.hasExtra(EXTRA_SHIELD_ADDRESS))
+			shieldAddress = intent.getExtras().getString(EXTRA_SHIELD_ADDRESS);
 			
-		if (BluetoothAdapter.checkBluetoothAddress(mShieldAddress)) {
-			// MAC is valid
-			connectShield(mShieldAddress);
-		} else {
-			// MAC is invalid
-			if (!mIsBroadcasting) {
-				// Not broadcasting yet
-				// Try with saved MAC address
-				connectShield(retrieveSavedShieldAddress());
-			} //else ignore (if already broadcasting)
+		if (!BluetoothAdapter.checkBluetoothAddress(shieldAddress))
+			// MAC is invalid, try saved address
+			shieldAddress = mTeklaHelper.getShieldAddress(this);
+		if (!shieldAddress.equals("")) {
+			restartReconnectThread();
 		}
 		
-		if(!mIsBroadcasting) stopSelf();
-		return mIsBroadcasting? Service.START_STICKY:Service.START_NOT_STICKY;
+		return mKeepReconnecting? Service.START_STICKY:Service.START_NOT_STICKY;
 	}
 	
 	@Override
@@ -263,29 +254,10 @@ public class SwitchEventProvider extends Service implements Runnable {
 		
 	};
 	
-	private void saveShieldAddress(String shieldAddress) {
-
-		SharedPreferences prefs = PreferenceManager
-			.getDefaultSharedPreferences(getBaseContext());
-		SharedPreferences.Editor editor = prefs.edit();
-		editor.putString(SHIELD_ADDRESS_KEY, shieldAddress);
-		editor.commit();
-	}
-
-	private String retrieveSavedShieldAddress() {
-
-		SharedPreferences prefs = PreferenceManager
-			.getDefaultSharedPreferences(getBaseContext());
-		String mac = prefs.getString(SHIELD_ADDRESS_KEY, "");
-		if (!BluetoothAdapter.checkBluetoothAddress(mac))
-			mac = "";
-		return mac;
-	}
-
 	private void connectShield(String mShieldAddress) {
     	if (openSocket(mShieldAddress)) {
     		startBroadcasting();
-    		saveShieldAddress(mShieldAddress);
+    		mTeklaHelper.setShieldAddress(this, mShieldAddress);
     	}
 	}
 	/**
@@ -370,16 +342,19 @@ public class SwitchEventProvider extends Service implements Runnable {
 				showToast(e.getMessage());
 			}
 		}
-		// Stop broadcasting thread
-    	mIsBroadcasting = false;
-    	while(mBroadcastingThread.isAlive()) {
-    		// Wait for the thread to die
-    		SystemClock.sleep(1);
-    	}
-    	if (mBroadcastingThread.getState() == Thread.State.TERMINATED) {
-    		mBroadcastingThread = new Thread(this);
-    		sendBroadcast(mBroadcastStoppedIntent);
-    	}
+		if (mIsBroadcasting != null) {
+			// Stop broadcasting thread
+	    	mIsBroadcasting = false;
+	    	while(mBroadcastingThread.isAlive()) {
+	    		// Wait for the thread to die
+	    		SystemClock.sleep(1);
+	    	}
+			// Reset if previously started
+	    	if (mBroadcastingThread.getState() == Thread.State.TERMINATED) {
+	    		mBroadcastingThread = new Thread(this);
+	    		sendBroadcast(mBroadcastStoppedIntent);
+	    	}
+		}
     	cancelNotification();
 	}
 
@@ -392,8 +367,7 @@ public class SwitchEventProvider extends Service implements Runnable {
 				// We lost connection, stop pinging
 				mPingCounter = 0;
 				disconnectShield();
-		        mReconnectThread = new Thread(mReconnectRunnable);
-				mReconnectThread.start();
+				restartReconnectThread();
 			} else {
 				write2Shield((byte) 0x70);
 				mHandler.postDelayed(this, PING_DELAY);
@@ -406,11 +380,38 @@ public class SwitchEventProvider extends Service implements Runnable {
 		@Override
 		public void run() {
 			while(!mIsBroadcasting && mKeepReconnecting) {
-				connectShield(retrieveSavedShieldAddress());
+				connectShield(getSavedShieldAddress());
 				SystemClock.sleep(PING_DELAY);
 			}
 		}
 	};
+	
+	private void restartReconnectThread() {
+		stopReconnectThread();
+		startReconnectThread();
+	}
+
+	
+	private void startReconnectThread() {
+		mKeepReconnecting = true;
+        mReconnectThread = new Thread(mReconnectRunnable);
+		mReconnectThread.start();
+	};
+	
+	private void stopReconnectThread() {
+		mKeepReconnecting = false;
+		if (mReconnectThread != null) {
+			// Stop reconnect thread
+	    	while(mReconnectThread.isAlive()) {
+	    		// Wait for the thread to die
+	    		SystemClock.sleep(1);
+	    	}
+		}
+	};
+	
+	private String getSavedShieldAddress() {
+		return mTeklaHelper.getShieldAddress(this);
+	}
 
     private void write2Shield(byte mByte) {
 		try {
