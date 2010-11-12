@@ -155,8 +155,7 @@ public class TeklaIME extends InputMethodService
     private String mSentenceSeparators;
 
     // Tekla constants and variables
-    private TeklaHelper mTeklaHelper = 
-    	TeklaHelper.getInstance();
+    private TeklaHelper mTeklaHelper = TeklaHelper.getInstance();
     public static final String ACTION_SHOW_IME = "ca.idi.tekla.ime.action.SHOW_IME";
     public static final String ACTION_HIDE_IME = "ca.idi.tekla.ime.action.HIDE_IME";
     private int mLastKeyboardMode = KeyboardSwitcher.MODE_TEXT;
@@ -198,7 +197,9 @@ public class TeklaIME extends InputMethodService
     @Override public void onCreate() {
         super.onCreate();
 		// Use the following line to debug IME service.
-		 android.os.Debug.waitForDebugger();
+		// android.os.Debug.waitForDebugger();
+
+        Log.i(TeklaHelper.TAG, "IME - Starting IME...");
         //setStatusIcon(R.drawable.ime_qwerty);
         mKeyboardSwitcher = new KeyboardSwitcher(this);
         final Configuration conf = getResources().getConfiguration();
@@ -208,15 +209,13 @@ public class TeklaIME extends InputMethodService
         mVibrateDuration = getResources().getInteger(R.integer.vibrate_duration_ms);
 
         // register to receive ringer mode changes for silent mode
-        IntentFilter filter = new IntentFilter(AudioManager.RINGER_MODE_CHANGED_ACTION);
-        registerReceiver(mReceiver, filter);
+        registerReceiver(mReceiver, new IntentFilter(AudioManager.RINGER_MODE_CHANGED_ACTION));
 
         // register to receive switch events from Tekla shield
-		filter = new IntentFilter(SwitchEventProvider.ACTION_SWITCH_EVENT_RECEIVED);
-		registerReceiver(mReceiver, filter);
-		
+    	registerReceiver(mReceiver, new IntentFilter(SwitchEventProvider.ACTION_SEP_BROADCAST_STARTED));
+		registerReceiver(mReceiver, new IntentFilter(SwitchEventProvider.ACTION_SWITCH_EVENT_RECEIVED));
 		if (mTeklaHelper.getShieldConnect(this))
-			mTeklaHelper.startSwitchEventProvider(this, "");
+			mTeklaHelper.startSwitchEventProvider(this, null);
     }
     
 	private void initSuggest(String locale) {
@@ -277,7 +276,9 @@ public class TeklaIME extends InputMethodService
         mCandidateView = (CandidateView) mCandidateViewContainer.findViewById(R.id.candidates);
         mCandidateView.setService(this);
         setCandidatesViewShown(true);
-        return mCandidateViewContainer;
+        // TODO: Tekla - uncomment to enable suggestions
+        //return mCandidateViewContainer;
+        return null;
     }
 
     @Override 
@@ -1111,11 +1112,21 @@ public class TeklaIME extends InputMethodService
         	if (intent.getAction().equals(AudioManager.RINGER_MODE_CHANGED_ACTION))
         	    // receive ringer mode changes to detect silent mode
         		updateRingerMode();
-        	if (intent.getAction().equals(SwitchEventProvider.ACTION_SWITCH_EVENT_RECEIVED))
-        		handleSwitchEvent(intent);
+        	if (intent.getAction().equals(SwitchEventProvider.ACTION_SWITCH_EVENT_RECEIVED))        		
+        		handleSwitchEvent(intent.getExtras().getInt(SwitchEventProvider.EXTRA_SWITCH_EVENT));
+			if (intent.getAction().equals(SwitchEventProvider.ACTION_SEP_BROADCAST_STARTED)) {
+				Log.i(TeklaHelper.TAG, "IME - SEP is broadcasting, attempting to force-open soft IME...");
+				setPersistentKeyboard(true);
+				showWindow(true);
+			}
+
         }
     };
 
+    private void setPersistentKeyboard(boolean state) {
+   		mTeklaHelper.setPersistentKeyboard(this, state);
+    }
+    
     // update flags for silent mode
     private void updateRingerMode() {
         if (mAudioManager == null) {
@@ -1126,10 +1137,11 @@ public class TeklaIME extends InputMethodService
         }
     }
 
-    private void handleSwitchEvent(Intent intent) {
-		Bundle extras = intent.getExtras();
-		showWindow(true);
-		switch(extras.getInt(SwitchEventProvider.EXTRA_SWITCH_EVENT)) {
+    private void handleSwitchEvent(int switchEvent) {
+    	Log.i(TeklaHelper.TAG, "IME - Switch event received: " + String.valueOf(switchEvent));
+    	if (!isInputViewShown())
+    		showWindow(true);
+		switch(switchEvent) {
 			case SwitchEventProvider.SWITCH_FWD:
 				selectHighlighted();
 				break;
@@ -1522,10 +1534,6 @@ public class TeklaIME extends InputMethodService
 			}
 		}
 	};
-
-	private void showToast(String msg) {
-		Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
-	}
 
 }
 

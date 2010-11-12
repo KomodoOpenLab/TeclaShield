@@ -32,7 +32,9 @@ import android.os.Looper;
 import android.os.PowerManager;
 import android.os.SystemClock;
 import android.os.PowerManager.WakeLock;
-import android.widget.Toast;
+import android.util.Log;
+import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 
 public class SwitchEventProvider extends Service implements Runnable {
 
@@ -69,7 +71,10 @@ public class SwitchEventProvider extends Service implements Runnable {
     public static final int SWITCH_LEFT = 80;
     public static final int SWITCH_RELEASE = 160;
 
-	private BluetoothSocket mBluetoothSocket;
+    private static final long PING_DELAY = 5000;
+    private static final int PING_TIMEOUT_COUNTER = 4;
+
+    private BluetoothSocket mBluetoothSocket;
     private OutputStream mOutStream;
 	private InputStream mInStream;
 
@@ -81,13 +86,6 @@ public class SwitchEventProvider extends Service implements Runnable {
     private Intent mBroadcastStoppedIntent;
     private Intent mSwitchEventIntent;
     
-	// hard-code hardware address
-	// private String mShieldAddress = "00:06:66:02:CB:75"; // BlueSMiRF 1
-	// private String server_address = "00:06:66:04:13:01"; // BlueSMiRF 2
-	// private String server_address = "00:16:41:89:C8:0A"; // jsilva-laptop
-
-    private static final long PING_DELAY = 5000;
-    private static final int PING_TIMEOUT_COUNTER = 4;
     private boolean mKeepReconnecting;
 	private int mPingCounter = 0;
 	private Handler mHandler;
@@ -96,8 +94,7 @@ public class SwitchEventProvider extends Service implements Runnable {
     private KeyguardManager mKeyguardManager;
     private KeyguardLock mKeyguardLock;
 
-    private TeklaHelper mTeklaHelper = 
-    	TeklaHelper.getInstance();
+    private TeklaHelper mTeklaHelper = TeklaHelper.getInstance();
 
     /**
      * Class for clients to access.  Because we know this service always
@@ -117,8 +114,10 @@ public class SwitchEventProvider extends Service implements Runnable {
     @Override
 	public void onCreate() {
 		// Use the following line to debug IME service.
-		 android.os.Debug.waitForDebugger();
+		// android.os.Debug.waitForDebugger();
 
+        Log.i(TeklaHelper.TAG, "SEP - Starting SEP...");
+        
     	mKeyguardManager = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
     	mKeyguardLock = mKeyguardManager.newKeyguardLock("");
 
@@ -133,10 +132,7 @@ public class SwitchEventProvider extends Service implements Runnable {
 		mBroadcastingThread = new Thread(this);
         mHandler = new Handler();
     	mIsBroadcasting = false;
-    	mKeepReconnecting = false;
     	
-    	if (mTeklaHelper.getPersistentKeyboard(this))
-    		mTeklaHelper.forceShowTeklaIME(this);
 	}
 	
 	@Override
@@ -155,25 +151,33 @@ public class SwitchEventProvider extends Service implements Runnable {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 
-		String shieldAddress = "";
+		String shieldAddress = null;
+		boolean success = false;
 		
 		if (intent.hasExtra(EXTRA_SHIELD_ADDRESS))
 			shieldAddress = intent.getExtras().getString(EXTRA_SHIELD_ADDRESS);
 			
 		if (!BluetoothAdapter.checkBluetoothAddress(shieldAddress))
 			// MAC is invalid, try saved address
-			shieldAddress = mTeklaHelper.getShieldAddress(this);
-		if (!shieldAddress.equals("")) {
+			shieldAddress = getSavedShieldAddress();
+		if (shieldAddress != null) {
+			// MAC is valid
+			success = true;
+    		// Maintain connection
 			restartReconnectThread();
+    		// Save address
+			mTeklaHelper.setShieldAddress(this, shieldAddress);
+		} else {
+			// MAC is invalid, unset connect to shield preference
+			mTeklaHelper.setShieldConnect(this, false);
+			Log.e(TeklaHelper.TAG, "SEP: Could not connect to shield");
 		}
 		
-		return mKeepReconnecting? Service.START_STICKY:Service.START_NOT_STICKY;
+		return success? Service.START_STICKY:Service.START_NOT_STICKY;
 	}
 	
 	@Override
 	public void run() {
-		Looper.prepare();
-
 		int mByte;
 		
 		try {
@@ -181,10 +185,11 @@ public class SwitchEventProvider extends Service implements Runnable {
 			mOutStream = mBluetoothSocket.getOutputStream();
 		} catch (IOException e) {
 			e.printStackTrace();
-			showToast(e.getMessage());
+			Log.e(TeklaHelper.TAG, "BTStreams: " + e.getMessage());
 			return;
 		}
 
+		wakeUnlockScreen();
 		sendBroadcast(mBroadcastStartedIntent);
 		
 		mHandler.postDelayed(mPingingRunnable, 1000);
@@ -195,7 +200,6 @@ public class SwitchEventProvider extends Service implements Runnable {
 				mByte = mInStream.read();
 			} catch (IOException e) {
 				e.printStackTrace();
-				showToast(e.getMessage());
 				break;
 			}			
 	    	// Clean up intent
@@ -223,6 +227,15 @@ public class SwitchEventProvider extends Service implements Runnable {
 	}
 
 	private void handleSwitchEvent(int switchEvent) {
+		wakeUnlockScreen();
+		// Broadcast event
+		Log.i(TeklaHelper.TAG, "SEP - Sending switch event " + String.valueOf(switchEvent) + "...");
+		mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, switchEvent);
+		sendBroadcast(mSwitchEventIntent);
+	}
+	
+	private void wakeUnlockScreen() {
+		Log.i(TeklaHelper.TAG, "SEP - Waking and unlocking screen...");
 		PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
 		WakeLock wl = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK |
 				PowerManager.ON_AFTER_RELEASE, "");
@@ -230,9 +243,6 @@ public class SwitchEventProvider extends Service implements Runnable {
 		mKeyguardLock.disableKeyguard();
 		// Poke the user activity timer
 		pm.userActivity(SystemClock.uptimeMillis(), true);
-		// Broadcast event
-		mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, switchEvent);
-		sendBroadcast(mSwitchEventIntent);
 	}
 	
 	// All intents will be processed here
@@ -254,12 +264,12 @@ public class SwitchEventProvider extends Service implements Runnable {
 		
 	};
 	
-	private void connectShield(String mShieldAddress) {
-    	if (openSocket(mShieldAddress)) {
+	private void connectShield(String shieldAddress) {
+		Log.i(TeklaHelper.TAG, "SEP - Connecting to " + shieldAddress + "...");
+    	if (openSocket(shieldAddress))
     		startBroadcasting();
-    		mTeklaHelper.setShieldAddress(this, mShieldAddress);
-    	}
 	}
+	
 	/**
 	* Connects to bluetooth server.
 	*/
@@ -300,7 +310,7 @@ public class SwitchEventProvider extends Service implements Runnable {
 	            mBluetoothSocket = teklaShield.createRfcommSocketToServiceRecord(SPP_UUID);
 			} catch (IOException e) {
 				e.printStackTrace();
-				showToast("CreateSocket: " + e.getMessage());
+				Log.e(TeklaHelper.TAG, "CreateSocket: " + e.getMessage());
 			}
 			success = connectSocket();
 		}
@@ -312,11 +322,12 @@ public class SwitchEventProvider extends Service implements Runnable {
         try {
 			mBluetoothSocket.connect();
             success = true;
+			Log.i(TeklaHelper.TAG, "SEP - Connected to " + mBluetoothSocket.getRemoteDevice().getAddress());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
             success = false;
 			e.printStackTrace();
-			//showToast(e.getMessage());
+			Log.e(TeklaHelper.TAG, "SEP - Socket connection failed!");
 		}
 		return success;
 	}
@@ -339,7 +350,7 @@ public class SwitchEventProvider extends Service implements Runnable {
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				showToast(e.getMessage());
+				Log.e(TeklaHelper.TAG, "CloseSocket: " + e.getMessage());
 			}
 		}
 		if (mIsBroadcasting != null) {
@@ -364,7 +375,7 @@ public class SwitchEventProvider extends Service implements Runnable {
 		public void run() {
 			mPingCounter++;
 			if (mPingCounter > PING_TIMEOUT_COUNTER) {
-				// We lost connection, stop pinging
+				Log.w(TeklaHelper.TAG, "SEP - Shield connection timed out");
 				mPingCounter = 0;
 				disconnectShield();
 				restartReconnectThread();
@@ -379,6 +390,8 @@ public class SwitchEventProvider extends Service implements Runnable {
 	private Runnable mReconnectRunnable = new Runnable () {
 		@Override
 		public void run() {
+			Looper.prepare();
+
 			while(!mIsBroadcasting && mKeepReconnecting) {
 				connectShield(getSavedShieldAddress());
 				SystemClock.sleep(PING_DELAY);
@@ -418,7 +431,7 @@ public class SwitchEventProvider extends Service implements Runnable {
 			mOutStream.write(mByte);
 		} catch (IOException e) {
 			e.printStackTrace();
-			showToast(e.getMessage());
+			Log.e(TeklaHelper.TAG, "SocketWrite: " + e.getMessage());
 		}
 	}
 
@@ -454,10 +467,6 @@ public class SwitchEventProvider extends Service implements Runnable {
 	private void cancelNotification() {
 		// Cancel the persistent notification.
 		mNotificationManager.cancel(R.string.sep_started);
-	}
-
-	private void showToast(String msg) {
-		Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
 	}
 
 }
