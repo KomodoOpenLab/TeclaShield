@@ -34,7 +34,6 @@ import android.preference.CheckBoxPreference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceGroup;
 import android.text.AutoText;
-import android.widget.Toast;
 
 public class TeklaIMESettings extends PreferenceActivity
     implements SharedPreferences.OnSharedPreferenceChangeListener {

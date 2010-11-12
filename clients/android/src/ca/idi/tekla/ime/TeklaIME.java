@@ -158,6 +158,7 @@ public class TeklaIME extends InputMethodService
     public static final String ACTION_SHOW_IME = "ca.idi.tekla.ime.action.SHOW_IME";
     public static final String ACTION_HIDE_IME = "ca.idi.tekla.ime.action.HIDE_IME";
     private int mLastKeyboardMode = KeyboardSwitcher.MODE_TEXT;
+    private int mLastNonUIKeyboardMode = KeyboardSwitcher.MODE_TEXT;
     //TODO: Tekla - move highlighting code to dedicated class
 	private static final int REDRAW_KEYBOARD = 99999; //this is a true arbitrary number.
     private static final int HIGHLIGHT_NEXT = 0x55;
@@ -196,7 +197,7 @@ public class TeklaIME extends InputMethodService
     @Override public void onCreate() {
         super.onCreate();
 		// Use the following line to debug IME service.
-		// android.os.Debug.waitForDebugger();
+		 android.os.Debug.waitForDebugger();
 
         Log.i(TeklaHelper.TAG, "IME - Starting IME...");
         //setStatusIcon(R.drawable.ime_qwerty);
@@ -283,7 +284,8 @@ public class TeklaIME extends InputMethodService
     @Override 
     public void onStartInputView(EditorInfo attribute, boolean restarting) {
         // In landscape mode, this method gets called without the input view being created.
-        if (mInputView == null) {
+
+    	if (mInputView == null) {
             return;
         }
 
@@ -391,6 +393,17 @@ public class TeklaIME extends InputMethodService
         mPredictionOn = mPredictionOn && mCorrectionMode > 0;
         checkTutorial(attribute.privateImeOptions);
         if (TRACE) Debug.startMethodTracing("/data/trace/latinime");
+
+        int thisKBMode = mKeyboardSwitcher.getKeyboardMode();
+        if(mLastKeyboardMode != thisKBMode) {
+        	mLastKeyboardMode = thisKBMode;
+        	if (mTeklaHelper.getShieldConnect(this)) {
+                mScanDepth = DEPTH_ROW;
+                mScanKeyCounter = 0;
+                mScanRowCounter = 0;
+            	resetHighlight();
+        	}
+        }
     }
 
     @Override
@@ -819,12 +832,18 @@ public class TeklaIME extends InputMethodService
 	*/
 	private void handleNavigationKey(int keyEventCode) {
 		if (keyEventCode == Keyboard.KEYCODE_DONE) {
-			if (mKeyboardSwitcher.getKeyboardMode() != KeyboardSwitcher.MODE_UI) {
-				mLastKeyboardMode = mKeyboardSwitcher.getKeyboardMode();
+	        int thisKBMode = mKeyboardSwitcher.getKeyboardMode();
+			if (thisKBMode != KeyboardSwitcher.MODE_UI) {
+				mLastNonUIKeyboardMode = thisKBMode;
 				hideWindow();
 			}
-			else
-				mKeyboardSwitcher.setKeyboardMode(mLastKeyboardMode, 0);
+			else {
+				mKeyboardSwitcher.setKeyboardMode(mLastNonUIKeyboardMode, 0);
+                mScanDepth = DEPTH_ROW;
+                mScanKeyCounter = 0;
+                mScanRowCounter = 0;
+            	resetHighlight();
+			}
 		} else {
 			keyDownUp(keyEventCode);
 		}

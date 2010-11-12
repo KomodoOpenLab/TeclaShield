@@ -4,9 +4,7 @@
 	android:versionName="0.2-alpha"
 	>
 	<application
-    	android:label="@string/english_ime_name"
-    	android:debuggable="true"
-    	>
+    	android:label="@string/english_ime_name" android:icon="@drawable/tekla_icon" android:debuggable="false">
 		<service
 			android:name=".ime.TeklaIME"
 			android:label="@string/english_ime_name"

@@ -6,7 +6,6 @@ import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Toast;
