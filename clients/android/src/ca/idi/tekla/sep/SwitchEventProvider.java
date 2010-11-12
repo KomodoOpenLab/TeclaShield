@@ -25,7 +25,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Binder;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
@@ -33,8 +32,6 @@ import android.os.PowerManager;
 import android.os.SystemClock;
 import android.os.PowerManager.WakeLock;
 import android.util.Log;
-import android.view.View;
-import android.view.inputmethod.InputMethodManager;
 
 public class SwitchEventProvider extends Service implements Runnable {
 
@@ -122,7 +119,6 @@ public class SwitchEventProvider extends Service implements Runnable {
     	mKeyguardLock = mKeyguardManager.newKeyguardLock("");
 
 		//Intents & Intent Filters
-    	registerReceiver(mReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
     	registerReceiver(mReceiver, new IntentFilter(Intent.ACTION_SCREEN_OFF));
     	mSwitchEventIntent = new Intent(ACTION_SWITCH_EVENT_RECEIVED);
     	mBroadcastStartedIntent = new Intent(ACTION_SEP_BROADCAST_STARTED);
@@ -253,12 +249,6 @@ public class SwitchEventProvider extends Service implements Runnable {
 			
 			if (intent.getAction().equals(Intent.ACTION_SCREEN_OFF)) {
 				mKeyguardLock.reenableKeyguard();
-			}
-			if (intent.getAction().equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
-				Bundle extras = intent.getExtras();
-				Integer state = extras.getInt(BluetoothAdapter.EXTRA_STATE);
-				if (state.equals(BluetoothAdapter.STATE_TURNING_OFF))
-					stopSelf();
 			}
 		}
 		
