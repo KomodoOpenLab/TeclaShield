@@ -113,7 +113,7 @@ public class SwitchEventProvider extends Service implements Runnable {
 		// Use the following line to debug IME service.
 		// android.os.Debug.waitForDebugger();
 
-        Log.i(TeklaHelper.TAG, "SEP - Starting SEP...");
+    	// Log.i(TeklaHelper.TAG, "SEP - Starting SEP...");
         
     	mKeyguardManager = (KeyguardManager) getSystemService(KEYGUARD_SERVICE);
     	mKeyguardLock = mKeyguardManager.newKeyguardLock("");
@@ -166,7 +166,7 @@ public class SwitchEventProvider extends Service implements Runnable {
 		} else {
 			// MAC is invalid, unset connect to shield preference
 			mTeklaHelper.setShieldConnect(this, false);
-			Log.e(TeklaHelper.TAG, "SEP: Could not connect to shield");
+			// Log.e(TeklaHelper.TAG, "SEP: Could not connect to shield");
 		}
 		
 		return success? Service.START_STICKY:Service.START_NOT_STICKY;
@@ -181,7 +181,7 @@ public class SwitchEventProvider extends Service implements Runnable {
 			mOutStream = mBluetoothSocket.getOutputStream();
 		} catch (IOException e) {
 			e.printStackTrace();
-			Log.e(TeklaHelper.TAG, "BTStreams: " + e.getMessage());
+			// Log.e(TeklaHelper.TAG, "BTStreams: " + e.getMessage());
 			return;
 		}
 
@@ -225,13 +225,13 @@ public class SwitchEventProvider extends Service implements Runnable {
 	private void handleSwitchEvent(int switchEvent) {
 		wakeUnlockScreen();
 		// Broadcast event
-		Log.i(TeklaHelper.TAG, "SEP - Sending switch event " + String.valueOf(switchEvent) + "...");
+		// Log.i(TeklaHelper.TAG, "SEP - Sending switch event " + String.valueOf(switchEvent) + "...");
 		mSwitchEventIntent.putExtra(EXTRA_SWITCH_EVENT, switchEvent);
 		sendBroadcast(mSwitchEventIntent);
 	}
 	
 	private void wakeUnlockScreen() {
-		Log.i(TeklaHelper.TAG, "SEP - Waking and unlocking screen...");
+		// Log.i(TeklaHelper.TAG, "SEP - Waking and unlocking screen...");
 		PowerManager pm = (PowerManager) getSystemService(POWER_SERVICE);
 		WakeLock wl = pm.newWakeLock(PowerManager.FULL_WAKE_LOCK |
 				PowerManager.ON_AFTER_RELEASE, "");
@@ -255,7 +255,7 @@ public class SwitchEventProvider extends Service implements Runnable {
 	};
 	
 	private void connectShield(String shieldAddress) {
-		Log.i(TeklaHelper.TAG, "SEP - Connecting to " + shieldAddress + "...");
+		// Log.i(TeklaHelper.TAG, "SEP - Connecting to " + shieldAddress + "...");
     	if (openSocket(shieldAddress))
     		startBroadcasting();
 	}
@@ -300,7 +300,7 @@ public class SwitchEventProvider extends Service implements Runnable {
 	            mBluetoothSocket = teklaShield.createRfcommSocketToServiceRecord(SPP_UUID);
 			} catch (IOException e) {
 				e.printStackTrace();
-				Log.e(TeklaHelper.TAG, "CreateSocket: " + e.getMessage());
+				// Log.e(TeklaHelper.TAG, "CreateSocket: " + e.getMessage());
 			}
 			success = connectSocket();
 		}
@@ -312,12 +312,12 @@ public class SwitchEventProvider extends Service implements Runnable {
         try {
 			mBluetoothSocket.connect();
             success = true;
-			Log.i(TeklaHelper.TAG, "SEP - Connected to " + mBluetoothSocket.getRemoteDevice().getAddress());
+            // Log.i(TeklaHelper.TAG, "SEP - Connected to " + mBluetoothSocket.getRemoteDevice().getAddress());
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
             success = false;
 			e.printStackTrace();
-			Log.e(TeklaHelper.TAG, "SEP - Socket connection failed!");
+			// Log.e(TeklaHelper.TAG, "SEP - Socket connection failed!");
 		}
 		return success;
 	}
@@ -340,7 +340,7 @@ public class SwitchEventProvider extends Service implements Runnable {
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
-				Log.e(TeklaHelper.TAG, "CloseSocket: " + e.getMessage());
+				// Log.e(TeklaHelper.TAG, "CloseSocket: " + e.getMessage());
 			}
 		}
 		if (mIsBroadcasting != null) {
@@ -365,7 +365,7 @@ public class SwitchEventProvider extends Service implements Runnable {
 		public void run() {
 			mPingCounter++;
 			if (mPingCounter > PING_TIMEOUT_COUNTER) {
-				Log.w(TeklaHelper.TAG, "SEP - Shield connection timed out");
+				// Log.w(TeklaHelper.TAG, "SEP - Shield connection timed out");
 				mPingCounter = 0;
 				disconnectShield();
 				restartReconnectThread();
@@ -421,7 +421,7 @@ public class SwitchEventProvider extends Service implements Runnable {
 			mOutStream.write(mByte);
 		} catch (IOException e) {
 			e.printStackTrace();
-			Log.e(TeklaHelper.TAG, "SocketWrite: " + e.getMessage());
+			// Log.e(TeklaHelper.TAG, "SocketWrite: " + e.getMessage());
 		}
 	}
 

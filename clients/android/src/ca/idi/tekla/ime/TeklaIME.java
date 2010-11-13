@@ -157,7 +157,7 @@ public class TeklaIME extends InputMethodService
     private TeklaHelper mTeklaHelper = TeklaHelper.getInstance();
     public static final String ACTION_SHOW_IME = "ca.idi.tekla.ime.action.SHOW_IME";
     public static final String ACTION_HIDE_IME = "ca.idi.tekla.ime.action.HIDE_IME";
-    private int mLastKeyboardMode = KeyboardSwitcher.MODE_TEXT;
+    private int mLastKeyboardMode = KeyboardSwitcher.MODE_UI;
     private int mLastNonUIKeyboardMode = KeyboardSwitcher.MODE_TEXT;
     //TODO: Tekla - move highlighting code to dedicated class
 	private static final int REDRAW_KEYBOARD = 99999; //this is a true arbitrary number.
@@ -197,9 +197,9 @@ public class TeklaIME extends InputMethodService
     @Override public void onCreate() {
         super.onCreate();
 		// Use the following line to debug IME service.
-		 android.os.Debug.waitForDebugger();
+		// android.os.Debug.waitForDebugger();
 
-        Log.i(TeklaHelper.TAG, "IME - Starting IME...");
+        // Log.i(TeklaHelper.TAG, "IME - Starting IME...");
         //setStatusIcon(R.drawable.ime_qwerty);
         mKeyboardSwitcher = new KeyboardSwitcher(this);
         final Configuration conf = getResources().getConfiguration();
@@ -397,12 +397,7 @@ public class TeklaIME extends InputMethodService
         int thisKBMode = mKeyboardSwitcher.getKeyboardMode();
         if(mLastKeyboardMode != thisKBMode) {
         	mLastKeyboardMode = thisKBMode;
-        	if (mTeklaHelper.getShieldConnect(this)) {
-                mScanDepth = DEPTH_ROW;
-                mScanKeyCounter = 0;
-                mScanRowCounter = 0;
-            	resetHighlight();
-        	}
+       		initHighlight();
         }
     }
 
@@ -594,8 +589,10 @@ public class TeklaIME extends InputMethodService
 	public void onWindowHidden() {
     	super.onWindowHidden();
         if (mTeklaHelper.getPersistentKeyboard(this)) {
-        	showWindow(true);
+        	if (!isInputViewShown())
+        		showWindow(true);
             mKeyboardSwitcher.setKeyboardMode(KeyboardSwitcher.MODE_UI, 0);
+			initHighlight();
         }
 	}
 
@@ -834,15 +831,14 @@ public class TeklaIME extends InputMethodService
 		if (keyEventCode == Keyboard.KEYCODE_DONE) {
 	        int thisKBMode = mKeyboardSwitcher.getKeyboardMode();
 			if (thisKBMode != KeyboardSwitcher.MODE_UI) {
+				// Closing
 				mLastNonUIKeyboardMode = thisKBMode;
 				hideWindow();
 			}
 			else {
+				// Opening
 				mKeyboardSwitcher.setKeyboardMode(mLastNonUIKeyboardMode, 0);
-                mScanDepth = DEPTH_ROW;
-                mScanKeyCounter = 0;
-                mScanRowCounter = 0;
-            	resetHighlight();
+				initHighlight();
 			}
 		} else {
 			keyDownUp(keyEventCode);
@@ -1133,17 +1129,17 @@ public class TeklaIME extends InputMethodService
         	if (intent.getAction().equals(SwitchEventProvider.ACTION_SWITCH_EVENT_RECEIVED))        		
         		handleSwitchEvent(intent.getExtras().getInt(SwitchEventProvider.EXTRA_SWITCH_EVENT));
 			if (intent.getAction().equals(SwitchEventProvider.ACTION_SEP_BROADCAST_STARTED)) {
-				Log.i(TeklaHelper.TAG, "IME - SEP is broadcasting, attempting to force-open soft IME...");
+				// Log.i(TeklaHelper.TAG, "IME - SEP is broadcasting, attempting to force-open soft IME...");
 				setPersistentKeyboard(true);
 				showWindow(true);
 			}
-
         }
     };
 
     private void setPersistentKeyboard(boolean state) {
    		mTeklaHelper.setPersistentKeyboard(this, state);
     }
+    
     
     // update flags for silent mode
     private void updateRingerMode() {
@@ -1156,7 +1152,7 @@ public class TeklaIME extends InputMethodService
     }
 
     private void handleSwitchEvent(int switchEvent) {
-    	Log.i(TeklaHelper.TAG, "IME - Switch event received: " + String.valueOf(switchEvent));
+    	// Log.i(TeklaHelper.TAG, "IME - Switch event received: " + String.valueOf(switchEvent));
     	if (!isInputViewShown())
     		showWindow(true);
 		switch(switchEvent) {
@@ -1191,6 +1187,7 @@ public class TeklaIME extends InputMethodService
         if (mScanDepth == DEPTH_ROW) {
 			mScanDepth = DEPTH_KEY;
 			mScanKeyCounter = getRowStart(keyboard, mScanRowCounter);
+	        resetHighlight();
 		} else {
 	        List<Key> keyList = keyboard.getKeys();
 	        Key key = keyList.get(mScanKeyCounter);
@@ -1198,12 +1195,24 @@ public class TeklaIME extends InputMethodService
 			// Get keyboard again in case it changed
 			keyboard = mInputView.getKeyboard();
 	        if (getRowCount(keyboard) != 1) {
-	        	mScanDepth = DEPTH_ROW;
-	        	mScanRowCounter = 0;
-		        mScanKeyCounter = 0;
+				initHighlight();
 	        }
 		}
-        resetHighlight();
+	}
+
+	private void initHighlight() {
+		if (mTeklaHelper.getShieldConnect(this)) {
+	        mScanDepth = DEPTH_ROW;
+	        mScanKeyCounter = 0;
+	        mScanRowCounter = 0;
+	    	resetHighlight();
+		} else {
+			clearHighlight();
+		}
+	}
+	
+	private void clearHighlight() {
+		highlightKeys(mInputView.getKeyboard(), -1, -1);
 	}
 
 	private void resetHighlight() {
