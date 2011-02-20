@@ -32,7 +32,7 @@ void loop() {
   } else {
     // read the switch states (6 switches):
     switchStates = PINB & 0x3F;
-    //switchStates ^= 0x30;  // toggle bits 4 and 5 (extra switches)
+    switchStates ^= 0x30;  // toggle bits 4 and 5 (extra switches)
     // compare the switchState to its previous state
     if (switchStates != prevSwitchStates) {
       // if the state has changed, send to serial port
