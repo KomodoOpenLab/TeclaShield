@@ -10,13 +10,15 @@
  */
 
 // Variables will change:
-int switchStates = 0x0F;       // current state of the button
-int prevSwitchStates = 0x0F;   // previous state of the button
-int mByte;                     // used to store incoming serial port data
+byte switchStates = 0x0F;       // current switch states
+byte extraState = 0x04;         // extra switch state helper
+byte prevSwitchStates = 0x0F;   // previous state of the button
+byte mByte;                     // used to store incoming serial port data
 
 void setup() {
-  // initialize pins 0 to 5 as inputs without changing the direction of pins we don't care about
-  DDRB = DDRB & 0xC0;
+  // initialize inputs without changing the direction of pins we don't care about
+  DDRB &= 0xE0;
+  DDRD &= 0xFB;
   // initialize serial communication
   Serial.begin(115200);
 }
@@ -31,8 +33,11 @@ void loop() {
     Serial.write(mByte);
   } else {
     // read the switch states (6 switches):
-    switchStates = PINB & 0x3F;
-    switchStates ^= 0x30;  // toggle bits 4 and 5 (extra switches)
+    switchStates = PINB & 0x1F;  // read first 5 switches
+    extraState = PIND & 0x04;    // read sixth switch 
+    extraState <<= 3;            // shift from pos 2 to 5
+    switchStates |= extraState;  // copy 6th switch to switchStates
+    switchStates ^= 0x30;  // toggle bits 4 & 5 (extra switches) for compatibility with older versions
     // compare the switchState to its previous state
     if (switchStates != prevSwitchStates) {
       // if the state has changed, send to serial port
