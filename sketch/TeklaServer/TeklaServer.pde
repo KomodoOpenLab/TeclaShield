@@ -3,22 +3,26 @@
  modified 30 Dec 2009
  by Tom Igoe
  	
- modified for Tekla 25 May 2010 by Jorge Silva,
- 3 June 2010 by Zongyi Yang
- 17 Feb 2011 by Jorge Silva
+ modified for Tekla
+ 25 May 2010
+ by Jorge Silva,
+ 3 June 2010
+ by Zongyi Yang
+ 7 Mar 2011
+ by Jorge Silva
  
  */
 
 // Variables will change:
-byte switchStates = 0x0F;       // current switch states
-byte extraState = 0x04;         // extra switch state helper
-byte prevSwitchStates = 0x0F;   // previous state of the button
+byte switchState = 0x0F;       // current switch states
+byte extraState = 0x0C;         // extra switch state helper
+byte prevSwitchState = 0x0F;   // previous state of the button
 byte mByte;                     // used to store incoming serial port data
 
 void setup() {
   // initialize inputs without changing the direction of pins we don't care about
-  DDRB &= 0xE0;
-  DDRD &= 0xFB;
+  DDRC &= 0xF0; // Joystick inputs
+  DDRD &= 0xF3; // Extra inputs
   // initialize serial communication
   Serial.begin(115200);
 }
@@ -33,17 +37,17 @@ void loop() {
     Serial.write(mByte);
   } else {
     // read the switch states (6 switches):
-    switchStates = PINB & 0x1F;  // read first 5 switches
-    extraState = PIND & 0x04;    // read sixth switch 
-    extraState <<= 3;            // shift from pos 2 to 5
-    switchStates |= extraState;  // copy 6th switch to switchStates
-    switchStates ^= 0x30;  // toggle bits 4 & 5 (extra switches) for compatibility with older versions
+    switchState = PINC & 0x0F;  // read joystick switches
+    extraState = PIND & 0x0C;   // read extra switches
+    extraState <<= 2;           // shift extra switches to most significant nibble
+    switchState |= extraState;  // copy extra switches to switchState
+    switchState ^= 0x30;        // toggle bits 4 & 5 (extra switches) for compatibility with older versions
     // compare the switchState to its previous state
-    if (switchStates != prevSwitchStates) {
+    if (switchState != prevSwitchState) {
       // if the state has changed, send to serial port
-      Serial.write(switchStates);
+      Serial.write(switchState);
       // save the current state as the last state for next time through the loop
-      prevSwitchStates = switchStates;
+      prevSwitchState = switchState;
     }
   }
 }
