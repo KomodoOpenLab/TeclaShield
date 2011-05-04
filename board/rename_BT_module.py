@@ -11,7 +11,7 @@ import os
 from bluetooth import *
 
 version = "TeklaShieldP2"
-print "Looking for FireFly module..."
+print "Looking for FireFly modules..."
 nearby_devices = discover_devices(lookup_names = True)
 n = len(nearby_devices)
 print "found %d device(s):" % n
