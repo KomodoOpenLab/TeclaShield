@@ -10,6 +10,7 @@
 import os
 from bluetooth import *
 
+version = "TeklaShieldP2"
 print "Looking for FireFly module..."
 nearby_devices = discover_devices(lookup_names = True)
 n = len(nearby_devices)
@@ -42,8 +43,8 @@ if (shieldFound):
 	print "Name: %s" % name
 	
 	# Set new device name
-	print "Changing to %s" % name.replace("FireFly","TeklaShieldP2")
-	print command
+	print "Changing to %s" % name.replace("FireFly",version)
+	command = "S-," + version + "\n"
 	client_socket.send(command)
 	print client_socket.recv(1024).rstrip("\n")
 	
