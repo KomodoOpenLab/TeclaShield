@@ -23,7 +23,7 @@ while ((not shieldFound) and (i < n)):
 	name = candidate[1]
 	print str(i+1) + ": " + name
 	if (name.find("FireFly") == 0):
-		print "Tekla shield found!"
+		print "FireFly module found!"
 		shieldFound = True
 	i = i + 1
 
