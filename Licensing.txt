@@ -1,4 +1,4 @@
-CONTENTS
+CONTENTS 
 ========
 1. Copyright
 2. Licensing of code
