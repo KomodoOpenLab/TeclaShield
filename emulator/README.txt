@@ -1,4 +1,4 @@
-Tecla Emulator version 1.0
+Tecla Emulator version 1.1
 ----------------------------------------------------------------------------------------------------------------------------------------------------
 Written and Submitted by Akhil Rao aka akdroid
 
@@ -25,7 +25,9 @@ a/A => Generate Event on Jumper 3
 d/D => Generate Event on Jumper 4 
 1 => Generate Event on Switch Port 1
 2 => Generate Event on Switch Port 2
-h/H => view possible commands
+h/H => View possible commands
+r/R => Generate Switch Release Event
+t/T => Toggle Auto Switch Release Mode 
 q/Q => Quit 
 
 Notes:
@@ -33,7 +35,9 @@ Notes:
 1)Developers can adapt this script by changing the values of keys:bytevalue in the python dictionary - keyvalue as per their requirement
 2)The current set of values works as per the Tecla Access App available in the andorid market.
 3)The Keyboard may not function properly as of now.
- 
+4)Auto Switch Release Mode is a mode in which switch release events are also generated after a switch event is triggered.
+When turned off,release event will have to be inserted manually by command r/R.Default value is true(on).When true(on)
+release event cannot be sent using r/R command.  
 
 
 
