@@ -13,11 +13,11 @@ modified for Tekla
 #define KEYPRESSDELAY 25
 
 #define DEBOUNCECOUNT 8
-#define TIMEOUT1 110
-#define TIMEOUT2 250
-#define TIMEOUT3 400
-#define TIMEOUT4 550
-#define TIMEOUT5 800
+#define TIMEOUT1 150
+#define TIMEOUT2 300
+#define TIMEOUT3 450
+#define TIMEOUT4 600
+#define TIMEOUT5 1600
 #define SCANTIMEOUTMAX 120
 #define SCANTIMEOUTMIN 25
 #define POKETIMEOUT 200
@@ -31,6 +31,7 @@ modified for Tekla
 
 // Key Scan Codes
 #define TOGGLEKEYBOARD 0x08
+#define KEY_HOME 0x01
 #define KEY_ESC 0x29
 #define KEY_NEXT 0x4F
 #define KEY_PREVIOUS 0x50
@@ -84,12 +85,12 @@ void writeByte(byte which, byte how_many_times) {
 }
 
 /**
-Send HID record for up to two simultaneous key press and release events
+Send HID record for up to two simultaneous key press events
 mod: modifiers (e.g., Alt, Ctrl, Shift)
 scan_code1: First key pressed
 scan_code2: Second key pressed
 **/
-void keyDownUp(byte mod, byte scan_code1, byte scan_code2) {
+void keyDown(byte mod, byte scan_code1, byte scan_code2) {
 	delay(KEYPRESSDELAY);
 	Serial.write(0xFD);
 	Serial.write(0x09);
@@ -99,6 +100,13 @@ void keyDownUp(byte mod, byte scan_code1, byte scan_code2) {
 	Serial.write(scan_code1);
 	Serial.write(scan_code2);
 	writeByte(ZERO,4);
+}
+
+/**
+Send HID record for key release event
+mod: modifiers (e.g., Alt, Ctrl, Shift)
+**/
+void keyUp(byte mod) {
 	delay(KEYPRESSDELAY);
 	Serial.write(0xFD);
 	Serial.write(0x09);
@@ -108,20 +116,47 @@ void keyDownUp(byte mod, byte scan_code1, byte scan_code2) {
 }
 
 /**
-Send a consumer HID record (e.g., volume up/down, toggle keyboard)
+Send HID record for up to two simultaneous key press and release events
+mod: modifiers (e.g., Alt, Ctrl, Shift)
+scan_code1: First key pressed
+scan_code2: Second key pressed
+**/
+void keyDownUp(byte mod, byte scan_code1, byte scan_code2) {
+	keyDown(mod, scan_code1, scan_code2);
+	keyUp(mod);
+}
+
+/**
+Send a consumer HID press event (e.g., volume up/down, toggle keyboard)
 loByte: Least significant byte of consumer record
 hiByte: Most significant byte of consumer record
 **/
-void consumerDownUp(byte loByte, byte hiByte) {
+void consumerDown(byte hiByte, byte loByte) {
 	delay(KEYPRESSDELAY);
 	Serial.write(0xFD);
 	writeByte(0x03,2);
 	Serial.write(loByte);
 	Serial.write(hiByte);
+}
+
+/**
+Send a consumer HID release event (e.g., volume up/down, toggle keyboard)
+**/
+void consumerUp() {
 	delay(KEYPRESSDELAY);
 	Serial.write(0xFD);
 	writeByte(0x03,2);
 	writeByte(ZERO,2);
+}
+
+/**
+Send a full consumer HID event (e.g., volume up/down, toggle keyboard)
+loByte: Least significant byte of consumer record
+hiByte: Most significant byte of consumer record
+**/
+void consumerDownUp(byte hiByte, byte loByte) {
+	consumerDown(hiByte, loByte);
+	consumerUp();
 }
 
 /**
@@ -204,7 +239,7 @@ void loop() {
 			skipT1 = true;
 		}
 		if (!skipT2 && (e1PresdCounter > TIMEOUT2)) {
-			consumerDownUp(TOGGLEKEYBOARD,0x00); //Toggle keyboard
+			consumerDownUp(0x00,TOGGLEKEYBOARD); //Toggle keyboard
 			skipT2 = true;
 		}
 		if (!skipT3 && (e1PresdCounter > TIMEOUT3)) {
@@ -212,10 +247,15 @@ void loop() {
 			skipT3 = true;
 		}
 		if (!skipT4 && (e1PresdCounter > TIMEOUT4)) {
-			keyDownUp(MOD_VO,KEY_H,ZERO); //Home
+			keyDownUp(MOD_VO,KEY_H,ZERO); // VoiceOver Home
+			keyDown(MOD_VO,KEY_H,ZERO); // VoiceOver Home
+			//consumerDownUp(0x00,KEY_HOME); //Home
+			//consumerDown(0x00,KEY_HOME); //Home
 			skipT4 = true;
 		}
 		if (!skipT5 && (e1PresdCounter > TIMEOUT5)) {
+			keyUp(MOD_VO); // VoiceOver Home
+			//consumerUp();
 			keyDownUp(MOD_VO,KEY_S,ZERO); //Toggle speech output
 			skipT5 = true;
 		}
@@ -225,7 +265,7 @@ void loop() {
 	if (!e2Released) {
 		e2PresdCounter++;
 		if (!skipT1 && (e2PresdCounter > TIMEOUT1)) {
-			consumerDownUp(TOGGLEKEYBOARD,0x00); //Toggle keyboard
+			consumerDownUp(0x00,TOGGLEKEYBOARD); //Toggle keyboard
 			skipT1 = true;
 		}
 		if (!skipT2 && (e2PresdCounter > TIMEOUT2)) {
@@ -246,7 +286,7 @@ void loop() {
 	if (!j1Released) {
 		j1PresdCounter++;
 		if (!skipT1 && (j1PresdCounter > TIMEOUT1)) {
-			consumerDownUp(TOGGLEKEYBOARD,0x00); //Toggle keyboard
+			consumerDownUp(0x00,TOGGLEKEYBOARD); //Toggle keyboard
 			skipT1 = true;
 		}
 		if (!skipT2 && (j1PresdCounter > TIMEOUT2)) {
