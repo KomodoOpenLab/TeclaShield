@@ -49,12 +49,12 @@ keyvalue={ "w":0x01,		#Joystick 1 asserted
 	    "W":0x01,
 	    "s":0x02,		#Joystick 2 asserted
 	    "S":0x02,
-	    "d":0x08,		#Joystick 4 asserted
-	    "D":0x08,
-	    "a":0x04,		#Joystick 3 asserted
-	    "A":0x04,		
-	    "2":0x10,		#Switch 2 asserted
-	    "1":0x20,		#Switch 1 asserted
+	    "a":0x04,		#Joystick 4 asserted
+	    "A":0x04,
+	    "d":0x08,		#Joystick 3 asserted
+	    "D":0x08,		
+	    "1":0x10,		#Switch 1 asserted
+	    "2":0x20,		#Switch 2 asserted
 	    "q":0x88, 
 	    "Q":0x88,		#Quit the emulator
 	    "h":0x77,
@@ -101,15 +101,19 @@ def listenkeys():
 	#if(c== "w" or c=="a" or c=="s" or c=="d" or c=="1" or c=="2" or c=="q" or c=="h" or c== "W" or c=="A" or c=="S" or c=="D" or c=="Q" or c=="H"):
 	 if(len(c) == 1 and c in "wWsSaAdDqQhHrRtT12"): 
 	    if(not c in "qQhHtTrR"):
+	      
 	      client_socket.send(chr(keyvalue[c]))
+	      time.sleep(0.1)
+	    #  client_socket.send(chr(0xFF - keyvalue[c]))
+	   #   time.sleep(0.5)
 	      print "\n", keymessage[c];
-	      time.sleep(0.2)
+	      time.sleep(0.5)
 	      if auto_release_mode :
-		  client_socket.send(chr(160))	      
-		  time.sleep(0.2)
+		  client_socket.send(chr(0xC0))	      
+		  time.sleep(0.5)
 	      else:
 		time.sleep(1);
-	    if (not auto_release_mode) and keyvalue[c]== 160 :
+	    if (not auto_release_mode) and keyvalue[c]== 0xC0:
 	      client_socket.send(chr(keyvalue[c]))
 	      print "\n", keymessage[c];
 	      time.sleep(1)
@@ -130,7 +134,9 @@ def listenkeys():
 thr= Thread(target=listenkeys);
 thr.start();
 while thr.isAlive():
-	client_socket.send(chr(0x70))
-	time.sleep(1)
+	a=client_socket.recv(1000)
+	if(len(a) == 1):
+	  client_socket.send(a)
+	  time.sleep(0.1)
 
 client_socket.close()
