@@ -12,7 +12,7 @@ modified for Tekla
 #define ZERO (uint8_t) 0x00
 #define KEYPRESSDELAY 25
 
-#define DEBOUNCECOUNT 8
+#define DEBOUNCECOUNT 6
 #define TIMEOUT1 150
 #define TIMEOUT2 300
 #define TIMEOUT3 450
@@ -31,7 +31,7 @@ modified for Tekla
 
 // Key Scan Codes
 #define TOGGLEKEYBOARD 0x08
-#define KEY_HOME 0x01
+//#define KEY_HOME 0x01
 #define KEY_ESC 0x29
 #define KEY_NEXT 0x4F
 #define KEY_PREVIOUS 0x50
@@ -248,14 +248,9 @@ void loop() {
 		}
 		if (!skipT4 && (e1PresdCounter > TIMEOUT4)) {
 			keyDownUp(MOD_VO,KEY_H,ZERO); // VoiceOver Home
-			keyDown(MOD_VO,KEY_H,ZERO); // VoiceOver Home
-			//consumerDownUp(0x00,KEY_HOME); //Home
-			//consumerDown(0x00,KEY_HOME); //Home
 			skipT4 = true;
 		}
 		if (!skipT5 && (e1PresdCounter > TIMEOUT5)) {
-			keyUp(MOD_VO); // VoiceOver Home
-			//consumerUp();
 			keyDownUp(MOD_VO,KEY_S,ZERO); //Toggle speech output
 			skipT5 = true;
 		}
@@ -264,18 +259,6 @@ void loop() {
 	// process E2 hold timers
 	if (!e2Released) {
 		e2PresdCounter++;
-		if (!skipT1 && (e2PresdCounter > TIMEOUT1)) {
-			consumerDownUp(0x00,TOGGLEKEYBOARD); //Toggle keyboard
-			skipT1 = true;
-		}
-		if (!skipT2 && (e2PresdCounter > TIMEOUT2)) {
-			keyDownUp(ZERO,KEY_ESC,ZERO); //Escape
-			skipT2 = true;
-		}
-		if (!skipT3 && (e2PresdCounter > TIMEOUT3)) {
-			keyDownUp(MOD_VO,KEY_H,ZERO); //Home
-			skipT3 = true;
-		}
 		if (!skipT5 && (e2PresdCounter > TIMEOUT5)) {
 			keyDownUp(MOD_VO,KEY_S,ZERO); //Toggle speech output
 			skipT5 = true;
@@ -294,7 +277,7 @@ void loop() {
 			skipT2 = true;
 		}
 		if (!skipT3 && (j1PresdCounter > TIMEOUT3)) {
-			keyDownUp(MOD_VO,KEY_H,ZERO); //Home
+			keyDownUp(MOD_VO,KEY_H,ZERO); // VoiceOver Home
 			skipT3 = true;
 		}
 		if (!skipT5 && (j1PresdCounter > TIMEOUT5)) {
@@ -336,8 +319,8 @@ void loop() {
 
 	// process state changes
 	if ((debounceCounter > DEBOUNCECOUNT) && (switchState != prevSwitchState)) {
-
 		// Switch state changed
+
 		stateChange = switchState ^ prevSwitchState;
 
 		if (!(e1Released & e2Released & j1Released & j2Released & j3Released & j4Released)) {
@@ -363,30 +346,33 @@ void loop() {
 			}
 		}
 
-		if ((stateChange & E2MASK) || (stateChange & J1MASK)) { // E2 or J1 changed
+		if (stateChange & E2MASK) { // E2 changed
 			if (e2Released) {
+				if (!skipT1) { // was short press
+					keyDownUp(ZERO, KEY_UP, KEY_DOWN); //Select
+				}
 				clearSkipTs();
-			} else {
-				//E2 pressed
 				e2PresdCounter = 0;
-				keyDownUp(ZERO, KEY_UP, KEY_DOWN); //Select
 			}
+		}
+
+		if (stateChange & J1MASK) { // J1 changed
 			if (j1Released) {
+				if (!skipT1) { // was short press
+					keyDownUp(ZERO, KEY_UP, KEY_DOWN); //Select
+				}
 				clearSkipTs();
-			} else {
-				//J1 pressed
 				j1PresdCounter = 0;
-				keyDownUp(ZERO, KEY_UP, KEY_DOWN); //Select
 			}
 		}
 
 		if (stateChange & J2MASK) { // J2 changed
 			if (j2Released) {
+				if (!skipT1) { // was short press
+					keyDownUp(ZERO,KEY_ESC,ZERO); //Escape
+				}
 				clearSkipTs();
-			} else {
-				//J2 pressed
 				j2PresdCounter = 0;
-				keyDownUp(ZERO,KEY_ESC,ZERO); //Escape
 			}
 		}
 
