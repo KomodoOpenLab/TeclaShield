@@ -22,12 +22,12 @@ modified for Tekla
 #define SCANTIMEOUTMIN 25
 #define POKETIMEOUT 200
 
-#define E1MASK 0x10
-#define E2MASK 0x20
-#define J1MASK 0x01
-#define J2MASK 0x02
-#define J3MASK 0x04
-#define J4MASK 0x08
+#define SP1MASK 0x10
+#define SP2MASK 0x20
+#define ECU1MASK 0x01
+#define ECU2MASK 0x02
+#define ECU3MASK 0x04
+#define ECU4MASK 0x08
 
 // Key Scan Codes
 #define TOGGLEKEYBOARD 0x08
@@ -46,9 +46,9 @@ byte switchState, debounceSwitchState, prevSwitchState, stateChange;
 byte extraState;
 boolean goingNext, pauseScan, first;
 boolean skipT1, skipT2, skipT3, skipT4, skipT5;
-byte e1Released, e2Released, j1Released, j2Released, j3Released, j4Released;
-int e1PresdCounter, e2PresdCounter, j1PresdCounter;
-int j2PresdCounter, j3PresdCounter, j4PresdCounter;
+byte SP1Released, SP2Released, ECU1Released, ECU2Released, ECU3Released, ECU4Released;
+int SP1PresdCounter, SP2PresdCounter, ECU1PresdCounter;
+int ECU2PresdCounter, ECU3PresdCounter, ECU4PresdCounter;
 
 void stopScanning() {
 	pauseScan = true;
@@ -168,9 +168,9 @@ void setup() {
 	goingNext = false;
 	pauseScan = true;
 	clearSkipTs();
-	e1PresdCounter = 0; e2PresdCounter = 0;
-	j1PresdCounter = 0; j2PresdCounter = 0;
-	j3PresdCounter = 0; j4PresdCounter = 0;
+	SP1PresdCounter = 0; SP2PresdCounter = 0;
+	ECU1PresdCounter = 0; ECU2PresdCounter = 0;
+	ECU3PresdCounter = 0; ECU4PresdCounter = 0;
 	scanTimeout = SCANTIMEOUTMAX;
 }
 
@@ -189,106 +189,106 @@ void loop() {
 		debounceSwitchState = switchState;
 	}
 
-	e1Released = switchState & E1MASK;
-	e2Released = switchState & E2MASK;
-	j1Released = switchState & J1MASK;
-	j2Released = switchState & J2MASK;
-	j3Released = switchState & J3MASK;
-	j4Released = switchState & J4MASK;
+	SP1Released = switchState & SP1MASK;
+	SP2Released = switchState & SP2MASK;
+	ECU1Released = switchState & ECU1MASK;
+	ECU2Released = switchState & ECU2MASK;
+	ECU3Released = switchState & ECU3MASK;
+	ECU4Released = switchState & ECU4MASK;
 
-	// process E1 hold timers
-	if (!e1Released) {
-		e1PresdCounter++;
-		if (!skipT1 && (e1PresdCounter > TIMEOUT1)) {
+	// process SP1 hold timers
+	if (!SP1Released) {
+		SP1PresdCounter++;
+		if (!skipT1 && (SP1PresdCounter > TIMEOUT1)) {
 			keyDownUp(ZERO, KEY_UP, KEY_DOWN); //Select
 			skipT1 = true;
 		}
-		if (!skipT2 && (e1PresdCounter > TIMEOUT2)) {
+		if (!skipT2 && (SP1PresdCounter > TIMEOUT2)) {
 			consumerDownUp(TOGGLEKEYBOARD,0x00); //Toggle keyboard
 			skipT2 = true;
 		}
-		if (!skipT3 && (e1PresdCounter > TIMEOUT3)) {
+		if (!skipT3 && (SP1PresdCounter > TIMEOUT3)) {
 			keyDownUp(ZERO,KEY_ESC,ZERO); //Escape
 			skipT3 = true;
 		}
-		if (!skipT4 && (e1PresdCounter > TIMEOUT4)) {
+		if (!skipT4 && (SP1PresdCounter > TIMEOUT4)) {
 			keyDownUp(MOD_VO,KEY_H,ZERO); //Home
 			skipT4 = true;
 		}
-		if (!skipT5 && (e1PresdCounter > TIMEOUT5)) {
+		if (!skipT5 && (SP1PresdCounter > TIMEOUT5)) {
 			keyDownUp(MOD_VO,KEY_S,ZERO); //Toggle speech output
 			skipT5 = true;
 		}
 	}
 
-	// process E2 hold timers
-	if (!e2Released) {
-		e2PresdCounter++;
-		if (!skipT1 && (e2PresdCounter > TIMEOUT1)) {
+	// process SP2 hold timers
+	if (!SP2Released) {
+		SP2PresdCounter++;
+		if (!skipT1 && (SP2PresdCounter > TIMEOUT1)) {
 			consumerDownUp(TOGGLEKEYBOARD,0x00); //Toggle keyboard
 			skipT1 = true;
 		}
-		if (!skipT2 && (e2PresdCounter > TIMEOUT2)) {
+		if (!skipT2 && (SP2PresdCounter > TIMEOUT2)) {
 			keyDownUp(ZERO,KEY_ESC,ZERO); //Escape
 			skipT2 = true;
 		}
-		if (!skipT3 && (e2PresdCounter > TIMEOUT3)) {
+		if (!skipT3 && (SP2PresdCounter > TIMEOUT3)) {
 			keyDownUp(MOD_VO,KEY_H,ZERO); //Home
 			skipT3 = true;
 		}
-		if (!skipT5 && (e2PresdCounter > TIMEOUT5)) {
+		if (!skipT5 && (SP2PresdCounter > TIMEOUT5)) {
 			keyDownUp(MOD_VO,KEY_S,ZERO); //Toggle speech output
 			skipT5 = true;
 		}
 	}
 
-	// process J1 hold timers
-	if (!j1Released) {
-		j1PresdCounter++;
-		if (!skipT1 && (j1PresdCounter > TIMEOUT1)) {
+	// process ECU1 hold timers
+	if (!ECU1Released) {
+		ECU1PresdCounter++;
+		if (!skipT1 && (ECU1PresdCounter > TIMEOUT1)) {
 			consumerDownUp(TOGGLEKEYBOARD,0x00); //Toggle keyboard
 			skipT1 = true;
 		}
-		if (!skipT2 && (j1PresdCounter > TIMEOUT2)) {
+		if (!skipT2 && (ECU1PresdCounter > TIMEOUT2)) {
 			keyDownUp(ZERO,KEY_ESC,ZERO); //Escape
 			skipT2 = true;
 		}
-		if (!skipT3 && (j1PresdCounter > TIMEOUT3)) {
+		if (!skipT3 && (ECU1PresdCounter > TIMEOUT3)) {
 			keyDownUp(MOD_VO,KEY_H,ZERO); //Home
 			skipT3 = true;
 		}
-		if (!skipT5 && (j1PresdCounter > TIMEOUT5)) {
+		if (!skipT5 && (ECU1PresdCounter > TIMEOUT5)) {
 			keyDownUp(MOD_VO,KEY_S,ZERO); //Toggle speech output
 			skipT5 = true;
 		}
 	}
 
-	// process J2 hold timers
-	if (!j2Released) {
-		j2PresdCounter++;
-		if (!skipT2 && (j2PresdCounter > TIMEOUT2)) {
+	// process ECU2 hold timers
+	if (!ECU2Released) {
+		ECU2PresdCounter++;
+		if (!skipT2 && (ECU2PresdCounter > TIMEOUT2)) {
 			keyDownUp(MOD_VO,KEY_H,ZERO); //Home
 			skipT2 = true;
 		}
-		if (!skipT4 && (j2PresdCounter > TIMEOUT4)) {
+		if (!skipT4 && (ECU2PresdCounter > TIMEOUT4)) {
 			keyDownUp(MOD_VO,KEY_S,ZERO); //Toggle speech output
 			skipT4 = true;
 		}
 	}
 
-	// process J4 hold timers
-	if (!j4Released) {
-		j4PresdCounter++;
-		if (!skipT1 && (j4PresdCounter > TIMEOUT1)) {
+	// process ECU4 hold timers
+	if (!ECU4Released) {
+		ECU4PresdCounter++;
+		if (!skipT1 && (ECU4PresdCounter > TIMEOUT1)) {
 			keyDownUp(MOD_VO,KEY_DOWN,ZERO); //Rotor next
 			skipT1 = true;
 		}
 	}
 
-	// process J3 hold timers
-	if (!j3Released) {
-		j3PresdCounter++;
-		if (!skipT1 && (j3PresdCounter > TIMEOUT1)) {
+	// process ECU3 hold timers
+	if (!ECU3Released) {
+		ECU3PresdCounter++;
+		if (!skipT1 && (ECU3PresdCounter > TIMEOUT1)) {
 			keyDownUp(MOD_VO,KEY_UP,ZERO); //Rotor previous
 			skipT1 = true;
 		}
@@ -300,13 +300,13 @@ void loop() {
 		// Switch state changed
 		stateChange = switchState ^ prevSwitchState;
 
-		if (!(e1Released & e2Released & j1Released & j2Released & j3Released & j4Released)) {
+		if (!(SP1Released & SP2Released & ECU1Released & ECU2Released & ECU3Released & ECU4Released)) {
 			// If anything is pressed
 			stopScanning();
 		}
 
-		if (stateChange & E1MASK) { // E1 changed
-			if (e1Released) {
+		if (stateChange & SP1MASK) { // SP1 changed
+			if (SP1Released) {
 				if (!skipT1) { // was short press
 					// Toggle scan direction
 					if (goingNext) {
@@ -319,54 +319,54 @@ void loop() {
 					startScanning();
 				}
 				clearSkipTs();
-				e1PresdCounter = 0;
+				SP1PresdCounter = 0;
 			}
 		}
 
-		if ((stateChange & E2MASK) || (stateChange & J1MASK)) { // E2 or J1 changed
-			if (e2Released) {
+		if ((stateChange & SP2MASK) || (stateChange & ECU1MASK)) { // SP2 or ECU1 changed
+			if (SP2Released) {
 				clearSkipTs();
 			} else {
-				//E2 pressed
-				e2PresdCounter = 0;
+				//SP2 pressed
+				SP2PresdCounter = 0;
 				keyDownUp(ZERO, KEY_UP, KEY_DOWN); //Select
 			}
-			if (j1Released) {
+			if (ECU1Released) {
 				clearSkipTs();
 			} else {
-				//J1 pressed
-				j1PresdCounter = 0;
+				//ECU1 pressed
+				ECU1PresdCounter = 0;
 				keyDownUp(ZERO, KEY_UP, KEY_DOWN); //Select
 			}
 		}
 
-		if (stateChange & J2MASK) { // J2 changed
-			if (j2Released) {
+		if (stateChange & ECU2MASK) { // ECU2 changed
+			if (ECU2Released) {
 				clearSkipTs();
 			} else {
-				//J2 pressed
-				j2PresdCounter = 0;
+				//ECU2 pressed
+				ECU2PresdCounter = 0;
 				keyDownUp(ZERO,KEY_ESC,ZERO); //Escape
 			}
 		}
 
-		if (stateChange & J4MASK) { // J4 changed
-			if (j4Released) {
+		if (stateChange & ECU4MASK) { // ECU4 changed
+			if (ECU4Released) {
 				if (!skipT1) { // was short press
 					keyDownUp(MOD_VO, KEY_NEXT, ZERO); //Focus next
 				}
 				clearSkipTs();
-				j4PresdCounter = 0;
+				ECU4PresdCounter = 0;
 			}
 		}
 
-		if (stateChange & J3MASK) { // J3 changed
-			if (j3Released) {
+		if (stateChange & ECU3MASK) { // ECU3 changed
+			if (ECU3Released) {
 				if (!skipT1) { // was short press
 					keyDownUp(MOD_VO, KEY_PREVIOUS, ZERO); //Focus previous
 				}
 				clearSkipTs();
-				j3PresdCounter = 0;
+				ECU3PresdCounter = 0;
 			}
 		}
 
