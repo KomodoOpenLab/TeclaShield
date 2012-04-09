@@ -3,7 +3,7 @@ import time
 from bluetooth import *
 from threading import Thread
 #
-# Tecla Emulator v1.1 
+# Tecla Emulator v0.2
 # written by Akhil Rao
 #
 #Keyboard 
@@ -14,7 +14,7 @@ from threading import Thread
 #
 #SW1 ->Select highlighted
 #SW2 ->Cancel
-version = "v1.1"
+version = "v0.2"
 
 print 'Tecla - Emulator ' , version ;
 print 'press h/H for list of possible commands'
