@@ -50,43 +50,41 @@ getch = _Getch()
 
 def sendEvent(event):
 	client_socket.send(chr(keyvalue[event]))
-	print keymessage[event];
-	if (auto_release):
-		time.sleep(0.1) #Connection seems to have long latency
-		client_socket.send(chr(0x3F))
-
 
 def listenkeys():
+	auto_release = True;
 	exitflag=False;
 	while not exitflag :
-		print ("Your switch action w/s/a/d/1/2 ?");
+		print ("Your switch action w/s/a/d/1/2/r?");
 		c = getch();
 		c = c.upper();
 		if(c in "WSAD12QHRT"):
 			#Valid key pressed
-			if(c in "HRTQ"):
+			if(c in "HTQ"):
 				#Command key pressed
 				if c == "H": #Help
 					print helpstring
+				if c == "T": #Help
+					auto_release = not auto_release;
+					if auto_release:
+						print "Auto-release ON"
+					else:
+						print "Auto-release OFF"
 				if c == "Q": #Help
 					exitflag= True;
 					print keymessage[c]
 					
-			if(c in "WSAD12"):
+			if(c in "WSAD12R"):
 				#Switch key pressed
 				sendEvent(c)
+				print keymessage[c];
+				if auto_release:
+					time.sleep(0.1) #Connection seems to have long latency
+					sendEvent('R')
 		else:
 			#Invalid key pressed
 			print "Invalid value"
 
-#Keyboard 
-#J1 -> Highlight next 
-#J2 -> Highlight prev
-#J3 -> Cancel
-#J4 -> select highlighted
-#
-#SW1 ->Select highlighted
-#SW2 ->Cancel
 version = "v0.2"
 print 'Tecla - Emulator ' , version ;
 print 'press h/H for list of possible commands'
@@ -99,22 +97,29 @@ server_socket.bind(('', 1))
 server_socket.listen(1)
 
 #uuid can be used if bluetooth client side program is written to minimize discovery and filtering time
-#uuid = "00001101-0000-1000-8000-00805F9B34FB"
+uuid = "00001101-0000-1000-8000-00805F9B34FB"
 advertise_service(
 	server_socket,
 	"SPP",
+	uuid,
 	service_classes=[SERIAL_PORT_CLASS],
 	profiles=[SERIAL_PORT_PROFILE]
 	)
 
 print 'Waiting for a device ........'
-
 client_socket, addr = server_socket.accept()
-
 print 'Accepted connection from ', addr
 
-#keyvalue is the dictionary used for holding character input from keyboard and corresponding value of the byte to be sent....
+#Keyboard 
+#ECU1 -> Highlight next 
+#ECU2 -> Highlight prev
+#ECU3 -> Cancel
+#ECU4 -> select highlighted
+#
+#SP1 -> Select highlighted
+#SP2 -> Cancel
 
+#keyvalue is the dictionary used for holding character input from keyboard and corresponding value of the byte to be sent....
 keyvalue={
 	"R":0x3F,		#Released all switches
 	"W":0x3E,		#ECU1 pressed
@@ -151,7 +156,6 @@ helpstring=helpstring  + "\nt/T => Toggle auto switch release event"
 helpstring=helpstring  + "\nq/Q => Quit "
 helpstring=helpstring  + "\n\n\n#####Auto switch release mode is a mode in which switch release events are inserted after every switch event \nDefault set to true.\nCan be turned on or off by command t/T"	     
 
-auto_release = True;
 main_thread= Thread(target=listenkeys);
 main_thread.start();
 while main_thread.isAlive():
@@ -159,6 +163,6 @@ while main_thread.isAlive():
 	if(len(data_in) > 0):
 		client_socket.send(data_in)
 
-print "Disconnected"
 client_socket.close()
 server_socket.close()
+print "Disconnected"
