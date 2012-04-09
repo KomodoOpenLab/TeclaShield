@@ -159,7 +159,8 @@ helpstring=helpstring  + "\n\n\n#####Auto switch release mode is a mode in which
 main_thread= Thread(target=listenkeys);
 main_thread.start();
 while main_thread.isAlive():
-	data_in=client_socket.recv(1)
+	time.sleep(0.1)
+	data_in=client_socket.recv(128)
 	if(len(data_in) > 0):
 		client_socket.send(data_in)
 
