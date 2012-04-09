@@ -9,6 +9,14 @@ The emulator is basically a python script and requires [Pybluez](http://code.goo
 ###Important###
 In order to use Tecla Emulator name your bluetooth device with TeclaShield prefix in order that TeclaAccess App can connect to the emulator.
 
+The Emulator is known give issues with certain versions of bluez on Ubuntu.
+The following versions are known to work :
+
+bluez-4.99
+obexd-0.45
+bluez-hcidump-2.3 (Don't think if this is needed, but anyway )
+
+
 ###How to run:###
 
 1. Download teclaemu.py
