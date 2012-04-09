@@ -22,19 +22,12 @@ print 'press q/Q to quit'
 print 'Auto switch release mode set to True'
 
 #setup the bluetooth RFComm socket i.e bind and start listening
-
 server_socket=BluetoothSocket( RFCOMM )
-
-# server_socket is the socket for bluetooth set to RFCOMM 
-
 server_socket.bind(('', 1))
-
 server_socket.listen(1)
 
-uuid = "00001101-0000-1000-8000-00805F9B34FB"
-
 #uuid can be used if bluetooth client side program is written to minimize discovery and filtering time
-
+uuid = "00001101-0000-1000-8000-00805F9B34FB"
 advertise_service(server_socket, "TeclaShield",uuid, service_classes=[SERIAL_PORT_CLASS], profiles=[SERIAL_PORT_PROFILE])
 
 print 'Waiting for a device ........'
@@ -93,6 +86,7 @@ helpstring=helpstring  + "\nr/R => Generate release switch event"
 helpstring=helpstring  + "\nt/T => Toggle auto switch release event"
 helpstring=helpstring  + "\nq/Q => Quit "
 helpstring=helpstring  + "\n\n\n#####Auto switch release mode is a mode in which switch release events are inserted after every switch event \nDefault set to true.\nCan be turned on or off by command t/T"	     
+
 def listenkeys():
     exitflag=False;
     auto_release_mode=True;
@@ -142,4 +136,6 @@ while thr.isAlive():
 	  client_socket.send(a)
 	  time.sleep(0.1)
 
+print "Disconnected"
 client_socket.close()
+server_socket.close()
