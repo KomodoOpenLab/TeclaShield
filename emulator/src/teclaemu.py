@@ -46,14 +46,14 @@ print 'Accepted connection from ', addr
 #keyvalue is the dictionary used for holding character input from keyboard and corresponding value of the byte to be sent....
 
 keyvalue={ "w":0x01,		#Joystick 1 asserted
-	    "W":0x01,
+	    "W":0x3E,
 	    "s":0x02,		#Joystick 2 asserted
-	    "S":0x02,
+	    "S":0x3D,
 	    "a":0x04,		#Joystick 4 asserted
-	    "A":0x04,
+	    "A":0x0B,
 	    "d":0x08,		#Joystick 3 asserted
-	    "D":0x08,		
-	    "1":0x10,		#Switch 1 asserted
+	    "D":0x07,		
+	    "1":0xC0,		#Switch 1 asserted
 	    "2":0x20,		#Switch 2 asserted
 	    "q":0x88, 
 	    "Q":0x88,		#Quit the emulator
@@ -109,7 +109,10 @@ def listenkeys():
 	      print "\n", keymessage[c];
 	      time.sleep(0.5)
 	      if auto_release_mode :
-		  client_socket.send(chr(0xC0))	      
+		  if c == "1":
+		    client_socket.send(chr(0x10))
+		  else:
+		    client_socket.send(chr(0xC0))	      
 		  time.sleep(0.5)
 	      else:
 		time.sleep(1);
