@@ -12,12 +12,12 @@ modified for Tekla
 #define ZERO (uint8_t) 0x00
 #define KEYPRESSDELAY 25
 
-#define DEBOUNCECOUNT 8
-#define TIMEOUT1 110
-#define TIMEOUT2 250
-#define TIMEOUT3 400
-#define TIMEOUT4 550
-#define TIMEOUT5 800
+#define DEBOUNCECOUNT 6
+#define TIMEOUT1 150
+#define TIMEOUT2 300
+#define TIMEOUT3 450
+#define TIMEOUT4 600
+#define TIMEOUT5 1600
 #define SCANTIMEOUTMAX 120
 #define SCANTIMEOUTMIN 25
 #define POKETIMEOUT 200
@@ -31,6 +31,7 @@ modified for Tekla
 
 // Key Scan Codes
 #define TOGGLEKEYBOARD 0x08
+//#define KEY_HOME 0x01
 #define KEY_ESC 0x29
 #define KEY_NEXT 0x4F
 #define KEY_PREVIOUS 0x50
@@ -84,12 +85,12 @@ void writeByte(byte which, byte how_many_times) {
 }
 
 /**
-Send HID record for up to two simultaneous key press and release events
+Send HID record for up to two simultaneous key press events
 mod: modifiers (e.g., Alt, Ctrl, Shift)
 scan_code1: First key pressed
 scan_code2: Second key pressed
 **/
-void keyDownUp(byte mod, byte scan_code1, byte scan_code2) {
+void keyDown(byte mod, byte scan_code1, byte scan_code2) {
 	delay(KEYPRESSDELAY);
 	Serial.write(0xFD);
 	Serial.write(0x09);
@@ -99,6 +100,13 @@ void keyDownUp(byte mod, byte scan_code1, byte scan_code2) {
 	Serial.write(scan_code1);
 	Serial.write(scan_code2);
 	writeByte(ZERO,4);
+}
+
+/**
+Send HID record for key release event
+mod: modifiers (e.g., Alt, Ctrl, Shift)
+**/
+void keyUp(byte mod) {
 	delay(KEYPRESSDELAY);
 	Serial.write(0xFD);
 	Serial.write(0x09);
@@ -108,20 +116,47 @@ void keyDownUp(byte mod, byte scan_code1, byte scan_code2) {
 }
 
 /**
-Send a consumer HID record (e.g., volume up/down, toggle keyboard)
+Send HID record for up to two simultaneous key press and release events
+mod: modifiers (e.g., Alt, Ctrl, Shift)
+scan_code1: First key pressed
+scan_code2: Second key pressed
+**/
+void keyDownUp(byte mod, byte scan_code1, byte scan_code2) {
+	keyDown(mod, scan_code1, scan_code2);
+	keyUp(mod);
+}
+
+/**
+Send a consumer HID press event (e.g., volume up/down, toggle keyboard)
 loByte: Least significant byte of consumer record
 hiByte: Most significant byte of consumer record
 **/
-void consumerDownUp(byte loByte, byte hiByte) {
+void consumerDown(byte hiByte, byte loByte) {
 	delay(KEYPRESSDELAY);
 	Serial.write(0xFD);
 	writeByte(0x03,2);
 	Serial.write(loByte);
 	Serial.write(hiByte);
+}
+
+/**
+Send a consumer HID release event (e.g., volume up/down, toggle keyboard)
+**/
+void consumerUp() {
 	delay(KEYPRESSDELAY);
 	Serial.write(0xFD);
 	writeByte(0x03,2);
 	writeByte(ZERO,2);
+}
+
+/**
+Send a full consumer HID event (e.g., volume up/down, toggle keyboard)
+loByte: Least significant byte of consumer record
+hiByte: Most significant byte of consumer record
+**/
+void consumerDownUp(byte hiByte, byte loByte) {
+	consumerDown(hiByte, loByte);
+	consumerUp();
 }
 
 /**
@@ -204,7 +239,7 @@ void loop() {
 			skipT1 = true;
 		}
 		if (!skipT2 && (SP1PresdCounter > TIMEOUT2)) {
-			consumerDownUp(TOGGLEKEYBOARD,0x00); //Toggle keyboard
+			consumerDownUp(0x00,TOGGLEKEYBOARD); //Toggle keyboard
 			skipT2 = true;
 		}
 		if (!skipT3 && (SP1PresdCounter > TIMEOUT3)) {
@@ -212,7 +247,7 @@ void loop() {
 			skipT3 = true;
 		}
 		if (!skipT4 && (SP1PresdCounter > TIMEOUT4)) {
-			keyDownUp(MOD_VO,KEY_H,ZERO); //Home
+			keyDownUp(MOD_VO,KEY_H,ZERO); // VoiceOver Home
 			skipT4 = true;
 		}
 		if (!skipT5 && (SP1PresdCounter > TIMEOUT5)) {
@@ -224,18 +259,6 @@ void loop() {
 	// process SP2 hold timers
 	if (!SP2Released) {
 		SP2PresdCounter++;
-		if (!skipT1 && (SP2PresdCounter > TIMEOUT1)) {
-			consumerDownUp(TOGGLEKEYBOARD,0x00); //Toggle keyboard
-			skipT1 = true;
-		}
-		if (!skipT2 && (SP2PresdCounter > TIMEOUT2)) {
-			keyDownUp(ZERO,KEY_ESC,ZERO); //Escape
-			skipT2 = true;
-		}
-		if (!skipT3 && (SP2PresdCounter > TIMEOUT3)) {
-			keyDownUp(MOD_VO,KEY_H,ZERO); //Home
-			skipT3 = true;
-		}
 		if (!skipT5 && (SP2PresdCounter > TIMEOUT5)) {
 			keyDownUp(MOD_VO,KEY_S,ZERO); //Toggle speech output
 			skipT5 = true;
@@ -246,7 +269,7 @@ void loop() {
 	if (!ECU1Released) {
 		ECU1PresdCounter++;
 		if (!skipT1 && (ECU1PresdCounter > TIMEOUT1)) {
-			consumerDownUp(TOGGLEKEYBOARD,0x00); //Toggle keyboard
+			consumerDownUp(0x00,TOGGLEKEYBOARD); //Toggle keyboard
 			skipT1 = true;
 		}
 		if (!skipT2 && (ECU1PresdCounter > TIMEOUT2)) {
@@ -254,7 +277,7 @@ void loop() {
 			skipT2 = true;
 		}
 		if (!skipT3 && (ECU1PresdCounter > TIMEOUT3)) {
-			keyDownUp(MOD_VO,KEY_H,ZERO); //Home
+			keyDownUp(MOD_VO,KEY_H,ZERO); // VoiceOver Home
 			skipT3 = true;
 		}
 		if (!skipT5 && (ECU1PresdCounter > TIMEOUT5)) {
@@ -296,8 +319,8 @@ void loop() {
 
 	// process state changes
 	if ((debounceCounter > DEBOUNCECOUNT) && (switchState != prevSwitchState)) {
-
 		// Switch state changed
+
 		stateChange = switchState ^ prevSwitchState;
 
 		if (!(SP1Released & SP2Released & ECU1Released & ECU2Released & ECU3Released & ECU4Released)) {
@@ -323,30 +346,33 @@ void loop() {
 			}
 		}
 
-		if ((stateChange & SP2MASK) || (stateChange & ECU1MASK)) { // SP2 or ECU1 changed
+		if (stateChange & SP2MASK) { // SP2 changed
 			if (SP2Released) {
+				if (!skipT1) { // was short press
+					keyDownUp(ZERO, KEY_UP, KEY_DOWN); //Select
+				}
 				clearSkipTs();
-			} else {
-				//SP2 pressed
 				SP2PresdCounter = 0;
-				keyDownUp(ZERO, KEY_UP, KEY_DOWN); //Select
 			}
+		}
+
+		if (stateChange & ECU1MASK) { // ECU1 changed
 			if (ECU1Released) {
+				if (!skipT1) { // was short press
+					keyDownUp(ZERO, KEY_UP, KEY_DOWN); //Select
+				}
 				clearSkipTs();
-			} else {
-				//ECU1 pressed
 				ECU1PresdCounter = 0;
-				keyDownUp(ZERO, KEY_UP, KEY_DOWN); //Select
 			}
 		}
 
 		if (stateChange & ECU2MASK) { // ECU2 changed
 			if (ECU2Released) {
+				if (!skipT1) { // was short press
+					keyDownUp(ZERO,KEY_ESC,ZERO); //Escape
+				}
 				clearSkipTs();
-			} else {
-				//ECU2 pressed
 				ECU2PresdCounter = 0;
-				keyDownUp(ZERO,KEY_ESC,ZERO); //Escape
 			}
 		}
 
