@@ -3,147 +3,85 @@ import time
 from bluetooth import *
 from threading import Thread
 #
-# Tecla Emulator v0.2
+# Tecla Emulator v1.1 
 # written by Akhil Rao
 #
+#Keyboard 
+#J1 -> Highlight next 
+#J2 -> Highlight prev
+#J3 -> Cancel
+#J4 -> select highlighted
+#
+#SW1 ->Select highlighted
+#SW2 ->Cancel
+version = "v1.1"
 
-## {{{ http://code.activestate.com/recipes/134892/ (r2)
-class _Getch:
-    """Gets a single character from standard input.  Does not echo to the
-screen."""
-    def __init__(self):
-        try:
-            self.impl = _GetchWindows()
-        except ImportError:
-            self.impl = _GetchUnix()
-
-    def __call__(self): return self.impl()
-
-
-class _GetchUnix:
-    def __init__(self):
-        import tty, sys
-
-    def __call__(self):
-        import sys, tty, termios
-        fd = sys.stdin.fileno()
-        old_settings = termios.tcgetattr(fd)
-        try:
-            tty.setraw(sys.stdin.fileno())
-            ch = sys.stdin.read(1)
-        finally:
-            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
-        return ch
-
-
-class _GetchWindows:
-    def __init__(self):
-        import msvcrt
-
-    def __call__(self):
-        import msvcrt
-        return msvcrt.getch()
-
-
-getch = _Getch()
-## end of http://code.activestate.com/recipes/134892/ }}}
-
-def sendEvent(event):
-	client_socket.send(chr(keyvalue[event]))
-
-def listenkeys():
-	auto_release = True;
-	exitflag=False;
-	while not exitflag :
-		print ("Your switch action w/s/a/d/1/2/r?");
-		c = getch();
-		c = c.upper();
-		if(c in "WSAD12QHRT"):
-			#Valid key pressed
-			if(c in "HTQ"):
-				#Command key pressed
-				if c == "H": #Help
-					print helpstring
-				if c == "T": #Help
-					auto_release = not auto_release;
-					if auto_release:
-						print "Auto-release ON"
-					else:
-						print "Auto-release OFF"
-				if c == "Q": #Help
-					exitflag= True;
-					print keymessage[c]
-					
-			if(c in "WSAD12R"):
-				#Switch key pressed
-				sendEvent(c)
-				print keymessage[c];
-				if auto_release:
-					time.sleep(0.1) #Connection seems to have long latency
-					sendEvent('R')
-		else:
-			#Invalid key pressed
-			print "Invalid value"
-
-version = "v0.2"
 print 'Tecla - Emulator ' , version ;
 print 'press h/H for list of possible commands'
 print 'press q/Q to quit'
 print 'Auto switch release mode set to True'
 
 #setup the bluetooth RFComm socket i.e bind and start listening
-server_socket = BluetoothSocket( RFCOMM )
+
+server_socket=BluetoothSocket( RFCOMM )
+
+# server_socket is the socket for bluetooth set to RFCOMM 
+
 server_socket.bind(('', 1))
+
 server_socket.listen(1)
 
+#uuid = "00001101-0000-1000-8000-00805F9B34FB"
+uuid="00001101-0000-1000-8000-00000000ABCD"
 #uuid can be used if bluetooth client side program is written to minimize discovery and filtering time
-uuid = "00001101-0000-1000-8000-00805F9B34FB"
-advertise_service(
-	server_socket,
-	"SPP",
-	uuid,
-	service_classes=[SERIAL_PORT_CLASS],
-	profiles=[SERIAL_PORT_PROFILE]
-	)
+
+advertise_service(server_socket, "TeclaShield",uuid, service_classes=[SERIAL_PORT_CLASS], profiles=[SERIAL_PORT_PROFILE])
 
 print 'Waiting for a device ........'
+
 client_socket, addr = server_socket.accept()
+
 print 'Accepted connection from ', addr
 
-#Keyboard 
-#ECU1 -> Highlight next 
-#ECU2 -> Highlight prev
-#ECU3 -> Cancel
-#ECU4 -> select highlighted
-#
-#SP1 -> Select highlighted
-#SP2 -> Cancel
-
 #keyvalue is the dictionary used for holding character input from keyboard and corresponding value of the byte to be sent....
-keyvalue={
-	"R":0x3F,		#Released all switches
-	"W":0x3E,		#ECU1 pressed
-	"S":0x3D,		#ECU2 pressed
-	"A":0x3B,		#ECU3 pressed
-	"D":0x37,		#ECU4 pressed
-	"1":0x2F,		#Switch Port 1 pressed
-	"2":0x1F,		#Switch Port 2 pressed
-	"Q":0x88,		#Quit the emulator
-	"H":0x77,		#Show commands list
-	"T":0x99,		#Toggle release event mode
-	}
+
+keyvalue={ "w":0x01,		#Joystick 1 asserted
+	    "W":0x3E,
+	    "s":0x02,		#Joystick 2 asserted
+	    "S":0x3D,
+	    "a":0x04,		#Joystick 4 asserted
+	    "A":0x0B,
+	    "d":0x08,		#Joystick 3 asserted
+	    "D":0x07,		
+	    "1":0x10,		#Switch 1 asserted
+	    "2":0x20,		#Switch 2 asserted
+	    "q":0x88, 
+	    "Q":0x88,		#Quit the emulator
+	    "h":0x77,
+	    "H":0x77,		#Show command lists
+	    "r":160,		
+	    "R":160,		#Release switch event
+	    "t":0x99,
+	    "T":0x99,		#Toggle release event mode
+	    }
 
 keymessage= {
-	"R":"All Switches Released ",
-	"W":"ECU1 pressed",
-	"S":"ECU2 pressed",
-	"A":"ECU3 pressed",
-	"D":"ECU4 pressed",
-	"1":"Switch Port 1 pressed",
-	"2":"Switch Port 2 pressed",
-	"Q":"Quitting the emulator"
-	}
-
+	    "w":"Event on Joystick 1 generated",		#Joystick 1 asserted
+	    "W":"Event on Joystick 1 generated",
+	    "s":"Event on Joystick 2 generated",		#Joystick 2 asserted
+	    "S":"Event on Joystick 2 generated",
+	    "d":"Event on Joystick 4 generated",		#Joystick 4 asserted
+	    "D":"Event on Joystick 4 generated",
+	    "a":"Event on Joystick 3 generated",		#Joystick 3 asserted
+	    "A":"Event on Joystick 3 generated",		
+	    "2":"Event on Switch Port 2 generated",		#Switch 2 asserted
+	    "1":"Event on Switch Port 1 generated",		#Switch 1 asserted
+	    "q":"Quitting the emulator", 
+	    "Q":"Quitting the emulator",
+	    "r":"Switch Released ",
+	    "R":"Switch Released "				#Switch Released
+	    }
+	    
 helpstring = "\nw/W => Generate Event on Joystick 1"
 helpstring=helpstring  + "\ns/S => Generate Event on Joystick 2 " 
 helpstring=helpstring  + "\na/A => Generate Event on Joystick 3 "
@@ -155,15 +93,47 @@ helpstring=helpstring  + "\nr/R => Generate release switch event"
 helpstring=helpstring  + "\nt/T => Toggle auto switch release event"
 helpstring=helpstring  + "\nq/Q => Quit "
 helpstring=helpstring  + "\n\n\n#####Auto switch release mode is a mode in which switch release events are inserted after every switch event \nDefault set to true.\nCan be turned on or off by command t/T"	     
-
-main_thread= Thread(target=listenkeys);
-main_thread.start();
-while main_thread.isAlive():
-	time.sleep(0.1)
-	data_in=client_socket.recv(128)
-	if(len(data_in) > 0):
-		client_socket.send(data_in)
+def listenkeys():
+    exitflag=False;
+    auto_release_mode=True;
+    switchstate=0x3F;
+    while not exitflag :
+	 c=raw_input("\n Your switch action w/s/a/d/1/2 ?");
+	#if(c== "w" or c=="a" or c=="s" or c=="d" or c=="1" or c=="2" or c=="q" or c=="h" or c== "W" or c=="A" or c=="S" or c=="D" or c=="Q" or c=="H"):
+	 if(len(c) == 1 and c in "wWsSaAdDqQhHrRtT12"): 
+	    if(not c in "qQhHtTrR"):
+	      
+	      client_socket.send(chr(~keyvalue[c]&switchstate))
+	      time.sleep(0.1)
+	      client_socket.send(chr(switchstate|keyvalue[c]));
+	    #  client_socket.send(chr(0xFF - keyvalue[c]))
+	   #   time.sleep(0.5)
+	      print "\n", keymessage[c];
+	      time.sleep(0.5)
+	    if (not auto_release_mode) and keyvalue[c]== 0xC0:
+	      client_socket.send(chr(keyvalue[c]))
+	      print "\n", keymessage[c];
+	      time.sleep(1)
+	    if keyvalue[c]== 0x77:
+		print "\n ",helpstring ;
+	    if keyvalue[c] == 0x88:
+		exitflag= True;
+		print "\n",keymessage[c];
+	    else:
+		exitflag = False  
+	    if(keyvalue[c]== 0x99):
+		auto_release_mode=not auto_release_mode;
+		print "\n auto release mode set to ", auto_release_mode;
+	 else:
+	      print("\ninvalid value");
+	
+	  
+thr= Thread(target=listenkeys);
+thr.start();
+while thr.isAlive():
+	a=client_socket.recv(1000)
+	if(len(a) == 1):
+	  client_socket.send(a)
+	  time.sleep(0.1)
 
 client_socket.close()
-server_socket.close()
-print "Disconnected"
