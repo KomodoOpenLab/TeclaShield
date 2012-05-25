@@ -9,8 +9,8 @@ package com.akdroid.teclasocket;
  * @author Akhil
  */
 public interface Communication {
-    public boolean send(Character b);
-    public byte recieve();
-    public boolean search(String UDID);
+    public void send(Character b);
+    public byte receive();
+    public void scan_devices();
     public boolean isConnected();
 }

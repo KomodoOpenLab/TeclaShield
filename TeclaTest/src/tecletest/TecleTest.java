@@ -3,10 +3,7 @@
  * and open the template in the editor.
  */
 package tecletest;
-import com.akdroid.teclasocket.*;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.akdroid.teclasocket.TeclaSocket;
 /**
  *
  * @author Akhil
@@ -24,8 +21,8 @@ public class TecleTest {
         while(!sock.isConnected());
         System.out.println("Connected...");
         
-        while (ch!=0x3E)
-        ch=sock.recieve();
+        while (ch!=0x3E)  //press ECU1 for exit
+        ch=sock.receive();
         
         System.out.println("Terminated Reception");
         

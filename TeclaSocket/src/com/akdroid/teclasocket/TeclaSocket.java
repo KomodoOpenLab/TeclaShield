@@ -3,108 +3,146 @@
  * and open the template in the editor.
  */
 package com.akdroid.teclasocket;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.bluetooth.*;
+import javax.microedition.io.Connector;
+import javax.microedition.io.StreamConnection;
 
 /**
  * This class will be responsible for making and managing sockets
  * Bluetooth Socket or Wi-fi Socket
  * the socket will thus be used to connect to TeclaShield 
- * All the OS Specific code will thus go into project
+ * The current socket connects to the TeclaShield Emulator
+ * in Windows and Fedora using same piece of code
+ * 
  * @author Akhil
  */
-public class TeclaSocket implements Communication {
+public class TeclaSocket implements Communication,DiscoveryListener {
     public static final int OS_WINDOWS = 0;
     public static final int OS_LINUX = 1;
     public static final int OS_MAC = 2;
     //UUID values
-    public static final String uuidstring="00001101-0000-1000-8000-00805F9B34FB";
+    //public static final String uuidstring="00001101-0000-1000-8000-00805F9B34FB";
     //if a uuid list is required.
-    public int system_os;
-    Socket_Win win;
-    Socket_Linux linux;
-    Socket_Mac mac;
+    LocalDevice local;
+    DiscoveryAgent dagent;
+    RemoteDevice device_list[];
+    StreamConnection conn;
+    boolean connectionflag;
+    public UUID uuid;
+    DataInputStream datain;
+    DataOutputStream dataout;
     
+    // Constructor should be provided be a 128 bit 
+    //UUID in string form without dashes
     
     public TeclaSocket(String uuidname){
-        String os_name=System.getProperty("os.name");
-        os_name=os_name.toUpperCase();
-        if(os_name.contains("WINDOWS")){
-            system_os=OS_WINDOWS;
-            win=new Socket_Win(uuidname);
+        initialize(uuidname);
+        scan_devices();
+    }
+    //initilaize the desktop client sockets
+    private void initialize(String uuidname) {
+        try {
+            local=LocalDevice.getLocalDevice();
+            System.out.println("Local device found with address " + local.getBluetoothAddress());
+            dagent=local.getDiscoveryAgent();
+            uuid=new UUID(uuidname,false);
+        } catch (BluetoothStateException ex) {
+            Logger.getLogger(TeclaSocket.class.getName()).log(Level.SEVERE, null, ex);
         }
-        else if(os_name.contains("LINUX")){
-            linux=new Socket_Linux();
-            system_os=OS_LINUX;
+    }
+    
+    //send bytes to TeclaShield
+    public void send(Character b) {
+        try {
+            dataout.write(b);
+        } catch (IOException ex) {
+            Logger.getLogger(TeclaSocket.class.getName()).log(Level.SEVERE, null, ex);
         }
-        else if(os_name.contains("MAC"))
-        {
-            system_os=OS_MAC;
-            mac=new Socket_Mac();
-        
+    }
+    //receives byte fromstream will wait till a byte is recieved...
+    public byte receive() {
+        byte b='0';
+        try {
+           // while(!(datain.available()>0));
+            b=datain.readByte();
+            System.out.println(b);
+        } catch (IOException ex) {
+            Logger.getLogger(TeclaSocket.class.getName()).log(Level.SEVERE, null, ex);
         }
-            
+        return b;
+    }
+    //starts the inquiry
+    public void scan_devices() {
+        try {
+            dagent.startInquiry(DiscoveryAgent.GIAC,this);  
+            //when completed inquiryCompleted is executed
+        } catch (BluetoothStateException ex) {
+            Logger.getLogger(TeclaSocket.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+   public boolean isConnected(){  //provides state of connection
+        return connectionflag;
     }
 
-    public boolean send(Character b) {
-        switch(system_os){
-            case OS_WINDOWS:
-                win.send(b);
-                break;
-            case OS_LINUX:
-                linux.send(b);
-                break;
-            case OS_MAC:
-                mac.send(b);
-                break;
-        }
-            
-        throw new UnsupportedOperationException("Not supported yet.");
-    }
-
-    public byte recieve() {
-        Byte ch=0;
-        switch(system_os){
-            case OS_WINDOWS:
-                ch=win.recieve();
-                System.out.println("in win recieve");
-                break;
-            case OS_LINUX:
-                ch=linux.recieve();
-                break;
-            case OS_MAC:
-                ch=mac.recieve();
-                break;
-        }
-        return ch;
+    public void deviceDiscovered(RemoteDevice rd, DeviceClass dc) {
         //throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    public boolean search(String UDID) {
-        switch(system_os){
-            case OS_WINDOWS:
-                win.search(UDID);
-                break;
-            case OS_LINUX:
-                linux.search(UDID);
-                break;
-            case OS_MAC:
-                mac.search(UDID);
-                break;
-        }
-        return false;
-        // throw new UnsupportedOperationException("Not supported yet.");
+    public void servicesDiscovered(int i, ServiceRecord[] srs) {
+        //throw new UnsupportedOperationException("Not supported yet.");
     }
-   public boolean isConnected(){
-        switch(system_os){
-            case OS_WINDOWS:
-                return win.isConnected();
-               
-            case OS_LINUX:
-               return  linux.isConnected();
-               
-            case OS_MAC:
-               return  mac.isConnected();      
-        }
-        return false;
+
+    public void serviceSearchCompleted(int i, int i1) {
+        //throw new UnsupportedOperationException("Not supported yet.");
     }
-   
+
+    public void inquiryCompleted(int i) {
+        System.out.println("Device Search Completed");
+        boolean result=connect();  //connect to shield
+        if(result) 
+            System.out.println("Connected to TeclaShield");
+        else
+            System.out.println("TeclaShield not found in range");
+    }
+   public boolean connect(){
+        device_list=dagent.retrieveDevices(DiscoveryAgent.CACHED);
+        //contains all the remote device recently inquired or found....
+        int i;
+        connectionflag=false;
+        String connstring;
+        for(i=0;i<device_list.length;i++){
+          RemoteDevice temp=device_list[i];
+          
+            try {
+                String name = temp.getFriendlyName(true);
+                System.out.println(temp.toString()+" "+name);
+                // connect to the device with name Tecla and Tekla in its friendly name.
+                if(name.contains("Tecla")||name.contains("Tekla"))
+                {
+                    connstring=dagent.selectService(uuid,ServiceRecord.NOAUTHENTICATE_NOENCRYPT,false);
+                   //Provides the string required for connecting to TeclaShield service
+                    if(connstring != null)
+                    {
+                        conn = (StreamConnection)Connector.open(connstring); //Connect
+                        dataout=conn.openDataOutputStream(); //outputstream to write bytes into
+                        datain=conn.openDataInputStream();   //inputstream to read data from
+                        connectionflag=true;                 
+                        break;
+                    }
+                    
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(TeclaSocket.class.getName()).log(Level.SEVERE, null, ex);
+            }
+          
+        }
+        return connectionflag;
+   }
+
+    
 }
