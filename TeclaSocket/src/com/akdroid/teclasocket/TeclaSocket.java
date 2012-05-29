@@ -50,7 +50,7 @@ public class TeclaSocket implements Communication,DiscoveryListener {
     
    //Constructor for Socket as a Client 
     
-    public TeclaSocket(String uuidname,int type){
+    public TeclaSocket(String uuidname){
         initialize(uuidname);
         scan_devices();
     }
