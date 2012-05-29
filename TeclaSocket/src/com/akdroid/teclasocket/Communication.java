@@ -10,7 +10,7 @@ package com.akdroid.teclasocket;
  */
 public interface Communication {
     public void send(Character b);
-    public byte receive();
+    public void receive();
     public void scan_devices();
     public boolean isConnected();
 }
