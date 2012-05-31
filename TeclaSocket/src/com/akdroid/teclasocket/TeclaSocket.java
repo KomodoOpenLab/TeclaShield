@@ -88,7 +88,7 @@ public class TeclaSocket implements Communication,DiscoveryListener {
     
     public void startserver(String name,boolean auth,boolean encr){
         String url;
-        url="btspp://localhost"+uuid+";name="+name+";authenticate="+auth+";encrypt="+encr+";";
+        url="btspp://localhost:"+uuid+";name="+name+";authenticate="+auth+";encrypt="+encr+";";
         try {
             server = (StreamConnectionNotifier)Connector.open(url);
             conn = server.acceptAndOpen();
@@ -96,18 +96,20 @@ public class TeclaSocket implements Communication,DiscoveryListener {
 	    dataout=new DataOutputStream(conn.openDataOutputStream());
             BluetoothEvent eve=new BluetoothEvent(this,BluetoothEvent.BLUETOOTH_CONNECT);
             fireevent(eve);
+            connectionflag=true;
         } catch (IOException ex) {
             Logger.getLogger(TeclaSocket.class.getName()).log(Level.SEVERE, null, ex);
         }
        
     }
     //send bytes to TeclaShield
-    public void send(Character b) {
+    public void send(Byte b) {
         try {
             dataout.write(b);
             BluetoothEvent eve=new BluetoothEvent(this,BluetoothEvent.BLUETOOTH_SENT);
             fireevent(eve);
         } catch (IOException ex) {
+            disconnect();
             Logger.getLogger(TeclaSocket.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -228,6 +230,10 @@ public class TeclaSocket implements Communication,DiscoveryListener {
         }
      
    }
+   public boolean testconnection(Byte testbyte){
+       send(testbyte);
+       return connectionflag;
+   }
    public void disconnect(){
         try {
             datain.close();
@@ -235,6 +241,7 @@ public class TeclaSocket implements Communication,DiscoveryListener {
             conn.close();
             BluetoothEvent eve=new BluetoothEvent(this,BluetoothEvent.BLUETOOTH_DISCONNECT);
             fireevent(eve);
+            connectionflag=false;
         } catch (IOException ex) {
             Logger.getLogger(TeclaSocket.class.getName()).log(Level.SEVERE, null, ex);
         }
