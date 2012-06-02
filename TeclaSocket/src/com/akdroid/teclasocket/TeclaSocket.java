@@ -49,9 +49,12 @@ public class TeclaSocket implements Communication,DiscoveryListener {
     //UUID in string form without dashes
     
    //Constructor for Socket as a Client 
-    
     public TeclaSocket(String uuidname){
         initialize(uuidname);
+    }
+    public TeclaSocket(String uuidname,boolean search){
+        initialize(uuidname);
+        if(search)
         scan_devices();
     }
     
@@ -109,6 +112,7 @@ public class TeclaSocket implements Communication,DiscoveryListener {
             BluetoothEvent eve=new BluetoothEvent(this,BluetoothEvent.BLUETOOTH_SENT);
             fireevent(eve);
         } catch (IOException ex) {
+            if(connectionflag)
             disconnect();
             Logger.getLogger(TeclaSocket.class.getName()).log(Level.SEVERE, null, ex);
         }

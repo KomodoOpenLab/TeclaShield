@@ -14,7 +14,7 @@ import java.util.EventObject;
  * @author Akhil
  */
 public class BluetoothEvent extends EventObject {
-    public int event_id;
+    public int event_id; 
     public static final int BLUETOOTH_CONNECT = 1;
     public static final int BLUETOOTH_DISCONNECT = 2;
     public static final int BLUETOOTH_SENT = 3;

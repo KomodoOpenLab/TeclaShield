@@ -2,8 +2,8 @@
  * To change this template, choose Tools | Templates
  * and open the template in the editor.
  */
-package tecletest;
-import com.akdroid.teclasocket.*;
+package com.akdroid.tecladesk;
+import com.akdroid.teclasocket.TeclaSocket;
 /**
  *
  * @author Akhil
