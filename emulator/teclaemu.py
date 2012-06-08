@@ -165,6 +165,20 @@ keymessage= {
 	"Q":"Quitting the emulator"
 	}
 
+#Help menu
+helpstring = "\nw/W => Generate Event on Joystick 1"
+helpstring=helpstring + "\ns/S => Generate Event on Joystick 2 "
+helpstring=helpstring + "\na/A => Generate Event on Joystick 3 "
+helpstring=helpstring + "\nd/D => Generate Event on Joystick 4 "
+helpstring=helpstring + "\n1 => Generate Event on Switch Port 1"
+helpstring=helpstring + "\n2 => Generate Event on Switch Port 2"
+helpstring=helpstring + "\nh/H => view possible commands"
+helpstring=helpstring + "\nr/R => Generate release switch event"
+helpstring=helpstring + "\nt/T => Toggle auto switch release event"
+helpstring=helpstring + "\nq/Q => Quit "
+helpstring=helpstring + "\n\n\n#####Auto switch release mode is a mode in which switch release events are inserted after every switch event \nDefault set to true.\nCan be turned on or off by command t/T"
+
+
 #Initial notifss
 version = "v0.2"
 print 'Tecla - Emulator ' , version ;
