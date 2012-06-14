@@ -1,4 +1,4 @@
-##Tecla Emulator version 1.1##
+##Tecla Emulator version 1.2##
 
 ###Written and Submitted by Akhil Rao aka akdroid###
 
@@ -16,6 +16,9 @@ bluez-4.99
 obexd-0.45
 bluez-hcidump-2.3 (Don't think if this is needed, but anyway )
 
+###Changelog###
+
+Added support for reconnection	[ankitdaf]
 
 ###How to run:###
 
