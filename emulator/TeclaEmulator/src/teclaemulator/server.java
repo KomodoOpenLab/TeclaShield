@@ -15,9 +15,10 @@ public class server extends Thread implements Runnable{
     public static final String name="SPP";
     EmuWindow win;
     Pinger pin;
-    public server(EmuWindow w){
+    public server(EmuWindow w,Pinger pin_){
         tm=null;
         win =w;
+        pin = pin_;
         
     }
     
@@ -29,11 +30,11 @@ public class server extends Thread implements Runnable{
     public void run() {
         win.setStatus("Waiting for a TeclaShield to connect");
         win.setState("0x3f");
-        tm=new TeclaSocket(uuidstring,name,true,false);
-        win.setsocket(tm);
-        win.setStatus("Connected To TeclaShield ");
-        pin = new Pinger(tm);
-        pin.start();
+        tm=new TeclaSocket(uuidstring,name,true,false); //initialize the server socket
+        win.setsocket(tm); //sets the socket to the emuwindow
+        win.setStatus("Connected To TeclaShield "); //
+        pin = new Pinger(tm);      //start pinging at once     
+        pin.start();  
         //throw new UnsupportedOperationException("Not supported yet.");
     }
 }

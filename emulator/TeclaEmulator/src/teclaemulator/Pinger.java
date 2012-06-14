@@ -19,12 +19,12 @@ public class Pinger extends Thread implements Runnable{
         flag=true;
     }
     @Override
-    public void run() {
+    public void run() {  //starts receiving in a separate thread
         while(flag)
             sock.receive();
         //throw new UnsupportedOperationException("Not supported yet.");
     }
-    public void end(){
+    public void end(){   //end reception
         flag=false;
     }
     

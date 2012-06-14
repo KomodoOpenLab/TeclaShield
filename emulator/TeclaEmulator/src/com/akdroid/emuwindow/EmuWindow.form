@@ -42,11 +42,9 @@
               <EmptySpace pref="39" max="32767" attributes="0"/>
               <Group type="103" groupAlignment="1" max="-2" attributes="0">
                   <Component id="Switch" pref="121" max="32767" attributes="0"/>
-                  <Group type="103" groupAlignment="0" max="-2" attributes="0">
-                      <Component id="e1" linkSize="1" max="32767" attributes="0"/>
-                      <Component id="e2" linkSize="1" pref="121" max="32767" attributes="0"/>
-                      <Component id="byt" max="32767" attributes="0"/>
-                  </Group>
+                  <Component id="e1" linkSize="1" alignment="0" max="32767" attributes="0"/>
+                  <Component id="e2" linkSize="1" alignment="0" pref="121" max="32767" attributes="0"/>
+                  <Component id="byt" alignment="0" max="32767" attributes="0"/>
               </Group>
               <EmptySpace min="-2" pref="19" max="-2" attributes="0"/>
           </Group>

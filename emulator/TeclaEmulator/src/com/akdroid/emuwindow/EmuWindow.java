@@ -28,16 +28,16 @@ public class EmuWindow extends javax.swing.JFrame {
     /**
      * Creates new form EmuWindow
      */
-    TeclaSocket sock;
-    Pinger pin;
-    server srv;
-    boolean conn;
+    TeclaSocket sock; //The Socket for communication
+    Pinger pin;       // The Pinger to maintain the connection 
+    server srv;       // Server to accept bluetooth connections 
+    boolean conn;     
     public EmuWindow() {
         initComponents();
         //setframeicon(this,"TeclaEmulator");
         conn=false;
-        connect();
-        Switch.addMouseListener(new MouseListener(){
+        connect();    //start the server
+        Switch.addMouseListener(new MouseListener(){  //Connection and Disconnect Switch
 
             @Override
             public void mouseClicked(MouseEvent e) { 
@@ -76,7 +76,7 @@ public class EmuWindow extends javax.swing.JFrame {
         
         });
     }
-    public void setsocket(TeclaSocket so){
+    public void setsocket(TeclaSocket so){  //sets the socket form the server as and when it connects
         sock=so;
         ecu1.addMouseListener(new TeclaEventListener((byte)0x01,"ECU1",stat,byt,sock));
         ecu2.addMouseListener(new TeclaEventListener((byte)0x02,"ECU2",stat,byt,sock));
@@ -101,7 +101,7 @@ public class EmuWindow extends javax.swing.JFrame {
             }
 
             @Override
-            public void onReceive(DataInputStream datain) {
+            public void onReceive(DataInputStream datain) { //used for pinger
                 try {
                     Byte b=datain.readByte();
                     sock.send(b);
@@ -126,7 +126,7 @@ public class EmuWindow extends javax.swing.JFrame {
         byt.setText("  "+state);
     }
     public void connect(){
-        srv=new server(this);
+        srv=new server(this,pin);
         srv.start();
     }
     public void disconnect(){

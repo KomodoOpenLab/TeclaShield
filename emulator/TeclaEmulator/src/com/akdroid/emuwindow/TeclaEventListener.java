@@ -10,10 +10,11 @@ import java.awt.event.MouseListener;
 import javax.swing.JLabel;
 
 /**
- *
+ * A custom mouse listener which sends the appropriate bytes as per the button
+ * The button s distinguished by its mask byte and name which are used in its constructor 
  * @author Akhil
  */
-public class TeclaEventListener implements MouseListener{
+public class TeclaEventListener implements MouseListener{  
     Byte mask,state;
     String name;
     JLabel status,switchstate;
