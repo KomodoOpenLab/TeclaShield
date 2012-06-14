@@ -39,3 +39,19 @@ and then change the name with a prefix **TeclaShield**
 3. A Button press is equivalent to active state of that particular switch.
 4. A Button Release is equivalent to inactive state i.e release event of that particular switch.  
 5. Connect/Disconnect button has not been tested yet but should work properly.
+
+#Getting Started with Hacking  
+
+If you want to change the code for the emulator you need to do the following:
+
+1. You should have a github account.If you don't have one you can register for one here: [github](https://github.com)
+2. Fork this repository.This emulator is in desktop branch.
+3. Perform a git clone on this repository
+4. This project uses Netbeans as an IDE.If you don't have it you can download it from [here](http://netbeans.org/).
+5. Start Netbeans.Go to File -> Open Project -> Project_directory/emulator/  .Choose TeclaEmulator.
+6. If you get reference errors.All the libraries are present in Project_dir/emulator/TeclaEmulator/libs/ .
+
+Thats it.Happy hacking ....
+                                                                              
+                                                                            
+                                                                           
