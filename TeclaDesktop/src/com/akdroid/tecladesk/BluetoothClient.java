@@ -37,6 +37,8 @@ public class BluetoothClient extends Thread implements Runnable{
         prevclick=new ShieldEvent(this,-1,ShieldEvent.EVENT_LONGPRESS);
         prevevent=new ShieldEvent(this,-1,ShieldEvent.EVENT_RELEASED);
         timer=new Counter();
+        event_list=new EventListenerList();
+        previousstate=0x3f;
     }
     
     @Override
@@ -68,6 +70,7 @@ public class BluetoothClient extends Thread implements Runnable{
             public void onReceive(DataInputStream datain) {
                 try {
                     Byte b=datain.readByte();
+                   // System.out.println("byte received "+b);
                     resolve(b);
                 } catch (IOException ex) {
                     Logger.getLogger(BluetoothClient.class.getName()).log(Level.SEVERE, null, ex);
@@ -86,11 +89,13 @@ public class BluetoothClient extends Thread implements Runnable{
     public void resolve(byte b){
          if(b==PingManager.PING_BYTE)
              pinger.resetcount();
+         else{
          int button =getButton(b);
          if(button>-1){
+             previousstate=b;
              setevent(b,button);
+            }
          }
-      
     }
     public int getButton(byte b){
        int button = -1;
@@ -105,23 +110,25 @@ public class BluetoothClient extends Thread implements Runnable{
        return button;
     }
     public int setevent(byte b,int button){
+        System.out.println("Setting event");
         int event=-1;
         byte mask=0x01;
-        if((b&mask<<button)!=0){
-            prevevent=new ShieldEvent(this,button,ShieldEvent.EVENT_RELEASED);
+        if((b&mask<<button)==0){
+            prevevent=new ShieldEvent(this,button,ShieldEvent.EVENT_PRESSED);
             fireevent(prevevent);
         }
         else{
             long prev_time=prevevent.gettimestamp();
-            prevevent=new ShieldEvent(this,button,ShieldEvent.EVENT_PRESSED);
+            prevevent=new ShieldEvent(this,button,ShieldEvent.EVENT_RELEASED);
             fireevent(prevevent);
+           // System.out.println(prevevent.gettimestamp()-prev_time);
             if(prevevent.gettimestamp()-prev_time>ShieldEvent.LONG_DELAY)
             {
                 prevclick=new ShieldEvent(this,button,ShieldEvent.EVENT_LONGPRESS);
                 fireevent(prevclick);
                 event=prevclick.getevent();
             }   
-            else if(timer.isAlive()){
+            else if(timer.isAlive()||timer.getState()!=State.NEW){
                 timer.end();
                 ShieldEvent ev=new ShieldEvent(this,button,ShieldEvent.EVENT_CLICK);
                 if(ev.equals(prevclick)){
@@ -201,6 +208,7 @@ public class BluetoothClient extends Thread implements Runnable{
                     Logger.getLogger(BluetoothClient.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            System.out.println("delay"+delay +" "+runflag);
             if(runflag)
                 fireevent(prevclick);
             //throw new UnsupportedOperationException("Not supported yet.");

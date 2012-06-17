@@ -28,14 +28,14 @@ public class ShieldEvent extends EventObject {
     
     //Event Constants
     
-    public static final int EVENT_PRESSED = 1;
-    public static final int EVENT_RELEASED = 2;
-    public static final int EVENT_CLICK = 3;
-    public static final int EVENT_DOUBLECLICK = 4;
-    public static final int EVENT_LONGPRESS = 5;
+    public static final int EVENT_PRESSED = 0;
+    public static final int EVENT_RELEASED = 1;
+    public static final int EVENT_CLICK = 2;
+    public static final int EVENT_DOUBLECLICK = 3;
+    public static final int EVENT_LONGPRESS = 4;
     
-    public static final int DOUBLECLICK_DELAY=100;
-    public static final int LONG_DELAY =1000;
+    public static final int DOUBLECLICK_DELAY=150;
+    public static final int LONG_DELAY =2000;
     
     // button identification field
     int button_id ;

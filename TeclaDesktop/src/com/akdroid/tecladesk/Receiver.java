@@ -4,6 +4,8 @@
  */
 package com.akdroid.tecladesk;
 import com.akdroid.teclasocket.TeclaSocket;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 /**
  *
  * @author Akhil
@@ -18,8 +20,14 @@ public class Receiver extends Thread implements Runnable {
     
     @Override
     public void run() {
-        while(runf)
+        while(runf){
             sock.receive();
+            try {
+                Thread.sleep(PingManager.DEBOUNCE_TIME);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(Receiver.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
        // throw new UnsupportedOperationException("Not supported yet.");
     }
    

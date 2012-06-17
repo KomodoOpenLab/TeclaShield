@@ -13,8 +13,22 @@ public class ClientMain extends javax.swing.JFrame {
     /**
      * Creates new form ClientMain
      */
+    ButtonPref b1,b2,b3,b4,b5,b6;
     public ClientMain() {
         initComponents();
+        b1=new ButtonPref(ShieldEvent.ECU1);
+        b2=new ButtonPref(ShieldEvent.ECU2);
+        b3=new ButtonPref(ShieldEvent.ECU3);
+        b4=new ButtonPref(ShieldEvent.ECU4);
+        b5=new ButtonPref(ShieldEvent.E1);
+        b6=new ButtonPref(ShieldEvent.E2);
+        preftab.addTab("ECU UP",b1);
+        preftab.addTab("ECU DOWN",b2);
+        preftab.addTab("ECU LEFT",b3);
+        preftab.addTab("ECU RIGHT",b4);
+        preftab.addTab("SWITCH 1",b5);
+        preftab.addTab("SWITCH 2",b6);
+        
     }
 
     /**
@@ -26,6 +40,8 @@ public class ClientMain extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        preftab = new javax.swing.JTabbedPane();
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("TeclaClient");
 
@@ -33,11 +49,17 @@ public class ClientMain extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 590, Short.MAX_VALUE)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(157, Short.MAX_VALUE)
+                .addComponent(preftab, javax.swing.GroupLayout.PREFERRED_SIZE, 653, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 386, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addGap(38, 38, 38)
+                .addComponent(preftab, javax.swing.GroupLayout.DEFAULT_SIZE, 461, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         pack();
@@ -85,5 +107,6 @@ public class ClientMain extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTabbedPane preftab;
     // End of variables declaration//GEN-END:variables
 }

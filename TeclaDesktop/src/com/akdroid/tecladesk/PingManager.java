@@ -38,6 +38,7 @@ public class PingManager extends Thread implements Runnable {
             return;
         }   
         sock.send(PING_BYTE);
+       // System.out.println("ping byte sent");
         increment();
             try {
                 Thread.sleep(PING_DELAY);

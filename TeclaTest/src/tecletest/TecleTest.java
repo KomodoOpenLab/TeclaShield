@@ -20,7 +20,7 @@ public class TecleTest {
      */
     public static void main(String[] args) {
         String uuid="0000110100001000800000805F9B34FB";
-        TeclaSocket sock=new TeclaSocket(uuid);
+        TeclaSocket sock=new TeclaSocket(uuid,true);
         byte ch=0;
         System.out.println("Connecting .....");
         while(!sock.isConnected());
