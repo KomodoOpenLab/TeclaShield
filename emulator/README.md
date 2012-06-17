@@ -49,3 +49,4 @@ q/Q | Quit
 4. Auto Switch Release Mode is a mode in which switch release events are also generated after a switch event is triggered.
 When turned off,release event will have to be inserted manually by command r/R.Default value is true(on).When true(on)
 release event cannot be sent using r/R command.  
+
