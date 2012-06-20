@@ -20,12 +20,14 @@ public class TeclaDesktop {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        ClientMain client=new ClientMain();
-        client.setVisible(true);
         final PreferencesHandler prefs=new PreferencesHandler(location);
         
+        ClientMain client=new ClientMain(prefs);
+        client.setVisible(true);
+        //final PreferencesHandler prefs=new PreferencesHandler(location);
+        
         final EventGenerator eventgen =new EventGenerator();
-        BluetoothClient btclient=new BluetoothClient(uuidstring);
+       /* BluetoothClient btclient=new BluetoothClient(uuidstring);
         btclient.start();
         //while(btclient == null);
         btclient.addShieldEventListener(new ShieldEventListener(){
@@ -71,6 +73,6 @@ public class TeclaDesktop {
                // throw new UnsupportedOperationException("Not supported yet.");
             }
         
-        });
+        });*/
     }
 }

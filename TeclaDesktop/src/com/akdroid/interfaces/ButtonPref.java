@@ -4,6 +4,12 @@
  */
 package com.akdroid.interfaces;
 
+import com.akdroid.tecladesk.ComEvent;
+import com.akdroid.tecladesk.EventConstant;
+import com.akdroid.tecladesk.PreferencesHandler;
+import com.akdroid.tecladesk.ShieldButton;
+import org.w3c.dom.Element;
+
 /**
  *
  * @author Akhil
@@ -13,10 +19,19 @@ public class ButtonPref extends javax.swing.JPanel {
     /**
      * Creates new form ButtonPref
      */
-    int button;
-    public ButtonPref(int button_) {
+    
+    ShieldButton Sbutton;
+    PreferencesHandler prefs;
+    public ButtonPref(ShieldButton buttonS,PreferencesHandler prefs_) {
         initComponents();
-        button=button_;
+        prefs=prefs_;
+        Sbutton=buttonS;
+        System.out.print(buttonS.buttonid);
+        updateOnPress(Sbutton.eventlist[ShieldEvent.EVENT_PRESSED]);
+        updateOnRelease(Sbutton.eventlist[ShieldEvent.EVENT_RELEASED]);
+        updateOnClick(Sbutton.eventlist[ShieldEvent.EVENT_CLICK]);
+        updateOnDblClick(Sbutton.eventlist[ShieldEvent.EVENT_DOUBLECLICK]);
+        updateOnLongPress(Sbutton.eventlist[ShieldEvent.EVENT_LONGPRESS]);
     }
 
     /**
@@ -37,27 +52,27 @@ public class ButtonPref extends javax.swing.JPanel {
         jSeparator1 = new javax.swing.JSeparator();
         jLabel7 = new javax.swing.JLabel();
         jLabel8 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        jButton3 = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
-        jButton5 = new javax.swing.JButton();
-        jLabel9 = new javax.swing.JLabel();
-        jLabel10 = new javax.swing.JLabel();
-        jLabel11 = new javax.swing.JLabel();
-        jLabel12 = new javax.swing.JLabel();
-        jLabel13 = new javax.swing.JLabel();
-        jLabel14 = new javax.swing.JLabel();
-        jLabel15 = new javax.swing.JLabel();
-        jLabel16 = new javax.swing.JLabel();
-        jLabel17 = new javax.swing.JLabel();
-        jLabel18 = new javax.swing.JLabel();
+        edit0 = new javax.swing.JButton();
+        edit1 = new javax.swing.JButton();
+        edit2 = new javax.swing.JButton();
+        edit3 = new javax.swing.JButton();
+        edit4 = new javax.swing.JButton();
+        DeviceP = new javax.swing.JLabel();
+        DeviceR = new javax.swing.JLabel();
+        DeviceC = new javax.swing.JLabel();
+        DeviceD = new javax.swing.JLabel();
+        DeviceL = new javax.swing.JLabel();
+        ValueP = new javax.swing.JLabel();
+        ValueR = new javax.swing.JLabel();
+        ValueC = new javax.swing.JLabel();
+        ValueD = new javax.swing.JLabel();
+        ValueL = new javax.swing.JLabel();
         jLabel19 = new javax.swing.JLabel();
-        jLabel20 = new javax.swing.JLabel();
-        jLabel21 = new javax.swing.JLabel();
-        jLabel22 = new javax.swing.JLabel();
-        jLabel23 = new javax.swing.JLabel();
-        jLabel24 = new javax.swing.JLabel();
+        OptionP = new javax.swing.JLabel();
+        OptionR = new javax.swing.JLabel();
+        OptionC = new javax.swing.JLabel();
+        OptionD = new javax.swing.JLabel();
+        OptionL = new javax.swing.JLabel();
 
         jLabel1.setText("onPress");
 
@@ -75,52 +90,77 @@ public class ButtonPref extends javax.swing.JPanel {
 
         jLabel8.setText("Event Value");
 
-        jButton1.setText("Edit");
-
-        jButton2.setText("Edit");
-
-        jButton3.setText("Edit");
-        jButton3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton3ActionPerformed(evt);
+        edit0.setText("Edit");
+        edit0.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                edit0MouseClicked(evt);
             }
         });
 
-        jButton4.setText("Edit");
+        edit1.setText("Edit");
+        edit1.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                edit1MouseClicked(evt);
+            }
+        });
 
-        jButton5.setText("Edit");
+        edit2.setText("Edit");
+        edit2.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                edit2MouseClicked(evt);
+            }
+        });
+        edit2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                edit2ActionPerformed(evt);
+            }
+        });
 
-        jLabel9.setText("jLabel9");
+        edit3.setText("Edit");
+        edit3.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                edit3MouseClicked(evt);
+            }
+        });
 
-        jLabel10.setText("jLabel10");
+        edit4.setText("Edit");
+        edit4.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                edit4MouseClicked(evt);
+            }
+        });
 
-        jLabel11.setText("jLabel11");
+        DeviceP.setText("jLabel9");
 
-        jLabel12.setText("jLabel12");
+        DeviceR.setText("jLabel10");
 
-        jLabel13.setText("jLabel13");
+        DeviceC.setText("jLabel11");
 
-        jLabel14.setText("jLabel14");
+        DeviceD.setText("jLabel12");
 
-        jLabel15.setText("jLabel15");
+        DeviceL.setText("jLabel13");
 
-        jLabel16.setText("jLabel16");
+        ValueP.setText("jLabel14");
 
-        jLabel17.setText("jLabel17");
+        ValueR.setText("jLabel15");
 
-        jLabel18.setText("jLabel18");
+        ValueC.setText("jLabel16");
+
+        ValueD.setText("jLabel17");
+
+        ValueL.setText("jLabel18");
 
         jLabel19.setText("Options");
 
-        jLabel20.setText("jLabel20");
+        OptionP.setText("jLabel20");
 
-        jLabel21.setText("jLabel21");
+        OptionR.setText("jLabel21");
 
-        jLabel22.setText("jLabel22");
+        OptionC.setText("jLabel22");
 
-        jLabel23.setText("jLabel23");
+        OptionD.setText("jLabel23");
 
-        jLabel24.setText("jLabel24");
+        OptionL.setText("jLabel24");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -141,37 +181,37 @@ public class ButtonPref extends javax.swing.JPanel {
                             .addComponent(jLabel5))
                         .addGap(35, 35, 35)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel13)
-                            .addComponent(jLabel12)
-                            .addComponent(jLabel11)
-                            .addComponent(jLabel10)))
+                            .addComponent(DeviceL)
+                            .addComponent(DeviceD)
+                            .addComponent(DeviceC)
+                            .addComponent(DeviceR)))
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 92, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(35, 35, 35)
-                        .addComponent(jLabel9)))
+                        .addComponent(DeviceP)))
                 .addGap(31, 31, 31)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel14)
-                    .addComponent(jLabel18)
-                    .addComponent(jLabel15)
-                    .addComponent(jLabel17)
-                    .addComponent(jLabel16)
+                    .addComponent(ValueP)
+                    .addComponent(ValueL)
+                    .addComponent(ValueR)
+                    .addComponent(ValueD)
+                    .addComponent(ValueC)
                     .addComponent(jLabel8))
                 .addGap(43, 43, 43)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel19, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel21)
-                    .addComponent(jLabel22)
-                    .addComponent(jLabel23)
-                    .addComponent(jLabel24)
-                    .addComponent(jLabel20))
+                    .addComponent(OptionR)
+                    .addComponent(OptionC)
+                    .addComponent(OptionD)
+                    .addComponent(OptionL)
+                    .addComponent(OptionP))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 71, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButton5)
-                    .addComponent(jButton3)
-                    .addComponent(jButton4)
-                    .addComponent(jButton1)
-                    .addComponent(jButton2))
+                    .addComponent(edit4)
+                    .addComponent(edit2)
+                    .addComponent(edit3)
+                    .addComponent(edit0)
+                    .addComponent(edit1))
                 .addGap(80, 80, 80))
             .addGroup(layout.createSequentialGroup()
                 .addGap(10, 10, 10)
@@ -181,9 +221,9 @@ public class ButtonPref extends javax.swing.JPanel {
 
         layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jLabel1, jLabel2, jLabel3, jLabel4, jLabel5, jLabel6});
 
-        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jLabel19, jLabel20, jLabel21, jLabel22, jLabel23, jLabel24});
+        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {OptionC, OptionD, OptionL, OptionP, OptionR, jLabel19});
 
-        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jLabel14, jLabel15, jLabel16, jLabel17, jLabel18, jLabel8});
+        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {ValueC, ValueD, ValueL, ValueP, ValueR, jLabel8});
 
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -199,83 +239,289 @@ public class ButtonPref extends javax.swing.JPanel {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton1)
-                    .addComponent(jLabel9)
-                    .addComponent(jLabel14)
-                    .addComponent(jLabel20))
+                    .addComponent(edit0)
+                    .addComponent(DeviceP)
+                    .addComponent(ValueP)
+                    .addComponent(OptionP))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton2)
-                    .addComponent(jLabel10)
-                    .addComponent(jLabel15)
-                    .addComponent(jLabel21))
+                    .addComponent(edit1)
+                    .addComponent(DeviceR)
+                    .addComponent(ValueR)
+                    .addComponent(OptionR))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
-                    .addComponent(jButton3)
-                    .addComponent(jLabel11)
-                    .addComponent(jLabel16)
-                    .addComponent(jLabel22))
+                    .addComponent(edit2)
+                    .addComponent(DeviceC)
+                    .addComponent(ValueC)
+                    .addComponent(OptionC))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton4)
-                    .addComponent(jLabel12)
-                    .addComponent(jLabel17)
-                    .addComponent(jLabel23))
+                    .addComponent(edit3)
+                    .addComponent(DeviceD)
+                    .addComponent(ValueD)
+                    .addComponent(OptionD))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton5)
-                    .addComponent(jLabel13)
-                    .addComponent(jLabel18)
-                    .addComponent(jLabel24))
+                    .addComponent(edit4)
+                    .addComponent(DeviceL)
+                    .addComponent(ValueL)
+                    .addComponent(OptionL))
                 .addGap(65, 65, 65))
         );
 
         layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {jLabel1, jLabel2, jLabel3, jLabel4, jLabel5, jLabel6});
 
-        layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {jLabel19, jLabel20, jLabel21, jLabel22, jLabel23, jLabel24});
+        layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {OptionC, OptionD, OptionL, OptionP, OptionR, jLabel19});
 
-        layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {jLabel14, jLabel15, jLabel16, jLabel17, jLabel18, jLabel8});
+        layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {ValueC, ValueD, ValueL, ValueP, ValueR, jLabel8});
 
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton3ActionPerformed
+    private void edit2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_edit2ActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jButton3ActionPerformed
+    }//GEN-LAST:event_edit2ActionPerformed
+
+    private void edit0MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_edit0MouseClicked
+        // TODO add your handling code here:
+        ValueSetter val=new ValueSetter(Sbutton.eventlist[0],Sbutton.buttonid,this);
+        val.setVisible(true);
+       // while(val.block);
+        System.out.println("executed");
+       // updateOnPress(Sbutton.eventlist[ShieldEvent.EVENT_PRESSED]);
+    }//GEN-LAST:event_edit0MouseClicked
+
+    private void edit1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_edit1MouseClicked
+        // TODO add your handling code here:
+        ValueSetter val=new ValueSetter(Sbutton.eventlist[1],Sbutton.buttonid,this);
+        val.setVisible(true);
+       // updateOnRelease(Sbutton.eventlist[ShieldEvent.EVENT_RELEASED]);
+    }//GEN-LAST:event_edit1MouseClicked
+
+    private void edit2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_edit2MouseClicked
+        // TODO add your handling code here:
+        ValueSetter val=new ValueSetter(Sbutton.eventlist[2],Sbutton.buttonid,this);
+        val.setVisible(true);
+        //updateOnClick(Sbutton.eventlist[ShieldEvent.EVENT_CLICK]);
+    }//GEN-LAST:event_edit2MouseClicked
+
+    private void edit3MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_edit3MouseClicked
+        // TODO add your handling code here:
+        ValueSetter val=new ValueSetter(Sbutton.eventlist[3],Sbutton.buttonid,this);
+        val.setVisible(true);
+        //(Sbutton.eventlist[ShieldEvent.EVENT_DOUBLECLICK]);
+    }//GEN-LAST:event_edit3MouseClicked
+
+    private void edit4MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_edit4MouseClicked
+        // TODO add your handling code here:
+        ValueSetter val=new ValueSetter(Sbutton.eventlist[4],Sbutton.buttonid,this);
+        val.setVisible(true);
+        //updateOnLongPress(Sbutton.eventlist[ShieldEvent.EVENT_LONGPRESS]);
+    }//GEN-LAST:event_edit4MouseClicked
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
-    private javax.swing.JButton jButton5;
+    private javax.swing.JLabel DeviceC;
+    private javax.swing.JLabel DeviceD;
+    private javax.swing.JLabel DeviceL;
+    private javax.swing.JLabel DeviceP;
+    private javax.swing.JLabel DeviceR;
+    private javax.swing.JLabel OptionC;
+    private javax.swing.JLabel OptionD;
+    private javax.swing.JLabel OptionL;
+    private javax.swing.JLabel OptionP;
+    private javax.swing.JLabel OptionR;
+    private javax.swing.JLabel ValueC;
+    private javax.swing.JLabel ValueD;
+    private javax.swing.JLabel ValueL;
+    private javax.swing.JLabel ValueP;
+    private javax.swing.JLabel ValueR;
+    private javax.swing.JButton edit0;
+    private javax.swing.JButton edit1;
+    private javax.swing.JButton edit2;
+    private javax.swing.JButton edit3;
+    private javax.swing.JButton edit4;
     private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel10;
-    private javax.swing.JLabel jLabel11;
-    private javax.swing.JLabel jLabel12;
-    private javax.swing.JLabel jLabel13;
-    private javax.swing.JLabel jLabel14;
-    private javax.swing.JLabel jLabel15;
-    private javax.swing.JLabel jLabel16;
-    private javax.swing.JLabel jLabel17;
-    private javax.swing.JLabel jLabel18;
     private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel20;
-    private javax.swing.JLabel jLabel21;
-    private javax.swing.JLabel jLabel22;
-    private javax.swing.JLabel jLabel23;
-    private javax.swing.JLabel jLabel24;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
-    private javax.swing.JLabel jLabel9;
     private javax.swing.JSeparator jSeparator1;
     // End of variables declaration//GEN-END:variables
+    
+    public void updateOnPress(ComEvent ev){
+        DeviceP.setText(EventConstant.Devices[ev.device]);
+        String ev_value="Not applicable";
+        switch(ev.device){
+            case EventConstant.NONE:
+                ev_value="Not applicable";
+                break;
+            case EventConstant.MOUSE:
+                ev_value=EventConstant.mouseevents[ev.values.get(0)];
+                break;
+            case EventConstant.KEYBOARD:
+                ev_value=ValueSetter.getKeyCombination(ev.values);
+                break;                
+        }
+       ValueP.setText(ev_value);
+       if(ev.device==EventConstant.MOUSE){
+           if(ev.values.get(0)==EventConstant.SCROLL){
+               OptionP.setText("Scroll = "+ev.dx+" units");
+           }
+           else if(ev.values.get(0)==EventConstant.MOUSEMOVE){
+               OptionP.setText("dX= "+ev.dx+" units " + "dY = " + ev.dy+ " units");
+           }
+           else
+               OptionP.setText("Not Applicable");
+       }
+       else
+           OptionP.setText("Not Applicable");
+    }
+    public void updateOnRelease(ComEvent ev){
+        
+        DeviceR.setText(EventConstant.Devices[ev.device]);
+        String ev_value="Not applicable";
+        switch(ev.device){
+            case EventConstant.NONE:
+                ev_value="Not applicable";
+                break;
+            case EventConstant.MOUSE:
+                ev_value=EventConstant.mouseevents[ev.values.get(0)];
+                break;
+            case EventConstant.KEYBOARD:
+                ev_value=ValueSetter.getKeyCombination(ev.values);
+                break;                
+        }
+       ValueR.setText(ev_value);
+       if(ev.device==EventConstant.MOUSE){
+           if(ev.values.get(0)==EventConstant.SCROLL){
+               OptionR.setText("Scroll = "+ev.dx+" units");
+           }
+           else if(ev.values.get(0)==EventConstant.MOUSEMOVE){
+               OptionR.setText("dX= "+ev.dx+" units " + "dY = " + ev.dy+ " units");
+           }
+           else
+               OptionR.setText("Not Applicable");
+       }
+       else
+           OptionR.setText("Not Applicable");
+    }
+    public void updateOnClick(ComEvent ev){
+        DeviceC.setText(EventConstant.Devices[ev.device]);
+        String ev_value="Not applicable";
+        switch(ev.device){
+            case EventConstant.NONE:
+                ev_value="Not applicable";
+                break;
+            case EventConstant.MOUSE:
+                ev_value=EventConstant.mouseevents[ev.values.get(0)];
+                break;
+            case EventConstant.KEYBOARD:
+                ev_value=ValueSetter.getKeyCombination(ev.values);
+                break;                
+        }
+       ValueC.setText(ev_value);
+       if(ev.device==EventConstant.MOUSE){
+           if(ev.values.get(0)==EventConstant.SCROLL){
+               OptionC.setText("Scroll = "+ev.dx+" units");
+           }
+           else if(ev.values.get(0)==EventConstant.MOUSEMOVE){
+               OptionC.setText("dX= "+ev.dx+" units " + "dY = " + ev.dy+ " units");
+           }
+           else
+               OptionC.setText("Not Applicable");
+       }
+       else
+           OptionC.setText("Not Applicable");
+    }
+    public void updateOnDblClick(ComEvent ev){
+        DeviceD.setText(EventConstant.Devices[ev.device]);
+        String ev_value="Not applicable";
+        switch(ev.device){
+            case EventConstant.NONE:
+                ev_value="Not applicable";
+                break;
+            case EventConstant.MOUSE:
+                ev_value=EventConstant.mouseevents[ev.values.get(0)];
+                break;
+            case EventConstant.KEYBOARD:
+                ev_value=ValueSetter.getKeyCombination(ev.values);
+                break;                
+        }
+       ValueD.setText(ev_value);
+       if(ev.device==EventConstant.MOUSE){
+           if(ev.values.get(0)==EventConstant.SCROLL){
+               OptionD.setText("Scroll = "+ev.dx+" units");
+           }
+           else if(ev.values.get(0)==EventConstant.MOUSEMOVE){
+               OptionD.setText("dX= "+ev.dx+" units " + "dY = " + ev.dy+ " units");
+           }
+           else
+               OptionD.setText("Not Applicable");
+       }
+       else
+           OptionD.setText("Not Applicable");
+    }
+    public void updateOnLongPress(ComEvent ev){
+        DeviceL.setText(EventConstant.Devices[ev.device]);
+        String ev_value="Not applicable";
+        switch(ev.device){
+            case EventConstant.NONE:
+                ev_value="Not applicable";
+                break;
+            case EventConstant.MOUSE:
+                ev_value=EventConstant.mouseevents[ev.values.get(0)];
+                break;
+            case EventConstant.KEYBOARD:
+                ev_value=ValueSetter.getKeyCombination(ev.values);
+                break;                
+        }
+       ValueL.setText(ev_value);
+       if(ev.device==EventConstant.MOUSE){
+           if(ev.values.get(0)==EventConstant.SCROLL){
+               OptionL.setText("Scroll = "+ev.dx+" units");
+           }
+           else if(ev.values.get(0)==EventConstant.MOUSEMOVE){
+               OptionL.setText("dX= "+ev.dx+" units " + "dY = " + ev.dy+ " units");
+           }
+           else
+               OptionL.setText("Not Applicable");
+       }
+       else
+           OptionL.setText("Not Applicable");
+    }
+    public void setComEvent(ComEvent e){
+        Sbutton.eventlist[e.eventno]=e;
+        writeConfig(Sbutton.buttonid,e);
+
+    }
+    public void writeConfig(int button ,ComEvent e) {
+        System.out.println(button);
+        Element event=prefs.getShieldEvent(prefs.getButton(button), e.eventno);
+        System.out.println("1");
+        event.setAttribute("eventid", "" + e.eventno);
+        System.out.println("2");
+        event.setAttribute("device", "" + e.device);
+        System.out.println("3");
+        event.setAttribute("options", "" + e.dx+","+e.dy);
+        System.out.println("4");
+        String eventvalues="";
+        for(int i=0;i<e.values.size();i++){
+            eventvalues=eventvalues.concat(""+e.values.get(i)+",");
+        }
+        System.out.println("5");
+        event.setAttribute("value", "" + eventvalues);
+        System.out.println("6");
+        prefs.commitchanges(prefs.doc);
+        System.out.println("7");
+
+
+    }
 }

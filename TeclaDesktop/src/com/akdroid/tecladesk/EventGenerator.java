@@ -7,14 +7,10 @@ package com.akdroid.tecladesk;
 
 import java.awt.*;
 import java.awt.event.MouseEvent;
-import java.io.IOException;
+import java.io.File;
+import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.util.ArrayList;
-import java.util.List;
 
 
 

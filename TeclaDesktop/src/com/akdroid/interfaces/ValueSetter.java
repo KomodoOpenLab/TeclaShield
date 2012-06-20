@@ -4,18 +4,45 @@
  */
 package com.akdroid.interfaces;
 
+import com.akdroid.tecladesk.ComEvent;
+import com.akdroid.tecladesk.EventConstant;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.util.ArrayList;
+
+
 /**
  *
  * @author Akhil
  */
-public class ValueSetter extends javax.swing.JFrame {
+public class ValueSetter extends javax.swing.JFrame implements KeyListener {
 
     /**
      * Creates new form ValueSetter
      */
-    public ValueSetter() {
+    ComEvent ce,temp;
+    int counter;
+    public boolean block;
+    ButtonPref source;
+    public ValueSetter(ComEvent event,int button,ButtonPref src) {
         initComponents();
+       // block=true;
         setTitle("EditEvent");
+        ce=event;
+        source=src;
+        temp=new ComEvent();
+        temp.device=ce.device;
+        temp.dx=ce.dx;
+        temp.dy=ce.dy;
+        temp.values=ce.values;
+        temp.eventno=ce.eventno;
+        counter=0;
+        String name="  "+EventConstant.Shieldbuttons[button];
+        name=name+" Event: "+EventConstant.ShieldEventNames[ce.eventno];
+        headerlabel.setText(name);
+        setCurrentValue();
+        block=true;
+        
     }
 
     /**
@@ -29,45 +56,70 @@ public class ValueSetter extends javax.swing.JFrame {
 
         buttonGroup1 = new javax.swing.ButtonGroup();
         jLabel1 = new javax.swing.JLabel();
-        jRadioButton1 = new javax.swing.JRadioButton();
-        jRadioButton2 = new javax.swing.JRadioButton();
-        jRadioButton3 = new javax.swing.JRadioButton();
+        Rnone = new javax.swing.JRadioButton();
+        Rmouse = new javax.swing.JRadioButton();
+        Rkey = new javax.swing.JRadioButton();
         jLabel2 = new javax.swing.JLabel();
-        jComboBox1 = new javax.swing.JComboBox();
+        Cvalue = new javax.swing.JComboBox();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         jLabel5 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
-        jTextField3 = new javax.swing.JTextField();
-        jLabel6 = new javax.swing.JLabel();
-        jLabel7 = new javax.swing.JLabel();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        inputdx = new javax.swing.JTextField();
+        inputdy = new javax.swing.JTextField();
+        headerlabel = new javax.swing.JLabel();
+        instructlabel = new javax.swing.JLabel();
+        okbutton = new javax.swing.JButton();
+        cancelbutton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
         jLabel1.setText("Device:");
 
-        buttonGroup1.add(jRadioButton1);
-        jRadioButton1.setText("None");
-        jRadioButton1.addActionListener(new java.awt.event.ActionListener() {
+        buttonGroup1.add(Rnone);
+        Rnone.setText("None");
+        Rnone.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                RnoneStateChanged(evt);
+            }
+        });
+        Rnone.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jRadioButton1ActionPerformed(evt);
+                RnoneActionPerformed(evt);
             }
         });
 
-        buttonGroup1.add(jRadioButton2);
-        jRadioButton2.setText("Mouse");
+        buttonGroup1.add(Rmouse);
+        Rmouse.setText("Mouse");
+        Rmouse.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                RmouseStateChanged(evt);
+            }
+        });
 
-        buttonGroup1.add(jRadioButton3);
-        jRadioButton3.setText("Keyboard");
+        buttonGroup1.add(Rkey);
+        Rkey.setText("Keyboard");
+        Rkey.addChangeListener(new javax.swing.event.ChangeListener() {
+            public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                RkeyStateChanged(evt);
+            }
+        });
 
         jLabel2.setText("Action");
 
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        jComboBox1.addActionListener(new java.awt.event.ActionListener() {
+        Cvalue.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        Cvalue.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                CvalueMouseClicked(evt);
+            }
+        });
+        Cvalue.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                CvalueItemStateChanged(evt);
+            }
+        });
+        Cvalue.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jComboBox1ActionPerformed(evt);
+                CvalueActionPerformed(evt);
             }
         });
 
@@ -78,25 +130,45 @@ public class ValueSetter extends javax.swing.JFrame {
 
         jLabel5.setText("Change in Y : ");
 
-        jTextField2.setText(" 0");
-        jTextField2.addActionListener(new java.awt.event.ActionListener() {
+        inputdx.setText(" 0");
+        inputdx.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField2ActionPerformed(evt);
+                inputdxActionPerformed(evt);
+            }
+        });
+        inputdx.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                inputdxFocusLost(evt);
             }
         });
 
-        jTextField3.setText(" 0");
+        inputdy.setText(" 0");
+        inputdy.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                inputdyFocusLost(evt);
+            }
+        });
 
-        jLabel6.setText(" Button : Name  Event : ShieldEventName");
+        headerlabel.setText(" Button : Name  Event : ShieldEventName");
 
-        jLabel7.setText("Instructions :");
+        instructlabel.setText("Instructions :");
 
-        jButton1.setText("OK");
+        okbutton.setText("OK");
+        okbutton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                okbuttonMouseClicked(evt);
+            }
+        });
 
-        jButton2.setText("Cancel");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
+        cancelbutton.setText("Cancel");
+        cancelbutton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                cancelbuttonMouseClicked(evt);
+            }
+        });
+        cancelbutton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+                cancelbuttonActionPerformed(evt);
             }
         });
 
@@ -110,102 +182,229 @@ public class ValueSetter extends javax.swing.JFrame {
                         .addContainerGap()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel3)
-                            .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 322, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(headerlabel, javax.swing.GroupLayout.PREFERRED_SIZE, 322, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(jLabel2))
                                 .addGap(18, 18, 18)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addComponent(Cvalue, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addGroup(layout.createSequentialGroup()
-                                        .addComponent(jRadioButton1)
+                                        .addComponent(Rnone)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jRadioButton2)))
+                                        .addComponent(Rmouse)))
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jRadioButton3))
+                                .addComponent(Rkey))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(inputdx, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(18, 18, 18)
                                 .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 408, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(inputdy, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(instructlabel, javax.swing.GroupLayout.PREFERRED_SIZE, 408, javax.swing.GroupLayout.PREFERRED_SIZE)))
                     .addGroup(layout.createSequentialGroup()
                         .addGap(103, 103, 103)
-                        .addComponent(jButton1)
+                        .addComponent(okbutton)
                         .addGap(85, 85, 85)
-                        .addComponent(jButton2)))
+                        .addComponent(cancelbutton)))
                 .addContainerGap(24, Short.MAX_VALUE))
         );
 
-        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jButton1, jButton2});
+        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {cancelbutton, okbutton});
 
         layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jLabel1, jLabel2, jLabel3});
 
         layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jLabel4, jLabel5});
 
-        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jTextField2, jTextField3});
+        layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {inputdx, inputdy});
 
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(8, 8, 8)
-                .addComponent(jLabel6, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(headerlabel, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(21, 21, 21)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(jRadioButton1)
-                        .addComponent(jRadioButton2)
-                        .addComponent(jRadioButton3))
+                        .addComponent(Rnone)
+                        .addComponent(Rmouse)
+                        .addComponent(Rkey))
                     .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(Cvalue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(jLabel3)
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel4)
                     .addComponent(jLabel5)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jTextField3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(inputdx, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(inputdy, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(instructlabel, javax.swing.GroupLayout.PREFERRED_SIZE, 49, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(30, 30, 30)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jButton2))
+                    .addComponent(okbutton)
+                    .addComponent(cancelbutton))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
-        layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {jButton1, jButton2});
+        layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {cancelbutton, okbutton});
 
         layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {jLabel1, jLabel2, jLabel3, jLabel4, jLabel5});
 
-        layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {jTextField2, jTextField3});
+        layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {inputdx, inputdy});
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jRadioButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jRadioButton1ActionPerformed
+    private void RnoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RnoneActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jRadioButton1ActionPerformed
+    }//GEN-LAST:event_RnoneActionPerformed
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+    private void cancelbuttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelbuttonActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jButton2ActionPerformed
+    }//GEN-LAST:event_cancelbuttonActionPerformed
 
-    private void jTextField2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField2ActionPerformed
+    private void inputdxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_inputdxActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jTextField2ActionPerformed
+    }//GEN-LAST:event_inputdxActionPerformed
 
-    private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox1ActionPerformed
+    private void CvalueActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CvalueActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_jComboBox1ActionPerformed
+    }//GEN-LAST:event_CvalueActionPerformed
+
+    private void RkeyStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_RkeyStateChanged
+        // TODO add your handling code here:
+        if(Rkey.isSelected()){
+        temp.device=EventConstant.KEYBOARD;
+        disableoptions(false);
+        Cvalue.setEnabled(true);
+        Cvalue.removeAllItems();
+        Cvalue.addItem("Click to Change");
+        
+        }
+    }//GEN-LAST:event_RkeyStateChanged
+
+    private void CvalueMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_CvalueMouseClicked
+        if (temp.device==EventConstant.KEYBOARD){        
+            Cvalue.setFocusable(true);
+            Cvalue.requestFocus();
+            Cvalue.addKeyListener(this);
+            temp.values=new ArrayList<Integer>();
+        }
+    }//GEN-LAST:event_CvalueMouseClicked
+
+    private void RmouseStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_RmouseStateChanged
+        // TODO add your handling code here:
+        if(Rmouse.isSelected())
+        {
+            temp.device=EventConstant.MOUSE;
+            Cvalue.setEnabled(true);
+            Cvalue.removeAllItems();
+            for(int i=0;i<EventConstant.mouseevents.length;i++){
+                Cvalue.addItem(EventConstant.mouseevents[i]);               
+            }
+        }
+
+    }//GEN-LAST:event_RmouseStateChanged
+
+    private void RnoneStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_RnoneStateChanged
+        // TODO add your handling code here:
+        if(Rnone.isSelected()){
+            temp.device=EventConstant.NONE;
+            disableAllOptions();
+        }
+    }//GEN-LAST:event_RnoneStateChanged
+
+    private void CvalueItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_CvalueItemStateChanged
+        // TODO add your handling code here:
+        temp.values=new ArrayList<Integer>();
+        Integer i=Cvalue.getSelectedIndex();
+        temp.values.add(i);
+        if(i==EventConstant.MOUSEMOVE){
+            enableoptions(false);
+            inputdx.setText("5");
+            inputdy.setText("5");
+            temp.dx=5;
+            temp.dy=5;
+        }
+        else if(i==EventConstant.SCROLL){
+            enableoptions(true);
+            inputdx.setText("5");
+            temp.dx=5;
+        }
+    }//GEN-LAST:event_CvalueItemStateChanged
+
+    private void inputdxFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_inputdxFocusLost
+        // TODO add your handling code here:
+        String text=inputdx.getText();
+        int i;
+        if(text.length()==0)
+            inputdx.setText("5");
+        else
+            try{
+            i=Integer.parseInt(text);
+            temp.dx=i;
+            }
+            catch(NumberFormatException e){
+                inputdx.setText("5");
+                
+            }
+    }//GEN-LAST:event_inputdxFocusLost
+
+    private void inputdyFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_inputdyFocusLost
+        // TODO add your handling code here:
+        String text = inputdy.getText();
+        int i;
+        if (text.length() == 0) {
+            inputdy.setText("5");
+        } else {
+            try {
+                i = Integer.parseInt(text);
+                temp.dy = i;
+            } catch (NumberFormatException e) {
+                inputdy.setText("5");
+
+            }
+        }
+    }//GEN-LAST:event_inputdyFocusLost
+
+    private void okbuttonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_okbuttonMouseClicked
+        // TODO add your handling code here:
+        ce=temp;
+        switch(ce.eventno){
+            case ShieldEvent.EVENT_PRESSED:
+                source.updateOnPress(ce);
+                break;
+            case ShieldEvent.EVENT_RELEASED:
+                source.updateOnRelease(ce);
+                break;
+            case ShieldEvent.EVENT_CLICK:
+                source.updateOnClick(ce);
+                break;
+            case ShieldEvent.EVENT_DOUBLECLICK:
+                source.updateOnDblClick(ce);
+                break;
+            case ShieldEvent.EVENT_LONGPRESS:
+                source.updateOnLongPress(ce);
+                break;
+        }
+        source.setComEvent(ce);
+        setVisible(false);
+        
+    }//GEN-LAST:event_okbuttonMouseClicked
+
+    private void cancelbuttonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_cancelbuttonMouseClicked
+        // TODO add your handling code here:
+        setVisible(false);
+        
+    }//GEN-LAST:event_cancelbuttonMouseClicked
 
     /**
      * @param args the command line arguments
@@ -244,26 +443,101 @@ public class ValueSetter extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(new Runnable() {
 
             public void run() {
-                new ValueSetter().setVisible(true);
+                
+               // new ValueSetter().setVisible(true);
             }
         });
     }
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JComboBox Cvalue;
+    private javax.swing.JRadioButton Rkey;
+    private javax.swing.JRadioButton Rmouse;
+    private javax.swing.JRadioButton Rnone;
     private javax.swing.ButtonGroup buttonGroup1;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JComboBox jComboBox1;
+    private javax.swing.JButton cancelbutton;
+    private javax.swing.JLabel headerlabel;
+    private javax.swing.JTextField inputdx;
+    private javax.swing.JTextField inputdy;
+    private javax.swing.JLabel instructlabel;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
-    private javax.swing.JRadioButton jRadioButton1;
-    private javax.swing.JRadioButton jRadioButton2;
-    private javax.swing.JRadioButton jRadioButton3;
-    private javax.swing.JTextField jTextField2;
-    private javax.swing.JTextField jTextField3;
+    private javax.swing.JButton okbutton;
     // End of variables declaration//GEN-END:variables
+
+    @Override
+    public void keyTyped(KeyEvent e) {
+        //throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e) {
+        temp.values.add(e.getKeyCode());
+        System.out.println(KeyEvent.getKeyText(e.getKeyCode()));
+        counter++;
+        //throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    @Override
+    public void keyReleased(KeyEvent e) {
+        counter--;
+        if(counter==0){
+            Cvalue.removeKeyListener(this);
+        }
+        //throw new UnsupportedOperationException("Not supported yet.");
+    }
+    public void disableoptions(boolean scroll){
+        if(!scroll)
+        inputdx.setEnabled(false);
+        inputdy.setEnabled(false);
+    }
+    public void enableoptions(boolean scroll){
+        if(!scroll)
+            inputdy.setEnabled(true);
+        else
+            inputdy.setEnabled(false);
+        inputdx.setEnabled(true);
+    }
+    public void disableAllOptions(){
+        disableoptions(false);
+        Cvalue.setEnabled(false);
+    }
+    public void setCurrentValue(){
+        switch(ce.device){
+            case EventConstant.NONE:
+                Rnone.setSelected(true);
+                break;
+            case EventConstant.MOUSE:
+                Rmouse.setSelected(true);
+                Cvalue.setSelectedIndex(ce.values.get(0));
+                if(ce.values.get(0)==EventConstant.MOUSEMOVE){
+                    inputdx.setText(""+ce.dx);
+                    inputdy.setText(""+ce.dy);
+                }
+                else if(ce.values.get(0)==EventConstant.SCROLL){
+                    inputdx.setText(""+ce.dx);
+                }
+                    
+                break;
+            case EventConstant.KEYBOARD:
+                Rkey.setSelected(true);
+                Cvalue.removeAllItems();
+                Cvalue.addItem(getKeyCombination(ce.values));
+                break;
+        }
+    }
+    public static String getKeyCombination(ArrayList<Integer> val){
+        String keyCombination="";
+        if(val.isEmpty())
+            return "Not Set";
+        else{
+            keyCombination=KeyEvent.getKeyText(val.get(0));
+        for(int i=1;i<val.size();i++){
+            keyCombination=keyCombination + " + " + KeyEvent.getKeyText(val.get(i));
+        }}
+        return keyCombination;
+    }
 }

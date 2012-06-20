@@ -32,7 +32,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="jLabel3" linkSize="3" alignment="0" min="-2" max="-2" attributes="0"/>
-                          <Component id="jLabel6" alignment="0" min="-2" pref="322" max="-2" attributes="0"/>
+                          <Component id="headerlabel" alignment="0" min="-2" pref="322" max="-2" attributes="0"/>
                           <Group type="102" alignment="0" attributes="0">
                               <Group type="103" groupAlignment="0" attributes="0">
                                   <Component id="jLabel1" linkSize="3" alignment="0" min="-2" pref="47" max="-2" attributes="0"/>
@@ -40,33 +40,33 @@
                               </Group>
                               <EmptySpace type="separate" max="-2" attributes="0"/>
                               <Group type="103" groupAlignment="1" attributes="0">
-                                  <Component id="jComboBox1" min="-2" pref="99" max="-2" attributes="0"/>
+                                  <Component id="Cvalue" min="-2" pref="99" max="-2" attributes="0"/>
                                   <Group type="102" attributes="0">
-                                      <Component id="jRadioButton1" min="-2" max="-2" attributes="0"/>
+                                      <Component id="Rnone" min="-2" max="-2" attributes="0"/>
                                       <EmptySpace max="-2" attributes="0"/>
-                                      <Component id="jRadioButton2" min="-2" max="-2" attributes="0"/>
+                                      <Component id="Rmouse" min="-2" max="-2" attributes="0"/>
                                   </Group>
                               </Group>
                               <EmptySpace max="-2" attributes="0"/>
-                              <Component id="jRadioButton3" min="-2" max="-2" attributes="0"/>
+                              <Component id="Rkey" min="-2" max="-2" attributes="0"/>
                           </Group>
                           <Group type="102" alignment="0" attributes="0">
                               <Component id="jLabel4" linkSize="5" min="-2" pref="88" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
-                              <Component id="jTextField2" linkSize="7" min="-2" max="-2" attributes="0"/>
+                              <Component id="inputdx" linkSize="7" min="-2" max="-2" attributes="0"/>
                               <EmptySpace type="separate" max="-2" attributes="0"/>
                               <Component id="jLabel5" linkSize="5" min="-2" pref="88" max="-2" attributes="0"/>
                               <EmptySpace max="-2" attributes="0"/>
-                              <Component id="jTextField3" linkSize="7" min="-2" max="-2" attributes="0"/>
+                              <Component id="inputdy" linkSize="7" min="-2" max="-2" attributes="0"/>
                           </Group>
-                          <Component id="jLabel7" alignment="0" min="-2" pref="408" max="-2" attributes="0"/>
+                          <Component id="instructlabel" alignment="0" min="-2" pref="408" max="-2" attributes="0"/>
                       </Group>
                   </Group>
                   <Group type="102" alignment="0" attributes="0">
                       <EmptySpace min="-2" pref="103" max="-2" attributes="0"/>
-                      <Component id="jButton1" linkSize="1" min="-2" max="-2" attributes="0"/>
+                      <Component id="okbutton" linkSize="1" min="-2" max="-2" attributes="0"/>
                       <EmptySpace min="-2" pref="85" max="-2" attributes="0"/>
-                      <Component id="jButton2" linkSize="1" min="-2" max="-2" attributes="0"/>
+                      <Component id="cancelbutton" linkSize="1" min="-2" max="-2" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace pref="24" max="32767" attributes="0"/>
@@ -77,20 +77,20 @@
       <Group type="103" groupAlignment="0" attributes="0">
           <Group type="102" alignment="0" attributes="0">
               <EmptySpace min="-2" pref="8" max="-2" attributes="0"/>
-              <Component id="jLabel6" min="-2" pref="37" max="-2" attributes="0"/>
+              <Component id="headerlabel" min="-2" pref="37" max="-2" attributes="0"/>
               <EmptySpace min="-2" pref="21" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="0" attributes="0">
                   <Group type="103" alignment="1" groupAlignment="3" attributes="0">
-                      <Component id="jRadioButton1" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="jRadioButton2" alignment="3" min="-2" max="-2" attributes="0"/>
-                      <Component id="jRadioButton3" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="Rnone" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="Rmouse" alignment="3" min="-2" max="-2" attributes="0"/>
+                      <Component id="Rkey" alignment="3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Component id="jLabel1" linkSize="4" alignment="1" min="-2" pref="28" max="-2" attributes="0"/>
               </Group>
               <EmptySpace type="separate" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="jLabel2" linkSize="4" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="jComboBox1" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="Cvalue" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace type="separate" max="-2" attributes="0"/>
               <Component id="jLabel3" linkSize="4" min="-2" max="-2" attributes="0"/>
@@ -98,15 +98,15 @@
               <Group type="103" groupAlignment="3" attributes="0">
                   <Component id="jLabel4" linkSize="4" alignment="3" min="-2" max="-2" attributes="0"/>
                   <Component id="jLabel5" linkSize="4" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="jTextField2" linkSize="6" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="jTextField3" linkSize="6" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="inputdx" linkSize="6" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="inputdy" linkSize="6" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
-              <Component id="jLabel7" min="-2" pref="49" max="-2" attributes="0"/>
+              <Component id="instructlabel" min="-2" pref="49" max="-2" attributes="0"/>
               <EmptySpace min="-2" pref="30" max="-2" attributes="0"/>
               <Group type="103" groupAlignment="3" attributes="0">
-                  <Component id="jButton1" linkSize="2" alignment="3" min="-2" max="-2" attributes="0"/>
-                  <Component id="jButton2" linkSize="2" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="okbutton" linkSize="2" alignment="3" min="-2" max="-2" attributes="0"/>
+                  <Component id="cancelbutton" linkSize="2" alignment="3" min="-2" max="-2" attributes="0"/>
               </Group>
               <EmptySpace max="32767" attributes="0"/>
           </Group>
@@ -119,7 +119,7 @@
         <Property name="text" type="java.lang.String" value="Device:"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JRadioButton" name="jRadioButton1">
+    <Component class="javax.swing.JRadioButton" name="Rnone">
       <Properties>
         <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
           <ComponentRef name="buttonGroup1"/>
@@ -127,31 +127,38 @@
         <Property name="text" type="java.lang.String" value="None"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jRadioButton1ActionPerformed"/>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="RnoneStateChanged"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="RnoneActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JRadioButton" name="jRadioButton2">
+    <Component class="javax.swing.JRadioButton" name="Rmouse">
       <Properties>
         <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
           <ComponentRef name="buttonGroup1"/>
         </Property>
         <Property name="text" type="java.lang.String" value="Mouse"/>
       </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="RmouseStateChanged"/>
+      </Events>
     </Component>
-    <Component class="javax.swing.JRadioButton" name="jRadioButton3">
+    <Component class="javax.swing.JRadioButton" name="Rkey">
       <Properties>
         <Property name="buttonGroup" type="javax.swing.ButtonGroup" editor="org.netbeans.modules.form.RADComponent$ButtonGroupPropertyEditor">
           <ComponentRef name="buttonGroup1"/>
         </Property>
         <Property name="text" type="java.lang.String" value="Keyboard"/>
       </Properties>
+      <Events>
+        <EventHandler event="stateChanged" listener="javax.swing.event.ChangeListener" parameters="javax.swing.event.ChangeEvent" handler="RkeyStateChanged"/>
+      </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel2">
       <Properties>
         <Property name="text" type="java.lang.String" value="Action"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JComboBox" name="jComboBox1">
+    <Component class="javax.swing.JComboBox" name="Cvalue">
       <Properties>
         <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
           <StringArray count="4">
@@ -163,7 +170,9 @@
         </Property>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jComboBox1ActionPerformed"/>
+        <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="CvalueMouseClicked"/>
+        <EventHandler event="itemStateChanged" listener="java.awt.event.ItemListener" parameters="java.awt.event.ItemEvent" handler="CvalueItemStateChanged"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="CvalueActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel3">
@@ -184,40 +193,48 @@
         <Property name="text" type="java.lang.String" value="Change in Y : "/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JTextField" name="jTextField2">
+    <Component class="javax.swing.JTextField" name="inputdx">
       <Properties>
         <Property name="text" type="java.lang.String" value=" 0"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jTextField2ActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="inputdxActionPerformed"/>
+        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="inputdxFocusLost"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JTextField" name="jTextField3">
+    <Component class="javax.swing.JTextField" name="inputdy">
       <Properties>
         <Property name="text" type="java.lang.String" value=" 0"/>
       </Properties>
+      <Events>
+        <EventHandler event="focusLost" listener="java.awt.event.FocusListener" parameters="java.awt.event.FocusEvent" handler="inputdyFocusLost"/>
+      </Events>
     </Component>
-    <Component class="javax.swing.JLabel" name="jLabel6">
+    <Component class="javax.swing.JLabel" name="headerlabel">
       <Properties>
         <Property name="text" type="java.lang.String" value=" Button : Name  Event : ShieldEventName"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JLabel" name="jLabel7">
+    <Component class="javax.swing.JLabel" name="instructlabel">
       <Properties>
         <Property name="text" type="java.lang.String" value="Instructions :"/>
       </Properties>
     </Component>
-    <Component class="javax.swing.JButton" name="jButton1">
+    <Component class="javax.swing.JButton" name="okbutton">
       <Properties>
         <Property name="text" type="java.lang.String" value="OK"/>
       </Properties>
+      <Events>
+        <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="okbuttonMouseClicked"/>
+      </Events>
     </Component>
-    <Component class="javax.swing.JButton" name="jButton2">
+    <Component class="javax.swing.JButton" name="cancelbutton">
       <Properties>
         <Property name="text" type="java.lang.String" value="Cancel"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="jButton2ActionPerformed"/>
+        <EventHandler event="mouseClicked" listener="java.awt.event.MouseListener" parameters="java.awt.event.MouseEvent" handler="cancelbuttonMouseClicked"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="cancelbuttonActionPerformed"/>
       </Events>
     </Component>
   </SubComponents>

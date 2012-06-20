@@ -27,7 +27,7 @@ public class PreferencesHandler {
     File config;
     DocumentBuilderFactory docf;
     DocumentBuilder docb;
-    Document doc;
+    public Document doc;
     FileWriter filew;
     Element rootElement;
     ShieldButton ecu1,ecu2,ecu3,ecu4,e1,e2;
@@ -53,6 +53,7 @@ public class PreferencesHandler {
                 Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
             }
        }
+       initialize_events();
     }
     public void createXmlFile(){
         try {
@@ -103,11 +104,14 @@ public class PreferencesHandler {
         for(int i=0;i<value.length;i++){
             eventvalues=eventvalues.concat(""+value[i]+",");
         }
+        //eventvalues=eventvalues.substring(0,eventvalues.length()-1);
         event.setAttribute("value",eventvalues);
         String optionsvalues="";
         for(int i=0;i<options.length;i++){
             optionsvalues=optionsvalues.concat(""+options[i]+",");
+
         }
+        optionsvalues=optionsvalues.substring(0,optionsvalues.length()-1);
         if(optionsvalues.length()>0)
         event.setAttribute("options",optionsvalues);
         parent.appendChild(event);
@@ -126,11 +130,14 @@ public class PreferencesHandler {
         }
     }
     public Element getButton(int buttonid){
+
         Element button=(Element)rootElement.getFirstChild();
+        int j=10;
         while(button != null){
             if(button.getAttribute("value").equals(""+buttonid))
                 break;
             button=(Element)button.getNextSibling();
+            System.out.println(j++);
         }
         return button;
     }
@@ -138,8 +145,9 @@ public class PreferencesHandler {
         Element event=(Element) button.getFirstChild();
         while(event != null){
             if(event.getAttribute("eventid").equals(""+eventid)){
-                event=(Element)event.getNextSibling();
+                break;
             }
+            event=(Element)event.getNextSibling();
         }
         return event;
     }
@@ -185,4 +193,5 @@ public class PreferencesHandler {
         }
         return buttonret;
     }
+
 }

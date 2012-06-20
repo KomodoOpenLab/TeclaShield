@@ -21,6 +21,7 @@ public class ComEvent {
     }
     public ComEvent(int eventtype,String value,int event_no,int options[]){
         device=eventtype;
+        values=new ArrayList<Integer>();
         int start=0,end;
         while(start<value.length()){
             end=value.indexOf(',');

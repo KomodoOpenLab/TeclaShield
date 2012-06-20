@@ -4,6 +4,8 @@
  */
 package com.akdroid.interfaces;
 
+import com.akdroid.tecladesk.PreferencesHandler;
+
 /**
  *
  * @author Akhil
@@ -14,14 +16,14 @@ public class ClientMain extends javax.swing.JFrame {
      * Creates new form ClientMain
      */
     ButtonPref b1,b2,b3,b4,b5,b6;
-    public ClientMain() {
+    public ClientMain(PreferencesHandler pref) {
         initComponents();
-        b1=new ButtonPref(ShieldEvent.ECU1);
-        b2=new ButtonPref(ShieldEvent.ECU2);
-        b3=new ButtonPref(ShieldEvent.ECU3);
-        b4=new ButtonPref(ShieldEvent.ECU4);
-        b5=new ButtonPref(ShieldEvent.E1);
-        b6=new ButtonPref(ShieldEvent.E2);
+        b1=new ButtonPref(pref.getShieldButton(ShieldEvent.ECU1),pref);
+        b2=new ButtonPref(pref.getShieldButton(ShieldEvent.ECU2),pref);
+        b3=new ButtonPref(pref.getShieldButton(ShieldEvent.ECU3),pref);
+        b4=new ButtonPref(pref.getShieldButton(ShieldEvent.ECU4),pref);
+        b5=new ButtonPref(pref.getShieldButton(ShieldEvent.E1),pref);
+        b6=new ButtonPref(pref.getShieldButton(ShieldEvent.E2),pref);
         preftab.addTab("ECU UP",b1);
         preftab.addTab("ECU DOWN",b2);
         preftab.addTab("ECU LEFT",b3);
@@ -50,14 +52,14 @@ public class ClientMain extends javax.swing.JFrame {
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(157, Short.MAX_VALUE)
-                .addComponent(preftab, javax.swing.GroupLayout.PREFERRED_SIZE, 653, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(128, Short.MAX_VALUE)
+                .addComponent(preftab, javax.swing.GroupLayout.PREFERRED_SIZE, 777, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(38, 38, 38)
+                .addGap(60, 60, 60)
                 .addComponent(preftab, javax.swing.GroupLayout.DEFAULT_SIZE, 461, Short.MAX_VALUE)
                 .addContainerGap())
         );
@@ -102,7 +104,7 @@ public class ClientMain extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(new Runnable() {
 
             public void run() {
-                new ClientMain().setVisible(true);
+                //new ClientMain().setVisible(true);
             }
         });
     }
