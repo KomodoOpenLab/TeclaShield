@@ -9,6 +9,7 @@ import com.akdroid.interfaces.ShieldEventListener;
 import com.akdroid.teclasocket.BluetoothEventListener;
 import com.akdroid.teclasocket.TeclaSocket;
 import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -61,6 +62,7 @@ public class BluetoothClient extends Thread implements Runnable{
             public void onDisconnect() {
                 rec.end();
                 pinger.end();
+                System.out.println("Disconnected");
                 searcher=new ConnectionSearcher(sock);
                 searcher.start();
                 //throw new UnsupportedOperationException("Not supported yet.");
@@ -73,7 +75,7 @@ public class BluetoothClient extends Thread implements Runnable{
                    // System.out.println("byte received "+b);
                     resolve(b);
                 } catch (IOException ex) {
-                    Logger.getLogger(BluetoothClient.class.getName()).log(Level.SEVERE, null, ex);
+                   // Logger.getLogger(BluetoothClient.class.getName()).log(Level.SEVERE, null, ex);
                 }
                         
             }

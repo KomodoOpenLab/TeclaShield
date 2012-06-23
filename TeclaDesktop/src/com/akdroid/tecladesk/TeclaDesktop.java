@@ -27,7 +27,7 @@ public class TeclaDesktop {
         //final PreferencesHandler prefs=new PreferencesHandler(location);
         
         final EventGenerator eventgen =new EventGenerator();
-       /* BluetoothClient btclient=new BluetoothClient(uuidstring);
+        BluetoothClient btclient=new BluetoothClient(uuidstring);
         btclient.start();
         //while(btclient == null);
         btclient.addShieldEventListener(new ShieldEventListener(){
@@ -37,6 +37,7 @@ public class TeclaDesktop {
                ShieldButton current=prefs.getShieldButton(e.getbutton());
                if(current!=null)
                eventgen.interpret(current.eventlist[ShieldEvent.EVENT_PRESSED]);
+               System.out.println("Event of press"+e.getbutton());
                // throw new UnsupportedOperationException("Not supported yet.");
             }
 
@@ -73,6 +74,6 @@ public class TeclaDesktop {
                // throw new UnsupportedOperationException("Not supported yet.");
             }
         
-        });*/
+        });
     }
 }

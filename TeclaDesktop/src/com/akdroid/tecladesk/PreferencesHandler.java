@@ -137,7 +137,7 @@ public class PreferencesHandler {
             if(button.getAttribute("value").equals(""+buttonid))
                 break;
             button=(Element)button.getNextSibling();
-            System.out.println(j++);
+            //System.out.println(j++);
         }
         return button;
     }

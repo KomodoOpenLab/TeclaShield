@@ -108,7 +108,7 @@ public class TeclaSocket implements Communication,DiscoveryListener {
     //send bytes to TeclaShield
     public void send(Byte b) {
         try {
-            dataout.write(b);
+            dataout.writeByte(b);
             BluetoothEvent eve=new BluetoothEvent(this,BluetoothEvent.BLUETOOTH_SENT);
             fireevent(eve);
         } catch (IOException ex) {
@@ -249,5 +249,24 @@ public class TeclaSocket implements Communication,DiscoveryListener {
         } catch (IOException ex) {
             Logger.getLogger(TeclaSocket.class.getName()).log(Level.SEVERE, null, ex);
         }
-   } 
+   }
+
+   public void connect(UUID uuid){
+        try {
+            String connurl = dagent.selectService(uuid, ServiceRecord.NOAUTHENTICATE_NOENCRYPT, false);
+            conn = (StreamConnection) Connector.open(connurl);
+            datain=conn.openDataInputStream();
+            dataout=conn.openDataOutputStream();
+            BluetoothEvent eve=new BluetoothEvent(this,BluetoothEvent.BLUETOOTH_CONNECT);
+            fireevent(eve);
+        } catch (BluetoothStateException ex) {
+            Logger.getLogger(TeclaSocket.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        catch (IOException ex) {
+                Logger.getLogger(TeclaSocket.class.getName()).log(Level.SEVERE, null, ex);
+            }
+   }
+
+
+
 }

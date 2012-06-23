@@ -25,6 +25,7 @@ public class ComEvent {
         int start=0,end;
         while(start<value.length()){
             end=value.indexOf(',');
+            System.out.println(Integer.parseInt(value.substring(start, end)));
             values.add(Integer.parseInt(value.substring(start, end)));
             start=end+1;
         }

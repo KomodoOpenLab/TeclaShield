@@ -4,7 +4,7 @@ The Tecla Emulator GUI is a GUI tool for emulation of TeclaShield for developmen
 
 ##Requirements
 
-This emulator is known to run on Windows and Linux. The emulator has been tested on Fedora 16 and Windows 7.There may be problems when using it in Ubuntu.If someone can test,let me know the results or if possible edit this Readme.In all cases,for the emuator to connect to the Tecla Access app , you should (Bluetooth) name your device with a prefix **TeclaShield**.The android device (or test device) should be paired with your host computer which is running the emulator.
+This emulator is known to run on Windows and Linux. The emulator has been tested on Fedora 16 ,Kubuntu 12.04 and Windows 7.There may be problems when using it in Ubuntu.If someone can test,let me know the results or if possible edit this Readme.In all cases,for the emuator to connect to the Tecla Access app , you should (Bluetooth) name your device with a prefix **TeclaShield**.The android device (or test device) should be paired with your host computer which is running the emulator.
 
 
 ###Windows

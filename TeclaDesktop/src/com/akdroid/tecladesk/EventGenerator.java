@@ -6,6 +6,7 @@
 package com.akdroid.tecladesk;
 
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.util.ArrayList;
@@ -101,10 +102,14 @@ public class EventGenerator {
      }
      public void fireKeyPress(ArrayList<Integer> keyvalues){
          int i=0;
+         System.out.println(keyvalues.toString());
+
          for(i=0;i<keyvalues.size();i++){
+            if(keyvalues.get(i)!=0)
              robot.keyPress(keyvalues.get(i));
          }
          for(i=keyvalues.size()-1;i>=0;i--){
+            if(keyvalues.get(i)!=0)
              robot.keyRelease(keyvalues.get(i));
          }
      }

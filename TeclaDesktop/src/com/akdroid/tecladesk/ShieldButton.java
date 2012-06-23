@@ -25,7 +25,7 @@ public class ShieldButton {
             int eventtype=Integer.parseInt(event.getAttribute("device"));
             String value=event.getAttribute("value");
             String option=event.getAttribute("options");
-            System.out.println(option);
+            //System.out.println(option);
             int[] options=new int [2];
             options[0]=Integer.parseInt(option.substring(0, option.indexOf(',')));
             options[1]=Integer.parseInt(option.substring( option.indexOf(',')+1));

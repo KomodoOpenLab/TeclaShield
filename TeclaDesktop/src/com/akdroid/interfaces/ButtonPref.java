@@ -26,7 +26,7 @@ public class ButtonPref extends javax.swing.JPanel {
         initComponents();
         prefs=prefs_;
         Sbutton=buttonS;
-        System.out.print(buttonS.buttonid);
+        //System.out.print(buttonS.buttonid);
         updateOnPress(Sbutton.eventlist[ShieldEvent.EVENT_PRESSED]);
         updateOnRelease(Sbutton.eventlist[ShieldEvent.EVENT_RELEASED]);
         updateOnClick(Sbutton.eventlist[ShieldEvent.EVENT_CLICK]);
@@ -291,7 +291,7 @@ public class ButtonPref extends javax.swing.JPanel {
         ValueSetter val=new ValueSetter(Sbutton.eventlist[0],Sbutton.buttonid,this);
         val.setVisible(true);
        // while(val.block);
-        System.out.println("executed");
+       //System.out.println("executed");
        // updateOnPress(Sbutton.eventlist[ShieldEvent.EVENT_PRESSED]);
     }//GEN-LAST:event_edit0MouseClicked
 
@@ -503,24 +503,24 @@ public class ButtonPref extends javax.swing.JPanel {
 
     }
     public void writeConfig(int button ,ComEvent e) {
-        System.out.println(button);
+      //  System.out.println(button);
         Element event=prefs.getShieldEvent(prefs.getButton(button), e.eventno);
-        System.out.println("1");
+      //  System.out.println("1");
         event.setAttribute("eventid", "" + e.eventno);
-        System.out.println("2");
+      //  System.out.println("2");
         event.setAttribute("device", "" + e.device);
-        System.out.println("3");
+      //  System.out.println("3");
         event.setAttribute("options", "" + e.dx+","+e.dy);
-        System.out.println("4");
+      //  System.out.println("4");
         String eventvalues="";
         for(int i=0;i<e.values.size();i++){
             eventvalues=eventvalues.concat(""+e.values.get(i)+",");
         }
-        System.out.println("5");
+     //   System.out.println("5");
         event.setAttribute("value", "" + eventvalues);
-        System.out.println("6");
+     //   System.out.println("6");
         prefs.commitchanges(prefs.doc);
-        System.out.println("7");
+     //   System.out.println("7");
 
 
     }
