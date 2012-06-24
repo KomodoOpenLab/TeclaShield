@@ -53,6 +53,7 @@ public class PingManager extends Thread implements Runnable {
     }
     public void resetcount(){
         count =0;
+        System.out.println("reset");
     }
     public void end(){
         runflag=false;

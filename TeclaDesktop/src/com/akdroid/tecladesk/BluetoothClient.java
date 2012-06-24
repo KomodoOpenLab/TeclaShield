@@ -60,7 +60,9 @@ public class BluetoothClient extends Thread implements Runnable{
 
             @Override
             public void onDisconnect() {
+                if(rec!=null)
                 rec.end();
+                if(pinger!=null)
                 pinger.end();
                 System.out.println("Disconnected");
                 searcher=new ConnectionSearcher(sock);

@@ -121,7 +121,13 @@ public class TeclaSocket implements Communication,DiscoveryListener {
     public void receive() {
         try {
             
-            while((datain.available()!=0)); //wait till input stream contains a new byte 
+            while((datain.available()==0)){
+                try {
+                    Thread.sleep(1);
+                } catch (InterruptedException ex) {
+                    Logger.getLogger(TeclaSocket.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }//wait till input stream contains a new byte
             BluetoothEvent eve=new BluetoothEvent(this,BluetoothEvent.BLUETOOTH_RECEIVE);
             fireevent(eve);
         } catch (IOException ex) {
@@ -180,7 +186,9 @@ public class TeclaSocket implements Communication,DiscoveryListener {
                    //Provides the string required for connecting to TeclaShield service
                     if(connstring != null)
                     {
+                        
                         conn = (StreamConnection)Connector.open(connstring); //Connect
+                        System.out.println("got in");
                         dataout=conn.openDataOutputStream(); //outputstream to write bytes into
                         datain=conn.openDataInputStream();   //inputstream to read data from
                         connectionflag=true;       
@@ -240,8 +248,11 @@ public class TeclaSocket implements Communication,DiscoveryListener {
    }
    public void disconnect(){
         try {
+            if(datain!=null)
             datain.close();
+            if(dataout!=null)
             dataout.close();
+            if(conn!=null)
             conn.close();
             BluetoothEvent eve=new BluetoothEvent(this,BluetoothEvent.BLUETOOTH_DISCONNECT);
             fireevent(eve);
