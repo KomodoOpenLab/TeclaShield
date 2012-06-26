@@ -155,6 +155,7 @@ public class BluetoothClient extends Thread implements Runnable{
                break;
            }
        }    
+       if(button==5)System.out.println("5");
        return button;
     }
     public int setevent(byte b,int button){
@@ -201,12 +202,13 @@ public class BluetoothClient extends Thread implements Runnable{
                 fireevent(prevclick);
                 event=prevclick.getevent();
             }   
-            else if(timer.isAlive()||timer.getState()!=State.NEW){
+            else if(timer.isAlive()&&timer.getState()!=State.NEW){
                 /*
                  * if Timer is running ,stop the timer 
                  * if button clicked is same as prevclick fire double-click else 
                  * fire prevclick and start a new timer.
                  */
+                System.out.println("timer alive");
                 timer.end();
                 ShieldEvent ev=new ShieldEvent(this,button,ShieldEvent.EVENT_CLICK);
                 if(ev.equals(prevclick)){

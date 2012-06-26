@@ -50,7 +50,7 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
         headerlabel.setText(name);
         
         //Set the currently set value.
-        
+        Cvalue.removeAllItems();
         setCurrentValue();
         
     }
@@ -264,7 +264,11 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
         temp.device=EventConstant.KEYBOARD;
         disableoptions(false);
         Cvalue.setEnabled(true);
-        
+        Cvalue.removeAllItems();
+        if(ce.device==EventConstant.KEYBOARD)
+            Cvalue.addItem(getKeyCombination(ce.values));
+        else
+            Cvalue.addItem("Click to Change");
         
         }
     }//GEN-LAST:event_RkeyStateChanged
@@ -274,7 +278,7 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
             Cvalue.setFocusable(true);
             Cvalue.requestFocus();
             Cvalue.addKeyListener(this);
-            temp.values=new ArrayList<Integer>();
+            
         }
     }//GEN-LAST:event_CvalueMouseClicked
 
@@ -310,6 +314,10 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
         if(Rnone.isSelected()){
             temp.device=EventConstant.NONE;
             disableAllOptions();
+            temp.values=new ArrayList<Integer>();
+            temp.values.add(EventConstant.NONE);
+            temp.dx=0;
+            temp.dy=0;
         }
     }//GEN-LAST:event_RnoneStateChanged
 
@@ -468,7 +476,9 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
+        if(counter==0)temp.values=new ArrayList<Integer>();
         temp.values.add(e.getKeyCode());
+        
         counter++;
     }
 
@@ -476,9 +486,8 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
     public void keyReleased(KeyEvent e) {
         counter--;
         if(counter==0){
+            instructlabel.setText(instructlabel.getText()+" Value changed to "+getKeyCombination(temp.values));
             Cvalue.removeKeyListener(this);
-            Cvalue.removeAllItems();
-            Cvalue.addItem(getKeyCombination(temp.values));
         }
     }
     public void disableoptions(boolean scroll){
@@ -539,6 +548,7 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
          * Returns user friendly name of the key-combinations
          */
         String keyCombination="";
+        
         if(val.isEmpty())
             return "Not Set";
         else{

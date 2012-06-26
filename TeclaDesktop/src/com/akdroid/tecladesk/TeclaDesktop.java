@@ -7,7 +7,6 @@ package com.akdroid.tecladesk;
 import com.akdroid.interfaces.ClientMain;
 import com.akdroid.interfaces.ShieldEvent;
 import com.akdroid.interfaces.ShieldEventListener;
-import java.util.Properties;
 
 /**
  *

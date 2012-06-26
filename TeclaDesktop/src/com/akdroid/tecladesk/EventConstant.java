@@ -22,7 +22,8 @@ public class EventConstant {
     public static final int MOUSECLICK = 1;
     public static final int DBLCLICK = 2;
     public static final int RIGHTCLICK = 3;
-    public static final int SCROLL = 4;
+    public static final int MIDDLEBUTTON = 4;
+    public static final int SCROLL = 5;
     
     public static final String[] ShieldEventNames={
                                                 "onPress",
@@ -37,6 +38,7 @@ public class EventConstant {
                                                     "MouseClick",
                                                     "DoubleClick",
                                                     "RightClick",
+                                                    "MiddleButton",
                                                     "Scroll"
                                               };
     

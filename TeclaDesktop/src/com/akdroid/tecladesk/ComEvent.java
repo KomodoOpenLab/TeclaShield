@@ -36,11 +36,14 @@ public class ComEvent {
         device=eventtype;
         values=new ArrayList<Integer>();
         int start=0,end;
-        while(start<value.length()){
-            end=value.indexOf(',');
-            System.out.println(Integer.parseInt(value.substring(start, end)));
-            values.add(Integer.parseInt(value.substring(start, end)));
+        
+        String temp=value.concat("");
+        while(start<temp.length()){
+            temp=temp.substring(start);
+            end=temp.indexOf(',');
+            values.add(Integer.parseInt(temp.substring(0, end)));
             start=end+1;
+            
         }
         dx=options[0];
         dy=options[1];

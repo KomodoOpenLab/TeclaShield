@@ -6,7 +6,7 @@
 package com.akdroid.tecladesk;
 
 import java.awt.*;
-import java.awt.event.MouseEvent;
+import java.awt.event.InputEvent;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -68,9 +68,13 @@ public class EventGenerator {
                  case EventConstant.RIGHTCLICK:
                      fireRightClick();
                      break;
+                 case EventConstant.MIDDLEBUTTON:
+                     fireMiddleButton();
+                     break;
                  case EventConstant.SCROLL:
                      fireMouseScroll(ev.dx);
                      break;
+                     
              }
          }
          else if(ev.device==EventConstant.KEYBOARD){
@@ -82,15 +86,20 @@ public class EventGenerator {
          /*
           * fires mouse left click
           */
-         robot.mousePress(MouseEvent.BUTTON1);
-         robot.mouseRelease(MouseEvent.BUTTON1);
+         robot.mousePress(InputEvent.BUTTON1_MASK);
+         robot.mouseRelease(InputEvent.BUTTON1_MASK);
      }
      public void fireRightClick(){
          /*
           * fires mouse Right click
           */
-         robot.mousePress(MouseEvent.BUTTON2);
-         robot.mouseRelease(MouseEvent.BUTTON2);
+         System.out.println("In Right Click");
+         robot.mousePress(InputEvent.BUTTON3_MASK);
+         robot.mouseRelease(InputEvent.BUTTON3_MASK);
+     }
+     public void fireMiddleButton(){
+         robot.mousePress(InputEvent.BUTTON2_MASK);
+         robot.mouseRelease(InputEvent.BUTTON2_MASK);
      }
      public void fireDblClick(){
          /*
