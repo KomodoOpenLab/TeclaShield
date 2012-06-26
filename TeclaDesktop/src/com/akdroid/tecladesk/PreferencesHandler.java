@@ -9,9 +9,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.w3c.dom.*;
-import org.xml.sax.*;
-import javax.xml.parsers.*;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerConfigurationException;
 import javax.xml.transform.TransformerException;
@@ -19,68 +19,103 @@ import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
 import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.xml.sax.SAXException;
+
 /**
  *
+ * PreferencesHandler manages Preferences stored in an xml document.
+ * Currently only one document is being used as preferences.
+ * Support for multiple documents has to be added.
+ * This class  creates,reads and modifies the XML document.
+ * Document Format:
+ * <TeclaClient>
+ * <ShieldButton value="button_number">
+ * <ShieldEvent 
+ * eventid="shieldevent_id"
+ * device="device number"
+ * options="dx_value,dy_value"
+ * value="val1,val2,val3,"
+ * >
+ * </ShieldEvent>
+ * </ShieldButton>
+ * </TeclaClient> 
+ * TeclaClient is the root element. only one such element possible in a document.
+ * where button_number,shieldevent_id,device number,dx_value,dy_value,val1,val2,val3 are integers
+ * the last comma in value field of ShieldEvent is essential for proper parsing.
  * @author Akhil
  */
+
 public class PreferencesHandler {
-    File config;
-    DocumentBuilderFactory docf;
-    DocumentBuilder docb;
-    public Document doc;
-    FileWriter filew;
-    Element rootElement;
-    ShieldButton ecu1,ecu2,ecu3,ecu4,e1,e2;
+   
+    
+    File config;                    //File object representing the xml file
+    DocumentBuilderFactory docf;    //Documentfactory used to build documents as per w3c
+    DocumentBuilder docb;           //Document builder used to create documents
+    public Document doc;            //xml Document object. 
+    FileWriter filew;               //Filwwriter used to write to the file.
+    Element rootElement;            //the element directly below the document in DOM heirarchy
+    ShieldButton ecu1,ecu2,ecu3,ecu4,e1,e2; //ShieldButton objects one for each button.
+    
+    
     public PreferencesHandler(String filepath){
-        config=new File(filepath);
+        /*
+         * 
+         * This constructor uses filepath to open the config file.
+         * If the file doesn't exist ,a new file will be created and fill 
+         * it with default values which are all NONE.
+         * if the file exists the file will be parsed into the document.
+         * 
+         */
+        config=new File(filepath); //initialize file and document factory
         docf=DocumentBuilderFactory.newInstance();
         
             try {
-                docb=docf.newDocumentBuilder();
-              //  doc=docb.parse(config);
+                docb=docf.newDocumentBuilder(); //initialize document builder
             } catch (ParserConfigurationException ex) {
                 Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
             } 
        if(!config.exists())
-           createXmlFile();
+           createXmlFile(); //create a new xml config file.
        else{
             try {
-                doc=docb.parse(config);
-                rootElement=(Element)doc.getFirstChild();
+                doc=docb.parse(config);  //parse the config file into documents consisting of nodelist
+                rootElement=(Element)doc.getFirstChild(); //initialize the root element
             } catch (SAXException ex) {
                 Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
             } catch (IOException ex) {
                 Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
             }
        }
-       initialize_events();
+       initialize_events(); //Parse th information in the config file to ComEvents.
     }
     public void createXmlFile(){
         try {
-            config.createNewFile();
+            config.createNewFile(); //Create an empty file.
         } catch (IOException ex) {
             Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
-        doc=docb.newDocument();
-        rootElement=doc.createElement("TeclaClient");
-        doc.appendChild(rootElement);
-        makedefault(doc,rootElement);
-        commitchanges(doc);
+        doc=docb.newDocument();//Create a new empty DOM document.
+        rootElement=doc.createElement("TeclaClient"); //RootElement=>TeclaClient
+        doc.appendChild(rootElement); //appends the rootelement to the document as Child.
+        makedefault(doc,rootElement); //Initialize all the values.
+        commitchanges(doc);  //Write changes to the file.
         
     }
     public void commitchanges(Document doc_){
-        TransformerFactory tf =TransformerFactory.newInstance();
+        TransformerFactory tf =TransformerFactory.newInstance(); //
         try {
-            Transformer transformer=tf.newTransformer();
-            DOMSource source=new DOMSource(doc_) ;
+            Transformer transformer=tf.newTransformer(); //Transformer transforms a DOM document to
+                                                         //a stream output such as stdout or file.               
+            DOMSource source=new DOMSource(doc_) ;       //source document    
             try {
                 filew=new FileWriter(config);
             } catch (IOException ex) {
                 Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
             }
-            StreamResult result=new StreamResult(filew);
+            StreamResult result=new StreamResult(filew); //destination stream
             try {
-                transformer.transform(source, result);
+                transformer.transform(source, result);   //transform the source into result.
             } catch (TransformerException ex) {
                 Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -89,6 +124,11 @@ public class PreferencesHandler {
         }    
     }  
     public Element addButton(Document document,Element root,int buttonid){
+        /*
+         * Adds a ShieldButton Element to the documents'root element as a Child
+         * and sets its button value as its attribute.
+         * returns added Element.
+         */
         Element buttonelem=document.createElement("ShieldButton");
         buttonelem.setAttribute("value",""+buttonid);
         
@@ -96,7 +136,13 @@ public class PreferencesHandler {
         return buttonelem;
     }
     public Element addeventinfo(Document document,Element parent,int eventid,int device,int[] value,int[] options ){
-        Element event = document.createElement("ShieldEvent");
+        /*
+         * Adds a ShieldEvent Element as a child to the parent ShieldButton element.
+         * The atrributes of ShieldEvent include eventid , device ,value ,options
+         * The meaning of these attributes is explained in ComEvent.java
+         * returns created ShieldEventElement.
+         */
+        Element event = document.createElement("ShieldEvent"); 
         event.setAttribute("device", ""+device);
         event.setAttribute("eventid",""+eventid);
         event.setIdAttribute("eventid", true);
@@ -118,8 +164,14 @@ public class PreferencesHandler {
         return event;
     }
     public void makedefault(Document doc_,Element root_){
+        /*
+         * Adds the default values of events into all shieldbuttons 
+         * i.e to initialize the document with default values.
+         * device=none , values=0,options=0,0;
+         */
+        
         int[] val,options;
-        val=new int[1];
+        val=new int[1]; 
         options=new int[2];
         options[0]=options[1]=val[0]=EventConstant.NONE;
         for(int i=ShieldEvent.ECU1;i<=ShieldEvent.E2;i++){
@@ -130,18 +182,24 @@ public class PreferencesHandler {
         }
     }
     public Element getButton(int buttonid){
-
+        /*
+         * returns ShieldButton Element corresponding to the given buttonid 
+         * returns null if not found.
+         */
         Element button=(Element)rootElement.getFirstChild();
-        int j=10;
         while(button != null){
             if(button.getAttribute("value").equals(""+buttonid))
                 break;
             button=(Element)button.getNextSibling();
-            //System.out.println(j++);
+           
         }
         return button;
     }
     public Element getShieldEvent(Element button,int eventid){
+        /*
+         * returns ShieldEvent Element for the corresponding button and eventid
+         * returns null if not found.
+         */
         Element event=(Element) button.getFirstChild();
         while(event != null){
             if(event.getAttribute("eventid").equals(""+eventid)){
@@ -152,24 +210,42 @@ public class PreferencesHandler {
         return event;
     }
     public void setEventattribute(int buttonid,int eventid,String key,String value){
+        /*
+         * sets the ShieldEvent given by buttonid and eventid's
+         * attribute 'key' with 'value'
+         */
         Element event =getShieldEvent(getButton(buttonid),eventid);
         event.setAttribute(key, value);
     }
     public String getEventattribute(int buttonid,int eventid,String key){
+        
+        /*
+         * retrieves the value of the ShieldEvent described by eventid and buttonid
+         * attribute having the attribute name 'key'
+         */
         Element event =getShieldEvent(getButton(buttonid),eventid);
         return event.getAttribute(key);
     }
     public void initialize_events(){
+        /*
+         * Initializes the ShieldButtons one for each button on the Shield
+         * as well as the ComEvents associated with them
+         */
         if(doc!=null){
             ecu1=new ShieldButton(ShieldEvent.ECU1,getButton(ShieldEvent.ECU1));
             ecu2=new ShieldButton(ShieldEvent.ECU2,getButton(ShieldEvent.ECU2));
             ecu3=new ShieldButton(ShieldEvent.ECU3,getButton(ShieldEvent.ECU3));
             ecu4=new ShieldButton(ShieldEvent.ECU4,getButton(ShieldEvent.ECU4));
-            e1=new ShieldButton(ShieldEvent.E1,getButton(ShieldEvent.E1));
-            e2=new ShieldButton(ShieldEvent.E2,getButton(ShieldEvent.E2));
+            e1 = new ShieldButton(ShieldEvent.E1,getButton(ShieldEvent.E1));
+            e2 = new ShieldButton(ShieldEvent.E2,getButton(ShieldEvent.E2));
         } 
     }
     public ShieldButton getShieldButton(int number){
+        
+        /*
+         * returns the ShieldButton decided by the button number or the buttonid
+         * returns null if the button number is not valid.
+         */
         ShieldButton buttonret=null;
         switch(number){
             case ShieldEvent.ECU1:

@@ -7,7 +7,7 @@ package com.akdroid.interfaces;
 import com.akdroid.tecladesk.PreferencesHandler;
 
 /**
- *
+ * This is the main window of the TeclaDesktop
  * @author Akhil
  */
 public class ClientMain extends javax.swing.JFrame {
@@ -18,12 +18,14 @@ public class ClientMain extends javax.swing.JFrame {
     ButtonPref b1,b2,b3,b4,b5,b6;
     public ClientMain(PreferencesHandler pref) {
         initComponents();
+        //initialize buttonpref panels
         b1=new ButtonPref(pref.getShieldButton(ShieldEvent.ECU1),pref);
         b2=new ButtonPref(pref.getShieldButton(ShieldEvent.ECU2),pref);
         b3=new ButtonPref(pref.getShieldButton(ShieldEvent.ECU3),pref);
         b4=new ButtonPref(pref.getShieldButton(ShieldEvent.ECU4),pref);
         b5=new ButtonPref(pref.getShieldButton(ShieldEvent.E1),pref);
         b6=new ButtonPref(pref.getShieldButton(ShieldEvent.E2),pref);
+        //Add button tabs to the panel
         preftab.addTab("ECU UP",b1);
         preftab.addTab("ECU DOWN",b2);
         preftab.addTab("ECU LEFT",b3);

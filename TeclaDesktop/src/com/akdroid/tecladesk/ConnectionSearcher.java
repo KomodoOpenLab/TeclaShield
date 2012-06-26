@@ -9,12 +9,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * ConnectionSearcher is a Runnable class that will search and try
+ * to connect to a TeclaShield.
+ * In case of failure,it will attempt to reconnect periodically.
  * @author Akhil
  */
 public class ConnectionSearcher extends Thread implements Runnable{
     
-    public static final int ATTEMPT_DELAY  = 5;
+    public static final int ATTEMPT_DELAY  = 2; //Period for reconnecting attempt in minutes
     
     TeclaSocket sock;
     
@@ -23,13 +25,13 @@ public class ConnectionSearcher extends Thread implements Runnable{
     }
     @Override
     public void run(){
-        while(!sock.isConnected())
+        while(!sock.isConnected())//Check if connection is established.
         {
-            sock.scan_devices();
+            sock.scan_devices();  //search and connect if found.
             try {
-                Thread.sleep(ATTEMPT_DELAY * 60000);
+                Thread.sleep(ATTEMPT_DELAY * 60000); //Wait for delay period
             } catch (InterruptedException ex) {
-                Logger.getLogger(ConnectionSearcher.class.getName()).log(Level.SEVERE, null, ex);
+                System.out.println(ex.getMessage()); //Can be interrupted by calling interrupt function
             }
         }
     }

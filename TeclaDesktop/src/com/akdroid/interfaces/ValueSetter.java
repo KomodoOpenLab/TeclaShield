@@ -12,7 +12,8 @@ import java.util.ArrayList;
 
 
 /**
- *
+ * ValueSetter is used to change the preference
+ * one ComEvent at a time.
  * @author Akhil
  */
 public class ValueSetter extends javax.swing.JFrame implements KeyListener {
@@ -20,16 +21,19 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
     /**
      * Creates new form ValueSetter
      */
-    ComEvent ce,temp;
+    ComEvent ce,temp; //ComEvents temp and ce one temporary and one current
+    
     int counter;
-    public boolean block;
-    ButtonPref source;
+           
+    ButtonPref source;  //the caller object
+    
     public ValueSetter(ComEvent event,int button,ButtonPref src) {
         initComponents();
        // block=true;
         setTitle("EditEvent");
         ce=event;
         source=src;
+        //Initialize temp and copy it from ce;
         temp=new ComEvent();
         temp.device=ce.device;
         temp.dx=ce.dx;
@@ -37,11 +41,17 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
         temp.values=ce.values;
         temp.eventno=ce.eventno;
         counter=0;
+        
+        //Initialize header labels
+        
         String name="  "+EventConstant.Shieldbuttons[button];
         name=name+" Event: "+EventConstant.ShieldEventNames[ce.eventno];
+        
         headerlabel.setText(name);
+        
+        //Set the currently set value.
+        
         setCurrentValue();
-        block=true;
         
     }
 
@@ -82,11 +92,6 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
                 RnoneStateChanged(evt);
             }
         });
-        Rnone.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                RnoneActionPerformed(evt);
-            }
-        });
 
         buttonGroup1.add(Rmouse);
         Rmouse.setText("Mouse");
@@ -117,11 +122,6 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
                 CvalueItemStateChanged(evt);
             }
         });
-        Cvalue.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                CvalueActionPerformed(evt);
-            }
-        });
 
         jLabel3.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         jLabel3.setText("Optional Values :");
@@ -131,11 +131,6 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
         jLabel5.setText("Change in Y : ");
 
         inputdx.setText(" 0");
-        inputdx.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                inputdxActionPerformed(evt);
-            }
-        });
         inputdx.addFocusListener(new java.awt.event.FocusAdapter() {
             public void focusLost(java.awt.event.FocusEvent evt) {
                 inputdxFocusLost(evt);
@@ -164,11 +159,6 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
         cancelbutton.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 cancelbuttonMouseClicked(evt);
-            }
-        });
-        cancelbutton.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                cancelbuttonActionPerformed(evt);
             }
         });
 
@@ -263,30 +253,18 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void RnoneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RnoneActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_RnoneActionPerformed
-
-    private void cancelbuttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelbuttonActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_cancelbuttonActionPerformed
-
-    private void inputdxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_inputdxActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_inputdxActionPerformed
-
-    private void CvalueActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CvalueActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_CvalueActionPerformed
-
     private void RkeyStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_RkeyStateChanged
         // TODO add your handling code here:
+        /*
+         * if keyboard is selected ,disable options and make Keyboard listening
+         * To change the currently set value,click on combobox and press the
+         * keycombination on your keyboard.this will set the keyvalue.
+         */
         if(Rkey.isSelected()){
         temp.device=EventConstant.KEYBOARD;
         disableoptions(false);
         Cvalue.setEnabled(true);
-        Cvalue.removeAllItems();
-        Cvalue.addItem("Click to Change");
+        
         
         }
     }//GEN-LAST:event_RkeyStateChanged
@@ -302,6 +280,14 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
 
     private void RmouseStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_RmouseStateChanged
         // TODO add your handling code here:
+        /*
+         * if mouse is selected update the combobox with
+         * all the mouse options.
+         * if mouse move is selected dx and dy can be edited
+         * if the entered value isn't a number default value of 5 is chosen
+         * if mouse scroll is selected ,dx can be edited and if the entered 
+         * value is not a number default value of 5 is chosen. 
+         */
         if(Rmouse.isSelected())
         {
             temp.device=EventConstant.MOUSE;
@@ -316,6 +302,11 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
 
     private void RnoneStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_RnoneStateChanged
         // TODO add your handling code here:
+        /*
+         * don't assign a device
+         * or Computer Device
+         */
+                
         if(Rnone.isSelected()){
             temp.device=EventConstant.NONE;
             disableAllOptions();
@@ -377,6 +368,9 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
 
     private void okbuttonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_okbuttonMouseClicked
         // TODO add your handling code here:
+        /*
+         * keep the changes done.
+         */
         ce=temp;
         switch(ce.eventno){
             case ShieldEvent.EVENT_PRESSED:
@@ -470,15 +464,12 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
 
     @Override
     public void keyTyped(KeyEvent e) {
-        //throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
         temp.values.add(e.getKeyCode());
-        System.out.println(KeyEvent.getKeyText(e.getKeyCode()));
         counter++;
-        //throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
@@ -486,15 +477,22 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
         counter--;
         if(counter==0){
             Cvalue.removeKeyListener(this);
+            Cvalue.removeAllItems();
+            Cvalue.addItem(getKeyCombination(temp.values));
         }
-        //throw new UnsupportedOperationException("Not supported yet.");
     }
     public void disableoptions(boolean scroll){
+        /*
+         * disbale options text boxes
+         */
         if(!scroll)
         inputdx.setEnabled(false);
         inputdy.setEnabled(false);
     }
     public void enableoptions(boolean scroll){
+        /*
+         * enable options text boxes
+         */
         if(!scroll)
             inputdy.setEnabled(true);
         else
@@ -502,10 +500,17 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
         inputdx.setEnabled(true);
     }
     public void disableAllOptions(){
+        /*
+         * disbale everything except device selection
+         */
         disableoptions(false);
         Cvalue.setEnabled(false);
     }
     public void setCurrentValue(){
+        /*
+         * updates Label and Combobox Values
+         * for the current setting of ComEvent
+         */
         switch(ce.device){
             case EventConstant.NONE:
                 Rnone.setSelected(true);
@@ -530,13 +535,20 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
         }
     }
     public static String getKeyCombination(ArrayList<Integer> val){
+        /*
+         * Returns user friendly name of the key-combinations
+         */
         String keyCombination="";
         if(val.isEmpty())
             return "Not Set";
         else{
             keyCombination=KeyEvent.getKeyText(val.get(0));
         for(int i=1;i<val.size();i++){
-            keyCombination=keyCombination + " + " + KeyEvent.getKeyText(val.get(i));
+            if(val.get(i)==0){
+                keyCombination="Not Set";
+                return keyCombination;
+            }else
+                keyCombination=keyCombination + " + " + KeyEvent.getKeyText(val.get(i));
         }}
         return keyCombination;
     }

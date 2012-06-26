@@ -7,12 +7,15 @@ import com.akdroid.teclasocket.TeclaSocket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 /**
- *
+ * Makes the socket listening on a separate thread for data inputs 
+ * over the DataInputStream of the socket.
  * @author Akhil
  */
 public class Receiver extends Thread implements Runnable {
-    TeclaSocket sock;
-    boolean runf;
+    
+    TeclaSocket sock;       //socket for communication 
+    boolean runf;           //Interrupt switch
+    
     public Receiver(TeclaSocket t){
         sock=t;
         runf=true;
@@ -21,17 +24,16 @@ public class Receiver extends Thread implements Runnable {
     @Override
     public void run() {
         while(runf){
-            sock.receive();
+            sock.receive();  //Start listening on the socket for any received byte.
             try {
-                Thread.sleep(PingManager.DEBOUNCE_TIME);
+                Thread.sleep(PingManager.DEBOUNCE_TIME); //wait for Debounce delay
             } catch (InterruptedException ex) {
                 Logger.getLogger(Receiver.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-       // throw new UnsupportedOperationException("Not supported yet.");
     }
    
-    public void end(){
+    public void end(){  //Interrupt the thread.
         runf=false;
     }
 }

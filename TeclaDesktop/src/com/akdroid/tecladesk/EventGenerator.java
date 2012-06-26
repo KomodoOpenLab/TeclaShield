@@ -6,9 +6,7 @@
 package com.akdroid.tecladesk;
 
 import java.awt.*;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -16,44 +14,46 @@ import java.util.logging.Logger;
 
 
 /**
- * Possible event parameters
- * type of event mouse/keyboard
- * event value as in keyvalue or mouse action
- * minimum displacement in case of mouse movement or keyboard keypresses
- * -1 will be the value if not applicable or not assigned
+ * EventGenerator generates Computer Events using the Robot class.
+ * 
  * @author Akhil
  */
 public class EventGenerator {
+    
      Robot robot;
-     File config;
-     String Filelocation="";
      int screenwidth=0,screenheight=0;
 
      public EventGenerator(){
+         /*
+          * Initializes the robot and obtains screen dimensions 
+          * for limiting mouse movement.
+          */
+                 
         try {
-            robot=new Robot();
+            robot=new Robot(); //initialize robot
+            
             Toolkit toolkit=Toolkit.getDefaultToolkit();
             Dimension dim=toolkit.getScreenSize();
-            screenwidth=dim.width;
-            screenheight=dim.height;        
+            
+            screenwidth=dim.width;          //screen width
+            screenheight=dim.height;        //screen height
             
         } catch (AWTException ex) {
             Logger.getLogger(EventGenerator.class.getName()).log(Level.SEVERE, null, ex);
         }
      }
-     public void enter_delay(int ms){
-         robot.delay(ms);
+     public void enter_delay(int ms_){
+         /*
+          * Introduces delay of ms_ units in ms .
+          */
+         robot.delay(ms_);
      }
-     public void generate_event(int device){
-         
-     }
-     public void saveconfig(){
-
-     }
-     public void defaultconfig(){
-         
-     }
+     
      public void interpret(ComEvent ev){
+         /*
+          * Interprets ComEvent ev and accordingly 
+          * fires the corresponding Computer Event 
+          */
          if(ev.device==EventConstant.MOUSE){
              switch(ev.values.get(0)){
                  case EventConstant.MOUSECLICK:
@@ -79,30 +79,59 @@ public class EventGenerator {
          
      }
      public void fireMouseClick(){
+         /*
+          * fires mouse left click
+          */
          robot.mousePress(MouseEvent.BUTTON1);
          robot.mouseRelease(MouseEvent.BUTTON1);
      }
      public void fireRightClick(){
+         /*
+          * fires mouse Right click
+          */
          robot.mousePress(MouseEvent.BUTTON2);
          robot.mouseRelease(MouseEvent.BUTTON2);
      }
      public void fireDblClick(){
+         /*
+          * fires mouse left double click
+          */
          fireMouseClick();
          fireMouseClick();
      }
      public void fireMouseMove(int dx,int dy){
+         /*
+          * moves the mouse pointer by dx and dy
+          * within the screen limits.
+          * dx = +ve -> Right
+          * dx = -ve -> Left
+          * dy = +ve -> Down
+          * dy = -ve -> Up
+          *   
+          */
+         //get curent mouse pointer location
          int x=MouseInfo.getPointerInfo().getLocation().x;
          int y=MouseInfo.getPointerInfo().getLocation().y;
+         //move the pointer within the limits.
          if(x+dx>0&&x+dx<=screenwidth)x=x+dx;
          if(y+dy>0&&y+dy<=screenheight)y=y+dy;
          robot.mouseMove(x,y);
      }
      public void fireMouseScroll(int units){
+         /*
+          * generates mouse scroll for "units"
+          * units = +ve scrollwheel away from the user.
+          * units = -ve scrollwheel towards the user.
+          */
          robot.mouseWheel(units);
      }
      public void fireKeyPress(ArrayList<Integer> keyvalues){
-         int i=0;
-         System.out.println(keyvalues.toString());
+         /*
+          * fires keypress and keyrelease of the values so as to
+          * generate key combination events like Alt+Tab stored in 
+          * the arraylist keyvalues.
+          */
+         int i;
 
          for(i=0;i<keyvalues.size();i++){
             if(keyvalues.get(i)!=0)

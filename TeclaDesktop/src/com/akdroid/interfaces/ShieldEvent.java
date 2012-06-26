@@ -8,10 +8,31 @@ import java.util.Date;
 import java.util.EventObject;
 
 /**
- *
+ * ShieldEvent represents the possible events that TeclaShield can generate
  * @author Akhil
  */
 public class ShieldEvent extends EventObject {
+    
+    /*
+     * ShieldEvents are fired as
+     * Basic Events:
+     * 
+     * OnPress   -> Fired when any of the buttons pressed.
+     * 
+     * OnRelease -> Fired when any of the buttons released.
+     * 
+     * Special Events:
+     * 
+     * OnClick    -> fired when a button is pressed and released and if same event
+     *               doesn't occur in DOUBLECLICK_DELAY,the event is fired
+     * 
+     * OnDblClick -> fired when a button is pressed twice and released in a row 
+     *               with a delay less than DOUBLECLICK_DELAY
+     * 
+     * OnLongPress ->fired when a button is released after being pressed for a 
+     *               time more than LONG_DELAY
+     * 
+     */
     
     //Constants depicting different buttons/ports possible from the TeclaShield
     
@@ -38,16 +59,16 @@ public class ShieldEvent extends EventObject {
     public static final int LONG_DELAY =2000;
     
     // button identification field
-    int button_id ;
+    int button_id ; 
     //event identification field
     int event_id;
     
     long timestamp;
     public ShieldEvent(Object source,int id,int event_){
         super(source);
-        button_id=id;
+        button_id=id; 
         event_id=event_;
-        timestamp=new Date().getTime();
+        timestamp=new Date().getTime();//Time at which event occured
     }
     
     public int getbutton(){

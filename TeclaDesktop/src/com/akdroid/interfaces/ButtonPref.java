@@ -11,12 +11,17 @@ import com.akdroid.tecladesk.ShieldButton;
 import org.w3c.dom.Element;
 
 /**
- *
+ * ButtonPref is a JPanel which forms a single tab of the JTabbedPane
+ * in the ClientMain window.Each ButtonPref panel will hold the information of
+ * a single Shield button.This panel will display all the current preferences
+ * The edit button will allow you to edit by triggering ValueSetter form.
  * @author Akhil
  */
 public class ButtonPref extends javax.swing.JPanel {
 
     /**
+     * All the variables are created and initialized by initcomponents();
+     * which is created by netbeans autotmatically.
      * Creates new form ButtonPref
      */
     
@@ -108,11 +113,6 @@ public class ButtonPref extends javax.swing.JPanel {
         edit2.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 edit2MouseClicked(evt);
-            }
-        });
-        edit2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                edit2ActionPerformed(evt);
             }
         });
 
@@ -216,7 +216,7 @@ public class ButtonPref extends javax.swing.JPanel {
             .addGroup(layout.createSequentialGroup()
                 .addGap(10, 10, 10)
                 .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 591, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(64, Short.MAX_VALUE))
+                .addContainerGap(111, Short.MAX_VALUE))
         );
 
         layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jLabel1, jLabel2, jLabel3, jLabel4, jLabel5, jLabel6});
@@ -281,46 +281,41 @@ public class ButtonPref extends javax.swing.JPanel {
         layout.linkSize(javax.swing.SwingConstants.VERTICAL, new java.awt.Component[] {ValueC, ValueD, ValueL, ValueP, ValueR, jLabel8});
 
     }// </editor-fold>//GEN-END:initComponents
-
-    private void edit2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_edit2ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_edit2ActionPerformed
-
+ 
+    //All edit buttons on Click pop up a ValueSetter form and pass the relevant ComEvent.
+    
     private void edit0MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_edit0MouseClicked
         // TODO add your handling code here:
         ValueSetter val=new ValueSetter(Sbutton.eventlist[0],Sbutton.buttonid,this);
         val.setVisible(true);
-       // while(val.block);
-       //System.out.println("executed");
-       // updateOnPress(Sbutton.eventlist[ShieldEvent.EVENT_PRESSED]);
     }//GEN-LAST:event_edit0MouseClicked
 
     private void edit1MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_edit1MouseClicked
         // TODO add your handling code here:
         ValueSetter val=new ValueSetter(Sbutton.eventlist[1],Sbutton.buttonid,this);
         val.setVisible(true);
-       // updateOnRelease(Sbutton.eventlist[ShieldEvent.EVENT_RELEASED]);
+       
     }//GEN-LAST:event_edit1MouseClicked
 
     private void edit2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_edit2MouseClicked
         // TODO add your handling code here:
         ValueSetter val=new ValueSetter(Sbutton.eventlist[2],Sbutton.buttonid,this);
         val.setVisible(true);
-        //updateOnClick(Sbutton.eventlist[ShieldEvent.EVENT_CLICK]);
+       
     }//GEN-LAST:event_edit2MouseClicked
 
     private void edit3MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_edit3MouseClicked
         // TODO add your handling code here:
         ValueSetter val=new ValueSetter(Sbutton.eventlist[3],Sbutton.buttonid,this);
         val.setVisible(true);
-        //(Sbutton.eventlist[ShieldEvent.EVENT_DOUBLECLICK]);
+       
     }//GEN-LAST:event_edit3MouseClicked
 
     private void edit4MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_edit4MouseClicked
         // TODO add your handling code here:
         ValueSetter val=new ValueSetter(Sbutton.eventlist[4],Sbutton.buttonid,this);
         val.setVisible(true);
-        //updateOnLongPress(Sbutton.eventlist[ShieldEvent.EVENT_LONGPRESS]);
+       
     }//GEN-LAST:event_edit4MouseClicked
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -356,8 +351,14 @@ public class ButtonPref extends javax.swing.JPanel {
     private javax.swing.JSeparator jSeparator1;
     // End of variables declaration//GEN-END:variables
     
+    //Following functions update the Panel info for their respective ShieldEvent
+    
     public void updateOnPress(ComEvent ev){
+        //update device column
+        
         DeviceP.setText(EventConstant.Devices[ev.device]);
+        
+        //update value column
         String ev_value="Not applicable";
         switch(ev.device){
             case EventConstant.NONE:
@@ -370,7 +371,11 @@ public class ButtonPref extends javax.swing.JPanel {
                 ev_value=ValueSetter.getKeyCombination(ev.values);
                 break;                
         }
+        
        ValueP.setText(ev_value);
+       
+       //update options column
+       
        if(ev.device==EventConstant.MOUSE){
            if(ev.values.get(0)==EventConstant.SCROLL){
                OptionP.setText("Scroll = "+ev.dx+" units");
@@ -385,9 +390,11 @@ public class ButtonPref extends javax.swing.JPanel {
            OptionP.setText("Not Applicable");
     }
     public void updateOnRelease(ComEvent ev){
-        
+         
         DeviceR.setText(EventConstant.Devices[ev.device]);
+        
         String ev_value="Not applicable";
+        
         switch(ev.device){
             case EventConstant.NONE:
                 ev_value="Not applicable";
@@ -400,6 +407,8 @@ public class ButtonPref extends javax.swing.JPanel {
                 break;                
         }
        ValueR.setText(ev_value);
+       
+       
        if(ev.device==EventConstant.MOUSE){
            if(ev.values.get(0)==EventConstant.SCROLL){
                OptionR.setText("Scroll = "+ev.dx+" units");
@@ -412,9 +421,12 @@ public class ButtonPref extends javax.swing.JPanel {
        }
        else
            OptionR.setText("Not Applicable");
+    
     }
     public void updateOnClick(ComEvent ev){
+    
         DeviceC.setText(EventConstant.Devices[ev.device]);
+        
         String ev_value="Not applicable";
         switch(ev.device){
             case EventConstant.NONE:
@@ -428,6 +440,7 @@ public class ButtonPref extends javax.swing.JPanel {
                 break;                
         }
        ValueC.setText(ev_value);
+       
        if(ev.device==EventConstant.MOUSE){
            if(ev.values.get(0)==EventConstant.SCROLL){
                OptionC.setText("Scroll = "+ev.dx+" units");
@@ -442,7 +455,9 @@ public class ButtonPref extends javax.swing.JPanel {
            OptionC.setText("Not Applicable");
     }
     public void updateOnDblClick(ComEvent ev){
+       
         DeviceD.setText(EventConstant.Devices[ev.device]);
+        
         String ev_value="Not applicable";
         switch(ev.device){
             case EventConstant.NONE:
@@ -456,6 +471,7 @@ public class ButtonPref extends javax.swing.JPanel {
                 break;                
         }
        ValueD.setText(ev_value);
+       
        if(ev.device==EventConstant.MOUSE){
            if(ev.values.get(0)==EventConstant.SCROLL){
                OptionD.setText("Scroll = "+ev.dx+" units");
@@ -468,10 +484,14 @@ public class ButtonPref extends javax.swing.JPanel {
        }
        else
            OptionD.setText("Not Applicable");
+    
     }
     public void updateOnLongPress(ComEvent ev){
+        
         DeviceL.setText(EventConstant.Devices[ev.device]);
+    
         String ev_value="Not applicable";
+        
         switch(ev.device){
             case EventConstant.NONE:
                 ev_value="Not applicable";
@@ -484,6 +504,7 @@ public class ButtonPref extends javax.swing.JPanel {
                 break;                
         }
        ValueL.setText(ev_value);
+       
        if(ev.device==EventConstant.MOUSE){
            if(ev.values.get(0)==EventConstant.SCROLL){
                OptionL.setText("Scroll = "+ev.dx+" units");
@@ -497,30 +518,39 @@ public class ButtonPref extends javax.swing.JPanel {
        else
            OptionL.setText("Not Applicable");
     }
+    
     public void setComEvent(ComEvent e){
+        /*
+         * Updates the existing ComEvent with new ComEvent e
+         */
         Sbutton.eventlist[e.eventno]=e;
         writeConfig(Sbutton.buttonid,e);
 
     }
+    
     public void writeConfig(int button ,ComEvent e) {
-      //  System.out.println(button);
+        /*
+         * write the config changes for the event to the config file
+         * i.e. update the config file
+         */
+        
+        //get proper ShieldEvent Element to be updated
         Element event=prefs.getShieldEvent(prefs.getButton(button), e.eventno);
-      //  System.out.println("1");
+        
+        //Set the attributes
+        
         event.setAttribute("eventid", "" + e.eventno);
-      //  System.out.println("2");
         event.setAttribute("device", "" + e.device);
-      //  System.out.println("3");
         event.setAttribute("options", "" + e.dx+","+e.dy);
-      //  System.out.println("4");
         String eventvalues="";
+        
         for(int i=0;i<e.values.size();i++){
             eventvalues=eventvalues.concat(""+e.values.get(i)+",");
         }
-     //   System.out.println("5");
         event.setAttribute("value", "" + eventvalues);
-     //   System.out.println("6");
+        
+        //Commit the changes to the file.
         prefs.commitchanges(prefs.doc);
-     //   System.out.println("7");
 
 
     }
