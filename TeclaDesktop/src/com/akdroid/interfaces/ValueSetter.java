@@ -9,6 +9,8 @@ import com.akdroid.tecladesk.EventConstant;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
+import javax.swing.JFrame;
+import javax.swing.WindowConstants;
 
 
 /**
@@ -53,6 +55,9 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
         Cvalue.removeAllItems();
         setCurrentValue();
         
+        //To prevent the whole application from closing,on pressing "X" button
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        
     }
 
     /**
@@ -82,6 +87,11 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
         cancelbutton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
 
         jLabel1.setText("Device:");
 
@@ -407,6 +417,11 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
         setVisible(false);
         
     }//GEN-LAST:event_cancelbuttonMouseClicked
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+        // TODO add your handling code here:
+        setVisible(false);
+    }//GEN-LAST:event_formWindowClosing
 
     /**
      * @param args the command line arguments

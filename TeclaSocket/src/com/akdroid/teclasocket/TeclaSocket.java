@@ -128,6 +128,7 @@ public class TeclaSocket implements Communication,DiscoveryListener {
                     Logger.getLogger(TeclaSocket.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }//wait till input stream contains a new byte
+            System.err.println("data available "+datain.available());
             BluetoothEvent eve=new BluetoothEvent(this,BluetoothEvent.BLUETOOTH_RECEIVE);
             fireevent(eve);
         } catch (IOException ex) {
@@ -189,8 +190,8 @@ public class TeclaSocket implements Communication,DiscoveryListener {
                         
                         conn = (StreamConnection)Connector.open(connstring); //Connect
                         System.out.println("got in");
-                        dataout=conn.openDataOutputStream(); //outputstream to write bytes into
-                        datain=conn.openDataInputStream();   //inputstream to read data from
+                        dataout=new DataOutputStream(conn.openOutputStream()); //outputstream to write bytes into
+                        datain=new DataInputStream(conn.openInputStream());   //inputstream to read data from
                         connectionflag=true;       
                         BluetoothEvent eve=new BluetoothEvent(this,BluetoothEvent.BLUETOOTH_CONNECT);
                          fireevent(eve);
@@ -246,6 +247,18 @@ public class TeclaSocket implements Communication,DiscoveryListener {
        send(testbyte);
        return connectionflag;
    }
+   public void close(){
+        try {
+            if(datain!=null)
+            datain.close();
+            if(dataout!=null)
+            dataout.close();
+            if(conn!=null)
+            conn.close();
+        } catch (IOException ex) {
+            Logger.getLogger(TeclaSocket.class.getName()).log(Level.SEVERE, null, ex);
+        }
+   }
    public void disconnect(){
         try {
             if(datain!=null)
@@ -266,8 +279,8 @@ public class TeclaSocket implements Communication,DiscoveryListener {
         try {
             String connurl = dagent.selectService(uuid, ServiceRecord.NOAUTHENTICATE_NOENCRYPT, false);
             conn = (StreamConnection) Connector.open(connurl);
-            datain=conn.openDataInputStream();
-            dataout=conn.openDataOutputStream();
+            datain= new DataInputStream(conn.openInputStream());
+            dataout=new DataOutputStream(conn.openOutputStream());
             BluetoothEvent eve=new BluetoothEvent(this,BluetoothEvent.BLUETOOTH_CONNECT);
             fireevent(eve);
         } catch (BluetoothStateException ex) {

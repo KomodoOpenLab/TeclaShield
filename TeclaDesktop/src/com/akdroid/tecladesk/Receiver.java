@@ -24,16 +24,14 @@ public class Receiver extends Thread implements Runnable {
     @Override
     public void run() {
         while(runf){
+            System.out.println("Keeping my ears open");
             sock.receive();  //Start listening on the socket for any received byte.
-            try {
-                Thread.sleep(PingManager.DEBOUNCE_TIME); //wait for Debounce delay
-            } catch (InterruptedException ex) {
-                Logger.getLogger(Receiver.class.getName()).log(Level.SEVERE, null, ex);
-            }
+            
         }
     }
    
     public void end(){  //Interrupt the thread.
+        System.out.println("Ended receiver");
         runf=false;
     }
 }

@@ -4,6 +4,7 @@
  */
 package com.akdroid.interfaces;
 
+import com.akdroid.tecladesk.BluetoothClient;
 import com.akdroid.tecladesk.PreferencesHandler;
 
 /**
@@ -16,7 +17,8 @@ public class ClientMain extends javax.swing.JFrame {
      * Creates new form ClientMain
      */
     ButtonPref b1,b2,b3,b4,b5,b6;
-    public ClientMain(PreferencesHandler pref) {
+    BluetoothClient bcl;
+    public ClientMain(PreferencesHandler pref,BluetoothClient bcl_) {
         initComponents();
         //initialize buttonpref panels
         b1=new ButtonPref(pref.getShieldButton(ShieldEvent.ECU1),pref);
@@ -32,7 +34,7 @@ public class ClientMain extends javax.swing.JFrame {
         preftab.addTab("ECU RIGHT",b4);
         preftab.addTab("SWITCH 1",b5);
         preftab.addTab("SWITCH 2",b6);
-        
+        bcl=bcl_;
     }
 
     /**
@@ -48,6 +50,11 @@ public class ClientMain extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("TeclaClient");
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosing(java.awt.event.WindowEvent evt) {
+                formWindowClosing(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -68,6 +75,12 @@ public class ClientMain extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
+
+    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+                // TODO add your handling code here:
+                bcl.close();
+        
+    }//GEN-LAST:event_formWindowClosing
 
     /**
      * @param args the command line arguments

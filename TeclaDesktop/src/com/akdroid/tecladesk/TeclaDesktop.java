@@ -20,13 +20,13 @@ public class TeclaDesktop {
      */
     public static void main(String[] args) {
         final PreferencesHandler prefs=new PreferencesHandler(location);
-        
-        ClientMain client=new ClientMain(prefs);
+        BluetoothClient btclient=new BluetoothClient(uuidstring);
+        ClientMain client=new ClientMain(prefs,btclient);
         client.setVisible(true);
         //final PreferencesHandler prefs=new PreferencesHandler(location);
         
         final EventGenerator eventgen =new EventGenerator();
-        BluetoothClient btclient=new BluetoothClient(uuidstring);
+        
         btclient.start();
         //while(btclient == null);
         btclient.addShieldEventListener(new ShieldEventListener(){

@@ -105,6 +105,7 @@ public class BluetoothClient extends Thread implements Runnable{
                  */
                 try {
                     Byte b=datain.readByte();   //Read the byte received
+                    System.out.println("Received "+b);
                     resolve(b);                 //Resolve the input to their respective events
                 } catch (IOException ex) {
                    System.out.println(ex.getMessage()); 
@@ -117,6 +118,7 @@ public class BluetoothClient extends Thread implements Runnable{
                 /*
                  * Executed when sending data is succcessful
                  */
+               // System.err.println("sent");
             }
             
         });
@@ -126,12 +128,17 @@ public class BluetoothClient extends Thread implements Runnable{
           * Resolves the received byte  and decides what action to take 
           * depending on the preferences 
           */
+         
+        
+        
          if(b==PingManager.PING_BYTE)               // if byte received is ping
                 pinger.resetcount();                // byte,reset ping counts
          else{
+               // System.out.println("resolving " +b);
                 int button =getButton(b);           //Get which button event occured
+              //  System.out.println("button changed " +button);
                 if(button>-1){                      //If button number is valid 
-                previousstate=b;                    //Update previous button
+                previousstate=b;                    //Update previous shield state
                 setevent(b,button);                 //Fire a particular ShieldEvent
                 }
          }
@@ -194,7 +201,7 @@ public class BluetoothClient extends Thread implements Runnable{
             {
                 /*
                  * If the time difference between previous event i.e a press
-                 * and release is greater than Long Delay then event is a d
+                 * and release is greater than Long Delay then event is a 
                  * Long Press of a Shield Button.
                  * Fire LongPress ShieldEvent
                  */
@@ -318,5 +325,8 @@ public class BluetoothClient extends Thread implements Runnable{
         public void end(){      //Interrupt the wait.
             runflag=false;
         }
+    }
+    public void close(){
+        sock.close();
     }
 }
