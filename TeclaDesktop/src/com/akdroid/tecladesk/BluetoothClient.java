@@ -292,7 +292,9 @@ public class BluetoothClient extends Thread implements Runnable{
             }
         }
     }
-    
+    public void close(){
+        sock.close();
+    }
     
     //used for firing single click and double click events
     private class Counter extends Thread implements Runnable{
@@ -326,7 +328,5 @@ public class BluetoothClient extends Thread implements Runnable{
             runflag=false;
         }
     }
-    public void close(){
-        sock.close();
-    }
+    
 }
