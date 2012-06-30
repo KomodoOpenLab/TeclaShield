@@ -174,6 +174,7 @@ public class TeclaSocket implements Communication,DiscoveryListener {
         int i;
         connectionflag=false;
         String connstring;
+        if(device_list != null){
         for(i=0;i<device_list.length;i++){
           RemoteDevice temp=device_list[i];
           
@@ -204,6 +205,7 @@ public class TeclaSocket implements Communication,DiscoveryListener {
                 disconnect();
             }
           
+        }
         }
         return connectionflag;
    }

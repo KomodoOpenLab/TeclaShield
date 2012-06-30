@@ -6,6 +6,12 @@ package com.akdroid.interfaces;
 
 import com.akdroid.tecladesk.BluetoothClient;
 import com.akdroid.tecladesk.PreferencesHandler;
+import java.awt.*;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.swing.JFrame;
 
 /**
  * This is the main window of the TeclaDesktop
@@ -16,8 +22,12 @@ public class ClientMain extends javax.swing.JFrame {
     /**
      * Creates new form ClientMain
      */
+    public static final String TECLA_ICON_PATH="tekla_icon.png";
     ButtonPref b1,b2,b3,b4,b5,b6;
     BluetoothClient bcl;
+    SystemTray systray;
+    TrayIcon icon;
+    boolean systray_available;
     public ClientMain(PreferencesHandler pref,BluetoothClient bcl_) {
         initComponents();
         //initialize buttonpref panels
@@ -35,6 +45,59 @@ public class ClientMain extends javax.swing.JFrame {
         preftab.addTab("SWITCH 1",b5);
         preftab.addTab("SWITCH 2",b6);
         bcl=bcl_;
+        //Set Application icon in the title bar
+        setIconImage(Toolkit.getDefaultToolkit().createImage(TECLA_ICON_PATH));
+        //Get the System Tray of the system.
+        systray=SystemTray.getSystemTray();
+        systray_available=systray.isSupported();
+        
+        if(systray_available){
+            Image icon_img = Toolkit.getDefaultToolkit().createImage(TECLA_ICON_PATH);
+            icon=new TrayIcon(icon_img,"TeclaDesktop");
+            icon.setImageAutoSize(true);
+            icon.addMouseListener(new MouseListener(){
+
+                @Override
+                public void mouseClicked(MouseEvent me) {
+                    
+                    
+                    java.awt.EventQueue.invokeLater(new Runnable()
+                    {
+
+                        @Override
+                        public void run() {
+                            setVisible(true);
+                            setExtendedState(JFrame.NORMAL);
+                            toFront();
+                            repaint();
+                        }
+                    }
+                    );
+                    systray.remove(icon);
+                }
+
+                @Override
+                public void mousePressed(MouseEvent me) {
+                    
+                }
+
+                @Override
+                public void mouseReleased(MouseEvent me) {
+                    
+                }
+
+                @Override
+                public void mouseEntered(MouseEvent me) {
+                    
+                }
+
+                @Override
+                public void mouseExited(MouseEvent me) {
+                    
+                }
+            });
+        }
+        
     }
 
     /**
@@ -53,6 +116,9 @@ public class ClientMain extends javax.swing.JFrame {
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 formWindowClosing(evt);
+            }
+            public void windowIconified(java.awt.event.WindowEvent evt) {
+                formWindowIconified(evt);
             }
         });
 
@@ -81,6 +147,17 @@ public class ClientMain extends javax.swing.JFrame {
                 bcl.close();
         
     }//GEN-LAST:event_formWindowClosing
+
+    private void formWindowIconified(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowIconified
+        // TODO add your handling code here:
+        if(systray_available)
+            try {
+            systray.add(icon);
+            setVisible(false);
+        } catch (AWTException ex) {
+            System.out.println(ex.getMessage());
+        }
+    }//GEN-LAST:event_formWindowIconified
 
     /**
      * @param args the command line arguments
@@ -119,7 +196,7 @@ public class ClientMain extends javax.swing.JFrame {
         java.awt.EventQueue.invokeLater(new Runnable() {
 
             public void run() {
-                //new ClientMain().setVisible(true);
+                
             }
         });
     }
