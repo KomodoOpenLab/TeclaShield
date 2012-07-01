@@ -188,14 +188,16 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
                                     .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 47, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(jLabel2))
                                 .addGap(18, 18, 18)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(Cvalue, javax.swing.GroupLayout.PREFERRED_SIZE, 99, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(layout.createSequentialGroup()
                                         .addComponent(Rnone)
                                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(Rmouse)))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(Rkey))
+                                        .addComponent(Rmouse)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addComponent(Rkey))
+                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                        .addComponent(Cvalue, javax.swing.GroupLayout.PREFERRED_SIZE, 161, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addGap(33, 33, 33))))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 88, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -270,7 +272,9 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
          * To change the currently set value,click on combobox and press the
          * keycombination on your keyboard.this will set the keyvalue.
          */
+        
         if(Rkey.isSelected()){
+        System.out.println("Keyboard selected");
         temp.device=EventConstant.KEYBOARD;
         disableoptions(false);
         Cvalue.setEnabled(true);
@@ -279,14 +283,17 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
             Cvalue.addItem(getKeyCombination(ce.values));
         else
             Cvalue.addItem("Click to Change");
+        Cvalue.setEnabled(false);
         
         }
     }//GEN-LAST:event_RkeyStateChanged
 
     private void CvalueMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_CvalueMouseClicked
-        if (temp.device==EventConstant.KEYBOARD){        
+        if (temp.device==EventConstant.KEYBOARD){    
+            Cvalue.setEnabled(true);
             Cvalue.setFocusable(true);
             Cvalue.requestFocus();
+            instructlabel.setText("Click to change");
             Cvalue.addKeyListener(this);
             
         }
@@ -503,6 +510,7 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
         if(counter==0){
             instructlabel.setText(instructlabel.getText()+" Value changed to "+getKeyCombination(temp.values));
             Cvalue.removeKeyListener(this);
+            Cvalue.setEnabled(false);
         }
     }
     public void disableoptions(boolean scroll){

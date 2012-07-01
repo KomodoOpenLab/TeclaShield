@@ -371,7 +371,7 @@ public class ButtonPref extends javax.swing.JPanel {
                 ev_value=ValueSetter.getKeyCombination(ev.values);
                 break;                
         }
-        
+       ev_value="<html><div WIDTH=150>"+ev_value+"</div></html>"; 
        ValueP.setText(ev_value);
        
        //update options column
@@ -406,6 +406,7 @@ public class ButtonPref extends javax.swing.JPanel {
                 ev_value=ValueSetter.getKeyCombination(ev.values);
                 break;                
         }
+        ev_value="<html><div WIDTH=150>"+ev_value+"</div></html>";
        ValueR.setText(ev_value);
        
        
@@ -439,6 +440,7 @@ public class ButtonPref extends javax.swing.JPanel {
                 ev_value=ValueSetter.getKeyCombination(ev.values);
                 break;                
         }
+        ev_value="<html><div WIDTH=150>"+ev_value+"</div></html>";
        ValueC.setText(ev_value);
        
        if(ev.device==EventConstant.MOUSE){
@@ -470,6 +472,7 @@ public class ButtonPref extends javax.swing.JPanel {
                 ev_value=ValueSetter.getKeyCombination(ev.values);
                 break;                
         }
+        ev_value="<html><div WIDTH=150>"+ev_value+"</div></html>";
        ValueD.setText(ev_value);
        
        if(ev.device==EventConstant.MOUSE){
@@ -503,6 +506,7 @@ public class ButtonPref extends javax.swing.JPanel {
                 ev_value=ValueSetter.getKeyCombination(ev.values);
                 break;                
         }
+        ev_value="<html><div WIDTH=150>"+ev_value+"</div></html>";
        ValueL.setText(ev_value);
        
        if(ev.device==EventConstant.MOUSE){
