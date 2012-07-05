@@ -266,7 +266,6 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
     }// </editor-fold>//GEN-END:initComponents
 
     private void RkeyStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_RkeyStateChanged
-        // TODO add your handling code here:
         /*
          * if keyboard is selected ,disable options and make Keyboard listening
          * To change the currently set value,click on combobox and press the
@@ -322,7 +321,6 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
     }//GEN-LAST:event_RmouseStateChanged
 
     private void RnoneStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_RnoneStateChanged
-        // TODO add your handling code here:
         /*
          * don't assign a device
          * or Computer Device
@@ -339,7 +337,6 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
     }//GEN-LAST:event_RnoneStateChanged
 
     private void CvalueItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_CvalueItemStateChanged
-        // TODO add your handling code here:
         temp.values=new ArrayList<Integer>();
         Integer i=Cvalue.getSelectedIndex();
         temp.values.add(i);
