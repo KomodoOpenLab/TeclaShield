@@ -29,7 +29,7 @@ import org.xml.sax.SAXException;
  * Support for multiple documents has to be added.
  * This class  creates,reads and modifies the XML document.
  * Document Format:
- * <TeclaClient>
+ * <TeclaClient name="client_name">
  * <ShieldButton value="button_number">
  * <ShieldEvent 
  * eventid="shieldevent_id"
@@ -44,21 +44,22 @@ import org.xml.sax.SAXException;
  * where button_number,shieldevent_id,device number,dx_value,dy_value,val1,val2,val3 are integers
  * the last comma in value field of ShieldEvent is essential for proper parsing.
  * @author Akhil
+ * @author ankitdaf
  */
 
 public class PreferencesHandler {
    
-    
-    File config;                    //File object representing the xml file
+    File dir;                       //Path where all preferences will be stored
+    File current_config;            //File object representing the xml file for the current configuration
+    File[] available_configs;       //Configuration list
     DocumentBuilderFactory docf;    //Documentfactory used to build documents as per w3c
     DocumentBuilder docb;           //Document builder used to create documents
     public Document doc;            //xml Document object. 
-    FileWriter filew;               //Filwwriter used to write to the file.
+    FileWriter filew;               //Filewriter used to write to the file.
     Element rootElement;            //the element directly below the document in DOM heirarchy
     ShieldButton ecu1,ecu2,ecu3,ecu4,e1,e2; //ShieldButton objects one for each button.
     
-    
-    public PreferencesHandler(String filepath){
+    public PreferencesHandler(String filepath) {
         /*
          * 
          * This constructor uses filepath to open the config file.
@@ -67,41 +68,114 @@ public class PreferencesHandler {
          * if the file exists the file will be parsed into the document.
          * 
          */
-        config=new File(filepath); //initialize file and document factory
-        docf=DocumentBuilderFactory.newInstance();
-        
+        dir=new File(filepath);      //Directory containing preferences
+        available_configs = dir.listFiles();    //List all available configs in the directory
+        if(available_configs==null || available_configs.length==0)
+        {
+            createXmlFile();
+        }
+        else{
             try {
-                docb=docf.newDocumentBuilder(); //initialize document builder
-            } catch (ParserConfigurationException ex) {
+                current_config=available_configs[0];    //Default config if erroneously none are set to true
+                for (int i=0;i < available_configs.length ; i++)
+                {
+                    docf=DocumentBuilderFactory.newInstance();  //Initialize the document builder
+                    docb=docf.newDocumentBuilder(); //initialize document builder
+                    doc=docb.parse(available_configs[i]);  //parse the config file into documents consisting of nodelist
+                    rootElement=(Element)doc.getFirstChild(); //initialize the root element
+                if(rootElement.getAttribute("is_default").equals("true")) 
+                {
+                    current_config=available_configs[i];
+                    break;
+                }
+                }
+            }  catch (SAXException ex) {
+                    Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (IOException ex) {
+                    Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
+                } catch (ParserConfigurationException ex) {
                 Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
-            } 
-       if(!config.exists())
-           createXmlFile(); //create a new xml config file.
-       else{
+            }         
+        }
+      initialize_events(); //Parse the information in the config file to ComEvents.
+    }   
+    
+    public void createXmlFile(){
+        try {
             try {
-                doc=docb.parse(config);  //parse the config file into documents consisting of nodelist
-                rootElement=(Element)doc.getFirstChild(); //initialize the root element
-            } catch (SAXException ex) {
-                Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
+                current_config = new File("Preferences/default.xml");   //Create a default config
+                current_config.getParentFile().mkdirs();    //Create all parent directories
+                current_config.createNewFile();
             } catch (IOException ex) {
                 Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
             }
-       }
-       initialize_events(); //Parse th information in the config file to ComEvents.
+            docf=DocumentBuilderFactory.newInstance();
+            docb=docf.newDocumentBuilder();
+            doc=docb.newDocument();//Create a new empty DOM document.
+            rootElement=doc.createElement("TeclaClient"); //RootElement=>TeclaClient
+            rootElement.setAttribute("name", "default");
+            rootElement.setAttribute("is_default", "true"); //Make the current config the default
+            doc.appendChild(rootElement); //appends the rootelement to the document as Child.
+            makedefault(doc,rootElement); //Initialize all the values.
+            commitchanges(doc);  //Write changes to the file.
+        } catch (ParserConfigurationException ex) {
+            Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
-    public void createXmlFile(){
+    
+    public File[] get_available_configs()
+    {
+        return available_configs;
+    }
+
+    public Document get_doc()
+    {
+        return doc;
+    }
+    
+    public void save_config(File selected_config)
+    {
         try {
-            config.createNewFile(); //Create an empty file.
+            docf=DocumentBuilderFactory.newInstance();  //Initialize the document builder
+            docb=docf.newDocumentBuilder(); //initialize document builder
+            doc=docb.parse(selected_config);  //initialize the root element
+            rootElement=(Element)doc.getFirstChild(); //initialize the root element
+            rootElement.setAttribute("is_default", "false");
+            commitchanges(doc);
+        } catch (SAXException ex) {
+            Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ParserConfigurationException ex) {
+            Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void set_selected_config(File selected_config)
+    {
+        try {
+            current_config=selected_config;                 // Use the config selected as the current config
+            docf=DocumentBuilderFactory.newInstance();  //Initialize the document builder
+            docb=docf.newDocumentBuilder(); //initialize document builder
+            doc = docb.parse(selected_config);      //parse the config file into documents consisting of nodelist
+            rootElement=(Element)doc.getFirstChild(); //initialize the root element
+            rootElement.setAttribute("is_default", "true");
+            commitchanges(doc);
+            initialize_events();
+        } catch (ParserConfigurationException ex) {
+            Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (SAXException ex) {
+            Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
-        doc=docb.newDocument();//Create a new empty DOM document.
-        rootElement=doc.createElement("TeclaClient"); //RootElement=>TeclaClient
-        doc.appendChild(rootElement); //appends the rootelement to the document as Child.
-        makedefault(doc,rootElement); //Initialize all the values.
-        commitchanges(doc);  //Write changes to the file.
-        
     }
+    
+    public File get_current_config()
+    {
+        return current_config;
+    }
+    
     public void commitchanges(Document doc_){
         TransformerFactory tf =TransformerFactory.newInstance(); //
         try {
@@ -109,13 +183,16 @@ public class PreferencesHandler {
                                                          //a stream output such as stdout or file.               
             DOMSource source=new DOMSource(doc_) ;       //source document    
             try {
-                filew=new FileWriter(config);
+                filew=new FileWriter(current_config);
             } catch (IOException ex) {
                 Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
             }
             StreamResult result=new StreamResult(filew); //destination stream
             try {
                 transformer.transform(source, result);   //transform the source into result.
+                filew.close();
+            } catch (IOException ex) {
+                Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
             } catch (TransformerException ex) {
                 Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -254,7 +331,7 @@ public class PreferencesHandler {
             case ShieldEvent.ECU2:
                 buttonret= ecu2;
                 break;
-            case ShieldEvent.ECU3:
+            case ShieldEvent.ECU3:      
                 buttonret= ecu3;
                 break;
             case ShieldEvent.ECU4:

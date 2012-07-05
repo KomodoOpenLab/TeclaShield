@@ -9,8 +9,6 @@ import com.akdroid.tecladesk.PreferencesHandler;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.JFrame;
 
 /**
@@ -28,23 +26,17 @@ public class ClientMain extends javax.swing.JFrame {
     SystemTray systray;
     TrayIcon icon;
     boolean systray_available;
+    ConfigSel cfgsel;
+
     public ClientMain(PreferencesHandler pref,BluetoothClient bcl_) {
         initComponents();
-        //initialize buttonpref panels
-        b1=new ButtonPref(pref.getShieldButton(ShieldEvent.ECU1),pref);
-        b2=new ButtonPref(pref.getShieldButton(ShieldEvent.ECU2),pref);
-        b3=new ButtonPref(pref.getShieldButton(ShieldEvent.ECU3),pref);
-        b4=new ButtonPref(pref.getShieldButton(ShieldEvent.ECU4),pref);
-        b5=new ButtonPref(pref.getShieldButton(ShieldEvent.E1),pref);
-        b6=new ButtonPref(pref.getShieldButton(ShieldEvent.E2),pref);
-        //Add button tabs to the panel
-        preftab.addTab("ECU UP",b1);
-        preftab.addTab("ECU DOWN",b2);
-        preftab.addTab("ECU LEFT",b3);
-        preftab.addTab("ECU RIGHT",b4);
-        preftab.addTab("SWITCH 1",b5);
-        preftab.addTab("SWITCH 2",b6);
+        //Select the desired configurations
+        cfgsel=new ConfigSel(this,pref);
+        jPanel1.setLayout(new BorderLayout());
+        jPanel1.add(cfgsel);
+        refresh_display(pref);
         bcl=bcl_;
+                
         //Set Application icon in the title bar
         setIconImage(Toolkit.getDefaultToolkit().createImage(TECLA_ICON_PATH));
         //Get the System Tray of the system.
@@ -99,6 +91,26 @@ public class ClientMain extends javax.swing.JFrame {
         }
         
     }
+    
+    public void refresh_display(PreferencesHandler pref)
+    {
+        //initialize buttonpref panels
+        b1=new ButtonPref(ShieldEvent.ECU1,pref);
+        b2=new ButtonPref(ShieldEvent.ECU2,pref);
+        b3=new ButtonPref(ShieldEvent.ECU3,pref);
+        b4=new ButtonPref(ShieldEvent.ECU4,pref);
+        b5=new ButtonPref(ShieldEvent.E1,pref);
+        b6=new ButtonPref(ShieldEvent.E2,pref);
+        //Add button tabs to the panel
+        preftab.removeAll();    // Cleanup all tabs
+        preftab.addTab("ECU UP",b1);
+        preftab.addTab("ECU DOWN",b2);
+        preftab.addTab("ECU LEFT",b3);
+        preftab.addTab("ECU RIGHT",b4);
+        preftab.addTab("SWITCH 1",b5);
+        preftab.addTab("SWITCH 2",b6);
+        
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -110,6 +122,7 @@ public class ClientMain extends javax.swing.JFrame {
     private void initComponents() {
 
         preftab = new javax.swing.JTabbedPane();
+        jPanel1 = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("TeclaClient");
@@ -122,21 +135,36 @@ public class ClientMain extends javax.swing.JFrame {
             }
         });
 
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 408, Short.MAX_VALUE)
+        );
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGap(0, 100, Short.MAX_VALUE)
+        );
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(21, 21, 21)
-                .addComponent(preftab, javax.swing.GroupLayout.PREFERRED_SIZE, 777, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(117, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addContainerGap(128, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(preftab, javax.swing.GroupLayout.PREFERRED_SIZE, 777, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addGap(88, 88, 88)
-                .addComponent(preftab, javax.swing.GroupLayout.PREFERRED_SIZE, 414, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(158, Short.MAX_VALUE))
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGap(55, 55, 55)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 63, Short.MAX_VALUE)
+                .addComponent(preftab, javax.swing.GroupLayout.PREFERRED_SIZE, 502, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
 
         pack();
@@ -201,6 +229,7 @@ public class ClientMain extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JPanel jPanel1;
     private javax.swing.JTabbedPane preftab;
     // End of variables declaration//GEN-END:variables
 }
