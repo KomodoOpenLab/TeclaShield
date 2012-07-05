@@ -16,6 +16,7 @@ import org.w3c.dom.Element;
  * a single Shield button.This panel will display all the current preferences
  * The edit button will allow you to edit by triggering ValueSetter form.
  * @author Akhil
+ * @author ankitdaf
  */
 public class ButtonPref extends javax.swing.JPanel {
 
@@ -27,11 +28,10 @@ public class ButtonPref extends javax.swing.JPanel {
     
     ShieldButton Sbutton;
     PreferencesHandler prefs;
-    public ButtonPref(ShieldButton buttonS,PreferencesHandler prefs_) {
+    public ButtonPref(int shieldeventid,PreferencesHandler prefs_) {
         initComponents();
         prefs=prefs_;
-        Sbutton=buttonS;
-        //System.out.print(buttonS.buttonid);
+        Sbutton=prefs.getShieldButton(shieldeventid);
         updateOnPress(Sbutton.eventlist[ShieldEvent.EVENT_PRESSED]);
         updateOnRelease(Sbutton.eventlist[ShieldEvent.EVENT_RELEASED]);
         updateOnClick(Sbutton.eventlist[ShieldEvent.EVENT_CLICK]);
@@ -554,7 +554,7 @@ public class ButtonPref extends javax.swing.JPanel {
         event.setAttribute("value", "" + eventvalues);
         
         //Commit the changes to the file.
-        prefs.commitchanges(prefs.doc);
+        prefs.commitchanges(prefs.get_doc());
 
 
     }
