@@ -20,6 +20,7 @@ import java.io.File;
 
     PreferencesHandler pref;
     ClientMain clientmain;
+    ActionListener al;
     
     /**
      * Creates new form ConfigSel
@@ -29,8 +30,8 @@ import java.io.File;
         pref=pref_;
         show_all_configs();
         clientmain=clientmain_;
-        jComboBox1.addActionListener( new ActionListener() {
-            
+        al = new ActionListener() {
+
             @Override
             public void actionPerformed(ActionEvent ae) {
                 Object obj = jComboBox1.getSelectedItem();
@@ -38,12 +39,15 @@ import java.io.File;
                 save_current_config();
                 set_selected_config(selected_config);
             }
-        });
+        };
+            
+        jComboBox1.addActionListener(al);
         
     }
     
     public void show_all_configs()
     {
+        jComboBox1.removeAllItems();
         File[] available_configs = pref.get_available_configs();
         
         for (int i=0;i<available_configs.length;i++)
@@ -56,6 +60,7 @@ import java.io.File;
     
     public void save_current_config()
     {
+        if(pref.get_current_config() != null)
         pref.save_config(pref.get_current_config());
     }
     
@@ -77,6 +82,22 @@ import java.io.File;
     private void initComponents() {
 
         jComboBox1 = new javax.swing.JComboBox();
+        save_as_button = new javax.swing.JButton();
+        delete_button = new javax.swing.JButton();
+
+        save_as_button.setText("Save As..");
+        save_as_button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                save_as_buttonActionPerformed(evt);
+            }
+        });
+
+        delete_button.setText("Delete");
+        delete_button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                delete_buttonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
@@ -85,18 +106,50 @@ import java.io.File;
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 285, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(103, Short.MAX_VALUE))
+                .addGap(31, 31, 31)
+                .addComponent(save_as_button)
+                .addGap(18, 18, 18)
+                .addComponent(delete_button)
+                .addContainerGap(26, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(save_as_button)
+                        .addComponent(delete_button))
+                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 36, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap(19, Short.MAX_VALUE))
         );
     }// </editor-fold>//GEN-END:initComponents
+
+     private void save_as_buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_save_as_buttonActionPerformed
+         // TODO add your handling code here:
+     }//GEN-LAST:event_save_as_buttonActionPerformed
+
+     private void delete_buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_delete_buttonActionPerformed
+         // TODO add your handling code here:
+         jComboBox1.removeActionListener(al);
+         File to_delete = pref.get_current_config();
+         to_delete.delete();
+         jComboBox1.removeAllItems();
+         File [] available_configs = pref.get_available_configs();
+         set_selected_config(available_configs[0]);
+        
+        for (int i=0;i<available_configs.length;i++)
+        {
+            jComboBox1.addItem(available_configs[i]);
+        }
+        jComboBox1.setSelectedItem(pref.get_current_config());
+        jComboBox1.addActionListener(al);
+     }//GEN-LAST:event_delete_buttonActionPerformed
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton delete_button;
     private javax.swing.JComboBox jComboBox1;
+    private javax.swing.JButton save_as_button;
     // End of variables declaration//GEN-END:variables
 
 }

@@ -125,6 +125,12 @@ public class PreferencesHandler {
     
     public File[] get_available_configs()
     {
+        available_configs=dir.listFiles();
+        if(available_configs == null || available_configs.length==0)
+        {
+            createXmlFile();
+            available_configs=dir.listFiles();
+        }
         return available_configs;
     }
 
