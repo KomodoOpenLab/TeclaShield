@@ -157,6 +157,25 @@ public class PreferencesHandler {
         }
     }
     
+    public void save_config(File old_config, File new_config)
+    {
+        try {
+            docf=DocumentBuilderFactory.newInstance();  //Initialize the document builder
+            docb=docf.newDocumentBuilder(); //initialize document builder
+            doc=docb.parse(old_config);  //initialize the root element
+            rootElement=(Element)doc.getFirstChild(); //initialize the root element
+            rootElement.setAttribute("is_default", "false");
+            current_config = new_config;
+            commitchanges(doc);
+        } catch (SAXException ex) {
+            Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException ex) {
+            Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (ParserConfigurationException ex) {
+            Logger.getLogger(PreferencesHandler.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
     public void set_selected_config(File selected_config)
     {
         try {
@@ -180,6 +199,11 @@ public class PreferencesHandler {
     public File get_current_config()
     {
         return current_config;
+    }
+    
+    public void set_current_config(File this_config)
+    {
+        current_config = this_config;
     }
     
     public void commitchanges(Document doc_){

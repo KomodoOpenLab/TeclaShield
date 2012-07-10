@@ -556,6 +556,5 @@ public class ButtonPref extends javax.swing.JPanel {
         //Commit the changes to the file.
         prefs.commitchanges(prefs.get_doc());
 
-
     }
 }
