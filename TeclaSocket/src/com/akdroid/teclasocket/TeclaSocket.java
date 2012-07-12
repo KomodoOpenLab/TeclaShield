@@ -122,11 +122,7 @@ public class TeclaSocket implements Communication,DiscoveryListener {
         try {
             
             while((datain.available()==0)){
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(TeclaSocket.class.getName()).log(Level.SEVERE, null, ex);
-                }
+                ;
             }//wait till input stream contains a new byte
             System.err.println("data available "+datain.available());
             BluetoothEvent eve=new BluetoothEvent(this,BluetoothEvent.BLUETOOTH_RECEIVE);

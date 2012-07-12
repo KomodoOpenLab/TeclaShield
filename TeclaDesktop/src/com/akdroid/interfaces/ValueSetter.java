@@ -496,6 +496,7 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
     @Override
     public void keyPressed(KeyEvent e) {
         if(counter==0)temp.values=new ArrayList<Integer>();
+        if(!temp.values.contains(e.getKeyCode())) //Prevent repetition of key values.
         temp.values.add(e.getKeyCode());
         
         counter++;
@@ -504,8 +505,24 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
     @Override
     public void keyReleased(KeyEvent e) {
         counter--;
+        boolean flag_allowed;
         if(counter==0){
-            instructlabel.setText(instructlabel.getText()+" Value changed to "+getKeyCombination(temp.values));
+            flag_allowed=false;
+            // Check if system keys like only control or only alt is not set as new keycombination
+            // to prevent system issues.
+            for(int m=0;m<temp.values.size();m++){
+                if(temp.values.get(m)!=KeyEvent.VK_ALT && temp.values.get(m)!=KeyEvent.VK_CONTROL)
+                {
+                    flag_allowed=true;
+                    break;
+                }
+            }
+            if(flag_allowed){
+            instructlabel.setText(" Value changed to "+getKeyCombination(temp.values));
+            }else{
+                instructlabel.setText("Only Ctrl or Alt not without other keys not allowed" );
+                temp=ce;
+            }
             Cvalue.removeKeyListener(this);
             Cvalue.setEnabled(false);
         }

@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 import org.xml.sax.SAXException;
 
 /**
- *
+ * TeclaDesktop v0.9
  * @author Akhil
  */
 public class TeclaDesktop {
