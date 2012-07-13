@@ -6,8 +6,8 @@ package com.komodo.desktop.client;
 
 import com.komodo.desktop.interfaces.ShieldEvent;
 import com.komodo.desktop.interfaces.ShieldEventListener;
-import com.akdroid.teclasocket.BluetoothEventListener;
-import com.akdroid.teclasocket.TeclaSocket;
+import com.komodo.socket.tecla.BluetoothEventListener;
+import com.komodo.socket.tecla.TeclaSocket;
 import java.io.DataInputStream;
 import java.io.IOException;
 import javax.swing.event.EventListenerList;

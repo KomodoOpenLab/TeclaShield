@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 package tecletest;
-import com.akdroid.teclasocket.*;
+import com.komodo.socket.tecla.TeclaSocket;
 /**
  *
  * @author Akhil

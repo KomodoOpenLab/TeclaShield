@@ -3,7 +3,7 @@
  * and open the template in the editor.
  */
 package com.komodo.desktop.client;
-import com.akdroid.teclasocket.TeclaSocket;
+import com.komodo.socket.tecla.TeclaSocket;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 /**

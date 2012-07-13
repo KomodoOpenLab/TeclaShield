@@ -4,7 +4,7 @@
  */
 package com.komodo.desktop.client;
 
-import com.akdroid.teclasocket.TeclaSocket;
+import com.komodo.socket.tecla.TeclaSocket;
 
 /**
  * Sends Ping Byte Continously and disconnects 

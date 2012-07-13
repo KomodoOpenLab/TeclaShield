@@ -3,8 +3,8 @@
  * and open the template in the editor.
  */
 package tecletest;
-import com.akdroid.teclasocket.BluetoothEventListener;
-import com.akdroid.teclasocket.TeclaSocket;
+import com.komodo.socket.tecla.BluetoothEventListener;
+import com.komodo.socket.tecla.TeclaSocket;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.logging.Level;
