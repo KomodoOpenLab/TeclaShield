@@ -15,8 +15,10 @@ import java.util.EventListener;
  */
 public interface BluetoothEventListener extends EventListener {
     
-    public void onConnect();
+    public void onConnect(String name);
     public void onDisconnect();
     public void onReceive(DataInputStream datain);
     public void onSent();
+    public void onMultipleShieldsFound(String[] devicelist);
+    public void onNoShieldFound();
 }

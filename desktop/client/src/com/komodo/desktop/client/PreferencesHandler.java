@@ -98,6 +98,7 @@ public class PreferencesHandler {
             }         
         }
       initialize_events(); //Parse the information in the config file to ComEvents.
+      
     }   
     
     public void createXmlFile(){

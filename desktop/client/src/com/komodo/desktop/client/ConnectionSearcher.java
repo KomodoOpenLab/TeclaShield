@@ -28,6 +28,7 @@ public class ConnectionSearcher extends Thread implements Runnable{
         while(!sock.isConnected())//Check if connection is established.
         {
             sock.scan_devices();  //search and connect if found.
+            GlobalVar.client_window_global.setStatus("Looking for a TeclaShield in range...");
             try {
                 Thread.sleep(ATTEMPT_DELAY * 60000); //Wait for delay period
             } catch (InterruptedException ex) {

@@ -50,14 +50,21 @@ public class BluetoothClient extends Thread implements Runnable{
          * so as the main thread doesn't block.
          * previoustate=0x3F i.e all switches released.
          */
-        sock=new TeclaSocket(uuidname);   
+        sock=new TeclaSocket(uuidname);  
+        if(sock.btstate){
         prevclick=new ShieldEvent(this,-1,ShieldEvent.EVENT_LONGPRESS);
         prevevent=new ShieldEvent(this,-1,ShieldEvent.EVENT_RELEASED);
         timer=new Counter();
         event_list=new EventListenerList();
         previousstate=0x3f;
+        }
     }
-    
+    public boolean get_btstate(){
+        /*
+         * Returns true if bluetooth is on
+         */
+        return sock.btstate;
+    }
     @Override
     public void run() {
         /* 
@@ -72,10 +79,11 @@ public class BluetoothClient extends Thread implements Runnable{
         sock.addBluetoothEventListener(new BluetoothEventListener(){
 
             @Override
-            public void onConnect() {
+            public void onConnect(String name) {
                 /*
                  * Executes on Connected
                  */
+                GlobalVar.client_window_global.setStatus("Connected to TeclaShield: "+name);
                 pinger=new PingManager(sock);          // Start
                 rec=new Receiver(sock);                // Pinging
                 rec.start();                           // and  
@@ -92,6 +100,7 @@ public class BluetoothClient extends Thread implements Runnable{
                 rec.end();                              //Stop receiving
                 if(pinger!=null)
                 pinger.end();                           //Stop pinging
+                GlobalVar.client_window_global.setStatus("Disconnected");
                 System.out.println("Disconnected"); 
                 searcher=new ConnectionSearcher(sock);  // Repeatedly keep searching 
                 searcher.start();                       // for TeclaShields periodically.
@@ -118,6 +127,23 @@ public class BluetoothClient extends Thread implements Runnable{
                  * Executed when sending data is succcessful
                  */
                // System.err.println("sent");
+            }
+
+            @Override
+            public void onMultipleShieldsFound(String[] devicelist) {
+                /*
+                 * Execute when more than one TeclaShield is in range.
+                 * 
+                 */
+                GlobalVar.client_window_global.AskSelection(devicelist);
+            }
+
+            @Override
+            public void onNoShieldFound() {
+                /*
+                 * Execute when no TeclaShield was found.
+                 */
+                GlobalVar.client_window_global.setStatus("No TeclaShield in Range");
             }
             
         });
@@ -327,5 +353,7 @@ public class BluetoothClient extends Thread implements Runnable{
             runflag=false;
         }
     }
-    
+    public void selectservice(int index){
+        sock.connect_to_service(index);
+    }
 }

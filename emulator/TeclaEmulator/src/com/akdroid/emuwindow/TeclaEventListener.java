@@ -4,7 +4,8 @@
  */
 package com.akdroid.emuwindow;
 
-import com.akdroid.teclasocket.TeclaSocket;
+
+import com.komodo.socket.tecla.TeclaSocket;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import javax.swing.JLabel;

@@ -19,6 +19,8 @@ public class BluetoothEvent extends EventObject {
     public static final int BLUETOOTH_DISCONNECT = 2;
     public static final int BLUETOOTH_SENT = 3;
     public static final int BLUETOOTH_RECEIVE = 4;
+    public static final int MULTIPLE_SHIELDS_FOUND=5;
+    public static final int NO_SHIELD_FOUND=6;
     public BluetoothEvent(Object source,int event){
         super(source);
         event_id=event;

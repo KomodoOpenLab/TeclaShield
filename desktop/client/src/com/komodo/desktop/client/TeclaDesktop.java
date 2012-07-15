@@ -5,12 +5,10 @@
 package com.komodo.desktop.client;
 
 import com.komodo.desktop.interfaces.ClientMain;
+import com.komodo.desktop.interfaces.ErrorDialog;
 import com.komodo.desktop.interfaces.ShieldEvent;
 import com.komodo.desktop.interfaces.ShieldEventListener;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.xml.sax.SAXException;
+
 
 /**
  * TeclaDesktop v0.9
@@ -19,19 +17,30 @@ import org.xml.sax.SAXException;
 public class TeclaDesktop {
     public static final String uuidstring = "0000110100001000800000805F9B34FB";
     public static final String location = "Preferences";
+    public static final String errormessage="<html><div width=\"100\">Bluetooth is either turned off,Turn On and restart the application,The application will now quit</div></html>";
     //public static final String configlocation = "Preferences/config.xml";
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+            
             final PreferencesHandler prefs=new PreferencesHandler(location);
-            BluetoothClient btclient=new BluetoothClient(uuidstring);            
+            BluetoothClient btclient=new BluetoothClient(uuidstring);  
+            ErrorDialog err;
+            if(btclient.get_btstate()){
             ClientMain client=new ClientMain(prefs,btclient);
+            //Make client and btclient globally available.
+            GlobalVar.setMainWindow(client);
+            GlobalVar.setbluetoothclient(btclient);
+            //show the GUI
             client.setVisible(true);
+            
+            
+            
             final EventGenerator eventgen =new EventGenerator();
             
             btclient.start();
-            //while(btclient == null);
+            
             btclient.addShieldEventListener(new ShieldEventListener(){
 
                 @Override
@@ -81,6 +90,9 @@ public class TeclaDesktop {
                 }
             
             });
-
+        }else{
+                 err= new ErrorDialog(errormessage);
+            }
+              
     }
 }

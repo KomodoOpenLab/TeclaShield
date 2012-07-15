@@ -4,7 +4,7 @@
  */
 package teclaemulator;
 
-import com.akdroid.teclasocket.TeclaSocket;
+import com.komodo.socket.tecla.TeclaSocket;
 
 /**
  *

@@ -10,7 +10,6 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.util.ArrayList;
 import javax.swing.JFrame;
-import javax.swing.WindowConstants;
 
 
 /**
@@ -511,7 +510,7 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
             // Check if system keys like only control or only alt is not set as new keycombination
             // to prevent system issues.
             for(int m=0;m<temp.values.size();m++){
-                if(temp.values.get(m)!=KeyEvent.VK_ALT && temp.values.get(m)!=KeyEvent.VK_CONTROL)
+                if(temp.values.get(m)!=KeyEvent.VK_ALT && temp.values.get(m)!=KeyEvent.VK_CONTROL && temp.values.get(m)!=KeyEvent.VK_SHIFT)
                 {
                     flag_allowed=true;
                     break;
