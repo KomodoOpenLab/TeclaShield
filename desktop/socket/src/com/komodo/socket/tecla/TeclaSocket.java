@@ -58,14 +58,14 @@ public class TeclaSocket implements Communication,DiscoveryListener {
     public final Object service_search_lock = new Object();
     
    //Constructor for Socket as a Client 
-    public TeclaSocket(String uuidname){
+    public TeclaSocket(String uuidname) throws BluetoothStateException{
         /*
          * Client Sockets Constructor and doesn't search for devices.
          */
         initialize(uuidname);
         
     }
-    public TeclaSocket(String uuidname,boolean search){
+    public TeclaSocket(String uuidname,boolean search) throws BluetoothStateException{
         /*
          * Construtor with an option to search
          * Should be used for Client Sockets
@@ -77,7 +77,7 @@ public class TeclaSocket implements Communication,DiscoveryListener {
     
     //Constructor for socket as a server
     
-    public TeclaSocket(String uuidname,String name,boolean auth,boolean enc){
+    public TeclaSocket(String uuidname,String name,boolean auth,boolean enc) throws BluetoothStateException{
         /*
          * Constructor when making a server TeclaSocket.
          */
@@ -87,12 +87,11 @@ public class TeclaSocket implements Communication,DiscoveryListener {
     
     
     //initilaize the desktop sockets
-    private void initialize(String uuidname) {
+    private void initialize(String uuidname) throws BluetoothStateException {
         /*
          * Initializes the socket parameters
          */
             eventlist = new EventListenerList();
-        try {
             local=LocalDevice.getLocalDevice();
             System.out.println("Local device found with address " + local.getBluetoothAddress()+ " "
                     + local.getFriendlyName());
@@ -105,10 +104,7 @@ public class TeclaSocket implements Communication,DiscoveryListener {
             dagent=local.getDiscoveryAgent();
             uuid=new UUID(uuidname,false);
             }
-        } catch (BluetoothStateException ex) {
-            btstate=false;
-            Logger.getLogger(TeclaSocket.class.getName()).log(Level.SEVERE, null, ex);
-        }
+         
     }
     
     /*

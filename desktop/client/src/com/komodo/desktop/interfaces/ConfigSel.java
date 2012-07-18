@@ -4,6 +4,7 @@
  */
 package com.komodo.desktop.interfaces;
 
+import com.komodo.desktop.client.GlobalVar;
 import com.komodo.desktop.client.PreferencesHandler;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -130,6 +131,8 @@ import java.io.File;
 
      private void save_as_buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_save_as_buttonActionPerformed
          // TODO add your handling code here:
+         NewFileDialog nfdialog=new NewFileDialog(GlobalVar.client_window_global,true,pref,this);
+         nfdialog.setVisible(true);
      }//GEN-LAST:event_save_as_buttonActionPerformed
 
      private void delete_buttonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_delete_buttonActionPerformed
@@ -154,5 +157,18 @@ import java.io.File;
     private javax.swing.JComboBox jComboBox1;
     private javax.swing.JButton save_as_button;
     // End of variables declaration//GEN-END:variables
-
+    
+    
+    public void RefreshList(){
+        /*
+         * Refreshes the list to include any newly added file.
+         */
+        jComboBox1.removeActionListener(al);
+        jComboBox1.removeAllItems();
+        File[] list =pref.get_available_configs();
+        for(int x=0;x<list.length;x++){
+            jComboBox1.addItem(list[x]);
+        }
+        jComboBox1.addActionListener(al);
+    }
 }

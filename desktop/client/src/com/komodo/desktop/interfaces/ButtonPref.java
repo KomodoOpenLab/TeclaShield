@@ -8,6 +8,7 @@ import com.komodo.desktop.client.ComEvent;
 import com.komodo.desktop.client.EventConstant;
 import com.komodo.desktop.client.PreferencesHandler;
 import com.komodo.desktop.client.ShieldButton;
+import java.awt.event.KeyEvent;
 import org.w3c.dom.Element;
 
 /**
@@ -31,7 +32,10 @@ public class ButtonPref extends javax.swing.JPanel {
     public ButtonPref(int shieldeventid,PreferencesHandler prefs_) {
         initComponents();
         prefs=prefs_;
+        this.setFocusable(true);
         Sbutton=prefs.getShieldButton(shieldeventid);
+        choiceRTR.setSelected(Sbutton.RTR_flag);
+        delayfield.setText(""+Sbutton.RTR_delay);
         updateOnPress(Sbutton.eventlist[ShieldEvent.EVENT_PRESSED]);
         updateOnRelease(Sbutton.eventlist[ShieldEvent.EVENT_RELEASED]);
         updateOnClick(Sbutton.eventlist[ShieldEvent.EVENT_CLICK]);
@@ -78,6 +82,16 @@ public class ButtonPref extends javax.swing.JPanel {
         OptionC = new javax.swing.JLabel();
         OptionD = new javax.swing.JLabel();
         OptionL = new javax.swing.JLabel();
+        choiceRTR = new javax.swing.JCheckBox();
+        jLabel9 = new javax.swing.JLabel();
+        delayfield = new javax.swing.JTextField();
+        jLabel10 = new javax.swing.JLabel();
+
+        addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                formMouseClicked(evt);
+            }
+        });
 
         jLabel1.setText("onPress");
 
@@ -162,6 +176,34 @@ public class ButtonPref extends javax.swing.JPanel {
 
         OptionL.setText("jLabel24");
 
+        choiceRTR.setText("Repeat Till Release");
+        choiceRTR.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                choiceRTRItemStateChanged(evt);
+            }
+        });
+
+        jLabel9.setText("Repeat Delay : ");
+
+        delayfield.setText("100");
+        delayfield.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                delayfieldActionPerformed(evt);
+            }
+        });
+        delayfield.addFocusListener(new java.awt.event.FocusAdapter() {
+            public void focusLost(java.awt.event.FocusEvent evt) {
+                delayfieldFocusLost(evt);
+            }
+        });
+        delayfield.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                delayfieldKeyPressed(evt);
+            }
+        });
+
+        jLabel10.setText("ms");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
@@ -214,9 +256,20 @@ public class ButtonPref extends javax.swing.JPanel {
                     .addComponent(edit1))
                 .addGap(80, 80, 80))
             .addGroup(layout.createSequentialGroup()
-                .addGap(10, 10, 10)
-                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 591, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(111, Short.MAX_VALUE))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(10, 10, 10)
+                        .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 591, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(78, 78, 78)
+                        .addComponent(choiceRTR)
+                        .addGap(81, 81, 81)
+                        .addComponent(jLabel9)
+                        .addGap(31, 31, 31)
+                        .addComponent(delayfield, javax.swing.GroupLayout.PREFERRED_SIZE, 42, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel10)))
+                .addContainerGap())
         );
 
         layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {jLabel1, jLabel2, jLabel3, jLabel4, jLabel5, jLabel6});
@@ -228,7 +281,13 @@ public class ButtonPref extends javax.swing.JPanel {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addContainerGap(57, Short.MAX_VALUE)
+                .addContainerGap(28, Short.MAX_VALUE)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(choiceRTR)
+                    .addComponent(jLabel9)
+                    .addComponent(delayfield, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel10))
+                .addGap(33, 33, 33)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel6)
                     .addComponent(jLabel7)
@@ -318,6 +377,55 @@ public class ButtonPref extends javax.swing.JPanel {
        
     }//GEN-LAST:event_edit4MouseClicked
 
+    private void delayfieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_delayfieldActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_delayfieldActionPerformed
+
+    private void choiceRTRItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_choiceRTRItemStateChanged
+        // TODO add your handling code here:
+        Sbutton.RTR_flag=choiceRTR.isSelected();
+        Element button=prefs.getButton(Sbutton.buttonid);
+        if(Sbutton.RTR_flag){
+            button.setAttribute("RTR","1");           
+        }
+        else{
+            button.setAttribute("RTR","0"); 
+        }
+        prefs.commitchanges(prefs.get_doc());
+    }//GEN-LAST:event_choiceRTRItemStateChanged
+
+    private void delayfieldFocusLost(java.awt.event.FocusEvent evt) {//GEN-FIRST:event_delayfieldFocusLost
+        // TODO add your handling code here:
+        String delayval=delayfield.getText();
+        int delay=Sbutton.RTR_delay;
+        Element button=prefs.getButton(Sbutton.buttonid);
+        try{
+            Sbutton.RTR_delay=Integer.parseInt(delayval);
+            if(Sbutton.RTR_delay<=0){
+                throw new NumberFormatException();
+            }
+            
+        }
+        catch (NumberFormatException e){
+            Sbutton.RTR_delay=delay;
+            delayfield.setText(""+delay);
+        }
+        button.setAttribute("RTR_delay", ""+Sbutton.RTR_delay);
+        prefs.commitchanges(prefs.get_doc());
+    }//GEN-LAST:event_delayfieldFocusLost
+
+    private void delayfieldKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_delayfieldKeyPressed
+        // TODO add your handling code here:
+        if(evt.getKeyCode()==KeyEvent.VK_ENTER){
+            this.requestFocus();
+        }
+    }//GEN-LAST:event_delayfieldKeyPressed
+
+    private void formMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseClicked
+        // TODO add your handling code here:
+        this.requestFocus();
+    }//GEN-LAST:event_formMouseClicked
+
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel DeviceC;
     private javax.swing.JLabel DeviceD;
@@ -334,12 +442,15 @@ public class ButtonPref extends javax.swing.JPanel {
     private javax.swing.JLabel ValueL;
     private javax.swing.JLabel ValueP;
     private javax.swing.JLabel ValueR;
+    private javax.swing.JCheckBox choiceRTR;
+    private javax.swing.JTextField delayfield;
     private javax.swing.JButton edit0;
     private javax.swing.JButton edit1;
     private javax.swing.JButton edit2;
     private javax.swing.JButton edit3;
     private javax.swing.JButton edit4;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel19;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
@@ -348,6 +459,7 @@ public class ButtonPref extends javax.swing.JPanel {
     private javax.swing.JLabel jLabel6;
     private javax.swing.JLabel jLabel7;
     private javax.swing.JLabel jLabel8;
+    private javax.swing.JLabel jLabel9;
     private javax.swing.JSeparator jSeparator1;
     // End of variables declaration//GEN-END:variables
     

@@ -18,11 +18,13 @@ import java.util.logging.Logger;
  * 
  * @author Akhil
  */
-public class EventGenerator {
+public class EventGenerator implements Runnable{
     
      Robot robot;
      int screenwidth=0,screenheight=0;
-
+     int delay;
+     ComEvent ev;
+     boolean flag=false;
      public EventGenerator(){
          /*
           * Initializes the robot and obtains screen dimensions 
@@ -47,6 +49,15 @@ public class EventGenerator {
           * Introduces delay of ms_ units in ms .
           */
          robot.delay(ms_);
+     }
+     public  void triggerevents(ComEvent ev,int repeatgap){
+         interpret(ev);
+            try {
+                Thread.sleep(repeatgap);
+            } catch (InterruptedException ex) {
+                flag=false;
+                Logger.getLogger(EventGenerator.class.getName()).log(Level.SEVERE, null, ex);
+            }
      }
      
      public void interpret(ComEvent ev){
@@ -150,5 +161,36 @@ public class EventGenerator {
              robot.keyRelease(keyvalues.get(i));
          }
      }
-     
+
+    @Override
+    public void run() {
+        if(ev!=null && delay !=0){
+        flag=true;   
+        while(flag){
+            triggerevents(ev,delay);
+        }
+        }
+    }
+    /*
+     * Functions to aid Repeat till Release Mode
+     */
+    public void setEvent(ComEvent ce){
+        /*
+         * Set the event to be repeated
+         */
+        ev=ce;
+    }
+    public void setDelay(int delay_){
+        /*
+         * Set the time period to be repeated for...
+         */
+        delay=delay_;
+    }
+    public void stoptrigger(){
+        /*
+         * Stop repeating
+         */
+        flag=false;
+    }
+    
 }

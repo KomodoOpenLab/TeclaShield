@@ -417,13 +417,13 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
 
     private void cancelbuttonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_cancelbuttonMouseClicked
         // TODO add your handling code here:
-        setVisible(false);
+        dispose();
         
     }//GEN-LAST:event_cancelbuttonMouseClicked
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
         // TODO add your handling code here:
-        setVisible(false);
+        dispose();
     }//GEN-LAST:event_formWindowClosing
 
     /**

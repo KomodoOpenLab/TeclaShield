@@ -4,7 +4,6 @@
  */
 package com.komodo.desktop.interfaces;
 
-import com.komodo.desktop.client.BluetoothClient;
 import java.awt.BorderLayout;
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
@@ -130,13 +129,13 @@ public class ChooserDialog extends javax.swing.JDialog {
                 break;
             }       
         }
-        setVisible(false); 
+        dispose(); 
     }//GEN-LAST:event_jButton1MouseClicked
 
     private void jButton2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MouseClicked
         // TODO add your handling code here:
         parent.setStatus("No TeclaShield Selected");
-        setVisible(false);
+        dispose();
     }//GEN-LAST:event_jButton2MouseClicked
 
     /**

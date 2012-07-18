@@ -239,7 +239,8 @@ public class PreferencesHandler {
          */
         Element buttonelem=document.createElement("ShieldButton");
         buttonelem.setAttribute("value",""+buttonid);
-        
+        buttonelem.setAttribute("RTR","0");
+        buttonelem.setAttribute("RTR_delay","100"); //delay in ms
         root.appendChild(buttonelem);
         return buttonelem;
     }

@@ -17,6 +17,8 @@ public class ShieldButton {
     public int buttonid; //button number
     public ComEvent eventlist[]; //eventlist containing ComputerEvents info to be 
                                  //generated on the occurence of the event
+    public boolean RTR_flag;
+    public int RTR_delay;
     public ShieldButton(int number,Element button){
         /*
          * Create a shieldbutton and initialize all its ComEvents.
@@ -27,6 +29,12 @@ public class ShieldButton {
         int j=0;
         eventlist=new ComEvent[5];
         try{
+            int x=Integer.parseInt(button.getAttribute("RTR"));
+            RTR_delay=Integer.parseInt(button.getAttribute("RTR_delay"));
+            if(x==0)
+                RTR_flag=false;
+            else
+                RTR_flag=true;
         while(j<5){
             //Obtain event number and device
             int event_no=Integer.parseInt(event.getAttribute("eventid"));

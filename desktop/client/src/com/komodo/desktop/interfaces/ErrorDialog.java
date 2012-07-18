@@ -15,7 +15,7 @@ public class ErrorDialog extends javax.swing.JFrame {
      */
     public ErrorDialog(String text) {
         initComponents();
-        jLabel1.setText("Error: "+text);
+        jLabel1.setText("<html><div WIDTH=300 ALIGN=CENTER>Error: "+text+"</div></html>");
     }
 
     /**
@@ -32,6 +32,7 @@ public class ErrorDialog extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
+        jLabel1.setForeground(new java.awt.Color(255, 0, 51));
         jLabel1.setText("Error:");
 
         jButton2.setText("OK");
@@ -58,9 +59,9 @@ public class ErrorDialog extends javax.swing.JFrame {
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(25, 25, 25)
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 39, Short.MAX_VALUE)
+                .addContainerGap()
+                .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 90, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jButton2)
                 .addGap(24, 24, 24))
         );
@@ -70,7 +71,7 @@ public class ErrorDialog extends javax.swing.JFrame {
 
     private void jButton2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MouseClicked
         // TODO add your handling code here:
-        setVisible(false);
+        this.dispose();
     }//GEN-LAST:event_jButton2MouseClicked
 
     /**

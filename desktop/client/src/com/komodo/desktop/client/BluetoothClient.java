@@ -10,6 +10,7 @@ import com.komodo.socket.tecla.BluetoothEventListener;
 import com.komodo.socket.tecla.TeclaSocket;
 import java.io.DataInputStream;
 import java.io.IOException;
+import javax.bluetooth.BluetoothStateException;
 import javax.swing.event.EventListenerList;
 
 /**
@@ -41,7 +42,7 @@ public class BluetoothClient extends Thread implements Runnable{
         sock=null;
     }
     
-    public BluetoothClient(String uuidname){ 
+    public BluetoothClient(String uuidname) throws BluetoothStateException{ 
         
         /*
          * Initialize all contents.
