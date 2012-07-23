@@ -9,6 +9,8 @@ import com.komodo.desktop.client.PreferencesHandler;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 
 /**
@@ -27,7 +29,9 @@ public class ClientMain extends javax.swing.JFrame {
     TrayIcon icon;
     boolean systray_available;
     ConfigSel cfgsel;
-
+    JButton close;
+    boolean closeflag=false;
+    public static int DELAY=2; 
     public ClientMain(PreferencesHandler pref,BluetoothClient bcl_) {
         initComponents();
         //Select the desired configurations
@@ -36,7 +40,8 @@ public class ClientMain extends javax.swing.JFrame {
         jPanel1.add(cfgsel);
         refresh_display(pref);
         bcl=bcl_;
-                
+        closeflag=false;   
+        this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         //Set Application icon in the title bar
         setIconImage(Toolkit.getDefaultToolkit().createImage(TECLA_ICON_PATH));
         //Get the System Tray of the system.
@@ -123,6 +128,9 @@ public class ClientMain extends javax.swing.JFrame {
         preftab = new javax.swing.JTabbedPane();
         jPanel1 = new javax.swing.JPanel();
         statuslabel = new javax.swing.JLabel();
+        disconnect_Button = new javax.swing.JButton();
+        jButton2 = new javax.swing.JButton();
+        jCheckBox1 = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("TeclaClient");
@@ -151,19 +159,54 @@ public class ClientMain extends javax.swing.JFrame {
         statuslabel.setText("Welcome to TeclaDesktop !!");
         statuslabel.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(0, 0, 0)));
 
+        disconnect_Button.setText("Disconnect");
+        disconnect_Button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                disconnect_ButtonMouseClicked(evt);
+            }
+        });
+        disconnect_Button.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                disconnect_ButtonActionPerformed(evt);
+            }
+        });
+
+        jButton2.setText("Quit");
+        jButton2.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                jButton2MouseClicked(evt);
+            }
+        });
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
+        jCheckBox1.setText("Start on Startup");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(61, 61, 61)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(preftab, javax.swing.GroupLayout.PREFERRED_SIZE, 848, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 41, Short.MAX_VALUE))
+                    .addGroup(layout.createSequentialGroup()
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(121, 121, 121)
-                        .addComponent(statuslabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addComponent(preftab, javax.swing.GroupLayout.PREFERRED_SIZE, 848, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(0, 41, Short.MAX_VALUE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(statuslabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jCheckBox1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addComponent(disconnect_Button)
+                                .addGap(18, 18, 18)
+                                .addComponent(jButton2)
+                                .addGap(47, 47, 47))))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -172,9 +215,13 @@ public class ClientMain extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addGap(12, 12, 12)
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(statuslabel, javax.swing.GroupLayout.PREFERRED_SIZE, 62, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(disconnect_Button)
+                            .addComponent(jButton2)
+                            .addComponent(jCheckBox1))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(statuslabel, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addGap(26, 26, 26)
                 .addComponent(preftab, javax.swing.GroupLayout.PREFERRED_SIZE, 411, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(25, Short.MAX_VALUE))
@@ -185,8 +232,12 @@ public class ClientMain extends javax.swing.JFrame {
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
                 // TODO add your handling code here:
+                if(closeflag){
                 bcl.close();
-        
+                }
+                else{
+                this.setState(JFrame.ICONIFIED);    
+                }
     }//GEN-LAST:event_formWindowClosing
 
     private void formWindowIconified(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowIconified
@@ -199,6 +250,30 @@ public class ClientMain extends javax.swing.JFrame {
             System.out.println(ex.getMessage());
         }
     }//GEN-LAST:event_formWindowIconified
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void disconnect_ButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_disconnect_ButtonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_disconnect_ButtonActionPerformed
+
+    private void disconnect_ButtonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_disconnect_ButtonMouseClicked
+        // TODO add your handling code here:
+        bcl.disconnect_temp(DELAY*60000);
+    }//GEN-LAST:event_disconnect_ButtonMouseClicked
+
+    private void jButton2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MouseClicked
+        // TODO add your handling code here:
+        closeflag=true;
+        bcl.close();
+        WindowEvent wev = new WindowEvent(this, WindowEvent.WINDOW_CLOSING);
+        Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(wev);
+        setVisible(false);
+        dispose();
+        System.exit(0);
+    }//GEN-LAST:event_jButton2MouseClicked
 
     /**
      * @param args the command line arguments
@@ -242,6 +317,9 @@ public class ClientMain extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton disconnect_Button;
+    private javax.swing.JButton jButton2;
+    private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JTabbedPane preftab;
     private javax.swing.JLabel statuslabel;

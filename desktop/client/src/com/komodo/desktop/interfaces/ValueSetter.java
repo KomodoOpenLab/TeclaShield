@@ -411,7 +411,7 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
                 break;
         }
         source.setComEvent(ce);
-        setVisible(false);
+        dispose();
         
     }//GEN-LAST:event_okbuttonMouseClicked
 
@@ -423,7 +423,9 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
         // TODO add your handling code here:
+        System.out.println("closing activated");
         dispose();
+        
     }//GEN-LAST:event_formWindowClosing
 
     /**

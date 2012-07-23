@@ -10,6 +10,8 @@ import com.komodo.socket.tecla.BluetoothEventListener;
 import com.komodo.socket.tecla.TeclaSocket;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.bluetooth.BluetoothStateException;
 import javax.swing.event.EventListenerList;
 
@@ -114,8 +116,10 @@ public class BluetoothClient extends Thread implements Runnable{
                  * Executed when data is received
                  */
                 try {
+                    if(datain.available()>0){
                     Byte b=datain.readByte();   //Read the byte received
-                    resolve(b);                 //Resolve the input to their respective events
+                    resolve(b);            
+                    }//Resolve the input to their respective events
                 } catch (IOException ex) {
                    System.out.println(ex.getMessage()); 
                 }
@@ -356,5 +360,33 @@ public class BluetoothClient extends Thread implements Runnable{
     }
     public void selectservice(int index){
         sock.connect_to_service(index);
+    }
+    
+    public void disconnect_temp(long ms){
+        if(rec!=null)                   
+           rec.end();                              //Stop receiving
+        if(pinger!=null)
+           pinger.end();                           //Stop pinging
+        
+        System.out.println("disconnected pinger and receiver");
+        try {
+            Thread.sleep(20);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(BluetoothClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        System.out.println("Closing socket");
+        sock.close();
+        System.err.println("Socket closed");
+        GlobalVar.client_window_global.setStatus("Disconnected temporarily for " + ms + " ms.");
+        try {
+            Thread.sleep(ms);
+        } catch (InterruptedException ex) {
+            Logger.getLogger(BluetoothClient.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        System.out.println("Starting to search");
+        searcher=new ConnectionSearcher(sock);  // Repeatedly keep searching 
+        System.out.println("searcher made");
+        searcher.start();                       // for TeclaShields periodically.
+        System.out.println("Searcher started");
     }
 }

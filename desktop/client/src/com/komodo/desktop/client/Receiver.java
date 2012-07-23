@@ -19,6 +19,7 @@ public class Receiver extends Thread implements Runnable {
     public Receiver(TeclaSocket t){
         sock=t;
         runf=true;
+        sock.stopreceiving=false;
     }
     
     @Override
@@ -30,6 +31,7 @@ public class Receiver extends Thread implements Runnable {
     }
    
     public void end(){  //Interrupt the thread.
+        sock.stopreceiving=true;
         runf=false;
     }
 }

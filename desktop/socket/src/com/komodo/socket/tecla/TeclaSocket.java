@@ -52,6 +52,7 @@ public class TeclaSocket implements Communication,DiscoveryListener {
     String device_name=null;
     public boolean btstate=false;
     boolean last;
+    public boolean stopreceiving;
     // Constructor should be provided be a 128 bit 
     //UUID in string form without dashes
     
@@ -155,8 +156,7 @@ public class TeclaSocket implements Communication,DiscoveryListener {
     //receives byte fromstream will wait till a byte is recieved...
     public void receive() {
         try {
-            
-            while((datain.available()==0)){
+            while((datain.available()==0)&& !stopreceiving){
                 ;
             }
             /*
@@ -343,6 +343,7 @@ public class TeclaSocket implements Communication,DiscoveryListener {
             dataout.close();
             if(conn!=null)
             conn.close();
+            connectionflag=false;
         } catch (IOException ex) {
             Logger.getLogger(TeclaSocket.class.getName()).log(Level.SEVERE, null, ex);
         }
