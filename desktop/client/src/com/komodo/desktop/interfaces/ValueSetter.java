@@ -117,6 +117,11 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
                 RkeyStateChanged(evt);
             }
         });
+        Rkey.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                RkeyActionPerformed(evt);
+            }
+        });
 
         jLabel2.setText("Action");
 
@@ -427,6 +432,10 @@ public class ValueSetter extends javax.swing.JFrame implements KeyListener {
         dispose();
         
     }//GEN-LAST:event_formWindowClosing
+
+    private void RkeyActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RkeyActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_RkeyActionPerformed
 
     /**
      * @param args the command line arguments

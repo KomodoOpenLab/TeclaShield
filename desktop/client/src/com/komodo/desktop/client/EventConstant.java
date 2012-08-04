@@ -56,4 +56,7 @@ public class EventConstant {
                                             "Keyboard"
                                         } ;
     
+   public static final int CONNECT_TO_BLUETOOTH=1;
+   
+   public static final int CONNECT_TO_ANDROID=2;
 }

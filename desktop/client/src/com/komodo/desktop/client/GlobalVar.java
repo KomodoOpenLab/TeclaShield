@@ -22,7 +22,10 @@ public class GlobalVar {
     
     static public BluetoothClient btclient_global=null;//should contain the instance of main bluetoothclient
    
-   public static void setMainWindow(ClientMain client){
+   static public AndroidServer android_server=null;
+    
+    static public PreferencesHandler handler=null;
+    public static void setMainWindow(ClientMain client){
        /*
         * sets the client_window_global field with client
         * which should be the instance of client window.
@@ -37,5 +40,21 @@ public class GlobalVar {
         * It should be called right after initializing BluetoothClient instance.
         */
        btclient_global=bcl;
+   }
+   public static void setAndroidServer(AndroidServer server){
+       /*
+        * sets the client_window_global field with client
+        * which should be the instance of client window.
+        * It should be called right after initializing ClientMain instance.
+        */
+       android_server=server;
+   }
+   public static void setPreferences(PreferencesHandler prefs){
+       /*
+        * sets the client_window_global field with client
+        * which should be the instance of client window.
+        * It should be called right after initializing ClientMain instance.
+        */
+       handler=prefs;
    }
 }

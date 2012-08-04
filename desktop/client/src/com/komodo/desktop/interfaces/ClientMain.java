@@ -5,6 +5,8 @@
 package com.komodo.desktop.interfaces;
 
 import com.komodo.desktop.client.BluetoothClient;
+import com.komodo.desktop.client.EventConstant;
+import com.komodo.desktop.client.GlobalVar;
 import com.komodo.desktop.client.PreferencesHandler;
 import java.awt.*;
 import java.awt.event.MouseEvent;
@@ -12,6 +14,7 @@ import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import org.w3c.dom.Element;
 
 /**
  * This is the main window of the TeclaDesktop
@@ -32,8 +35,13 @@ public class ClientMain extends javax.swing.JFrame {
     JButton close;
     boolean closeflag=false;
     public static int DELAY=2; 
+    public static int connection_method;
+    Element root;
+    PreferencesHandler prefs;
+    
     public ClientMain(PreferencesHandler pref,BluetoothClient bcl_) {
         initComponents();
+        prefs=pref;
         //Select the desired configurations
         cfgsel=new ConfigSel(this,pref);
         jPanel1.setLayout(new BorderLayout());
@@ -41,13 +49,24 @@ public class ClientMain extends javax.swing.JFrame {
         refresh_display(pref);
         bcl=bcl_;
         closeflag=false;   
+        buttonGroup1.add(radioShield);
+        buttonGroup1.add(radioandroid);
         this.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         //Set Application icon in the title bar
         setIconImage(Toolkit.getDefaultToolkit().createImage(TECLA_ICON_PATH));
         //Get the System Tray of the system.
         systray=SystemTray.getSystemTray();
         systray_available=systray.isSupported();
-        
+        root=(Element)prefs.get_doc().getFirstChild();
+        connection_method=Integer.parseInt(root.getAttribute("connection"));
+        if(connection_method==EventConstant.CONNECT_TO_ANDROID){
+            radioandroid.setSelected(true);
+            radioShield.setSelected(false);
+        }
+        else if(connection_method==EventConstant.CONNECT_TO_BLUETOOTH){
+            radioShield.setSelected(true);
+            radioandroid.setSelected(false);
+        }
         if(systray_available){
             Image icon_img = Toolkit.getDefaultToolkit().createImage(TECLA_ICON_PATH);
             icon=new TrayIcon(icon_img,"TeclaDesktop");
@@ -125,12 +144,17 @@ public class ClientMain extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
+        buttonGroup1 = new javax.swing.ButtonGroup();
         preftab = new javax.swing.JTabbedPane();
         jPanel1 = new javax.swing.JPanel();
         statuslabel = new javax.swing.JLabel();
         disconnect_Button = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
         jCheckBox1 = new javax.swing.JCheckBox();
+        radioShield = new javax.swing.JRadioButton();
+        radioandroid = new javax.swing.JRadioButton();
+        setPassword = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("TeclaClient");
@@ -152,7 +176,7 @@ public class ClientMain extends javax.swing.JFrame {
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 100, Short.MAX_VALUE)
+            .addGap(0, 77, Short.MAX_VALUE)
         );
 
         statuslabel.setFont(new java.awt.Font("Dialog", 1, 14)); // NOI18N
@@ -185,46 +209,84 @@ public class ClientMain extends javax.swing.JFrame {
 
         jCheckBox1.setText("Start on Startup");
 
+        radioShield.setText("TeclaShield");
+        radioShield.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                radioShieldItemStateChanged(evt);
+            }
+        });
+
+        radioandroid.setText("Android");
+        radioandroid.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                radioandroidItemStateChanged(evt);
+            }
+        });
+
+        setPassword.setText("Set Password");
+        setPassword.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                setPasswordMouseClicked(evt);
+            }
+        });
+
+        jLabel1.setText("  Connect to :  ");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(61, 61, 61)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(preftab, javax.swing.GroupLayout.PREFERRED_SIZE, 848, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 41, Short.MAX_VALUE))
-                    .addGroup(layout.createSequentialGroup()
+                        .addGap(61, 61, 61)
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(121, 121, 121)
+                        .addGap(18, 18, 18)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(statuslabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(jCheckBox1)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                .addGap(22, 22, 22)
                                 .addComponent(disconnect_Button)
+                                .addGap(26, 26, 26)
+                                .addComponent(jButton2))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel1)
+                                .addGap(27, 27, 27)
+                                .addComponent(radioShield)
                                 .addGap(18, 18, 18)
-                                .addComponent(jButton2)
-                                .addGap(47, 47, 47))))))
+                                .addComponent(radioandroid)
+                                .addGap(18, 18, 18)
+                                .addComponent(setPassword)
+                                .addGap(0, 0, Short.MAX_VALUE))))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(121, 121, 121)
+                        .addComponent(preftab, javax.swing.GroupLayout.PREFERRED_SIZE, 848, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(40, 40, 40)
+                        .addComponent(statuslabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addGap(0, 0, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
+                .addContainerGap(53, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(12, 12, 12)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(disconnect_Button)
-                            .addComponent(jButton2)
-                            .addComponent(jCheckBox1))
+                            .addComponent(jLabel1)
+                            .addComponent(radioShield)
+                            .addComponent(radioandroid)
+                            .addComponent(setPassword))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(statuslabel, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(26, 26, 26)
-                .addComponent(preftab, javax.swing.GroupLayout.PREFERRED_SIZE, 411, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(25, Short.MAX_VALUE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(disconnect_Button)
+                            .addComponent(jCheckBox1)
+                            .addComponent(jButton2)))
+                    .addComponent(jPanel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(statuslabel, javax.swing.GroupLayout.PREFERRED_SIZE, 51, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(preftab, javax.swing.GroupLayout.PREFERRED_SIZE, 411, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(33, 33, 33))
         );
 
         pack();
@@ -275,6 +337,30 @@ public class ClientMain extends javax.swing.JFrame {
         System.exit(0);
     }//GEN-LAST:event_jButton2MouseClicked
 
+    private void radioandroidItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_radioandroidItemStateChanged
+        // TODO add your handling code here:
+        if(radioandroid.isSelected()){
+            connection_method=EventConstant.CONNECT_TO_ANDROID;
+            root.setAttribute("connection",""+EventConstant.CONNECT_TO_ANDROID);
+            prefs.commitchanges(prefs.get_doc());
+        }
+    }//GEN-LAST:event_radioandroidItemStateChanged
+
+    private void radioShieldItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_radioShieldItemStateChanged
+        // TODO add your handling code here:
+        if(radioShield.isSelected()){
+            connection_method=EventConstant.CONNECT_TO_BLUETOOTH;
+            root.setAttribute("connection",""+EventConstant.CONNECT_TO_BLUETOOTH);
+            prefs.commitchanges(prefs.get_doc());
+        }
+    }//GEN-LAST:event_radioShieldItemStateChanged
+
+    private void setPasswordMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_setPasswordMouseClicked
+        // TODO add your handling code here:
+        PasswordSetter setter=new PasswordSetter(this,true,GlobalVar.android_server);
+        setter.setVisible(true);
+    }//GEN-LAST:event_setPasswordMouseClicked
+
     /**
      * @param args the command line arguments
      */
@@ -317,11 +403,16 @@ public class ClientMain extends javax.swing.JFrame {
         });
     }
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton disconnect_Button;
     private javax.swing.JButton jButton2;
     private javax.swing.JCheckBox jCheckBox1;
+    private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JTabbedPane preftab;
+    private javax.swing.JRadioButton radioShield;
+    private javax.swing.JRadioButton radioandroid;
+    private javax.swing.JButton setPassword;
     private javax.swing.JLabel statuslabel;
     // End of variables declaration//GEN-END:variables
     public void AskSelection(String[] option_devices){

@@ -8,16 +8,18 @@ import com.komodo.desktop.interfaces.ClientMain;
 import com.komodo.desktop.interfaces.ErrorDialog;
 import com.komodo.desktop.interfaces.ShieldEvent;
 import com.komodo.desktop.interfaces.ShieldEventListener;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.bluetooth.BluetoothStateException;
+import org.w3c.dom.Element;
 
 
 /**
  * TeclaDesktop v0.9
  * @author Akhil
  */
-public class TeclaDesktop {
+public class TeclaDesktop implements ShieldEventListener{
     public static final String uuidstring = "0000110100001000800000805F9B34FB";
     public static final String location = "Preferences";
     public static final String errormessage="Bluetooth is either turned off or you have not installed a bluetooth device,"
@@ -25,14 +27,46 @@ public class TeclaDesktop {
     //public static final String configlocation = "Preferences/config.xml";
     /**
      * @param args the command line arguments
+     * Tentative main file.Needs many changes.but the structure remains the same
      */
+    
+    BluetoothClient btclient;
+    AndroidServer server;
+    PreferencesHandler prefs;
+    EventGenerator eventgen;
+    Thread[] threads;
     public static void main(String[] args) {
         try {
+            
             final PreferencesHandler prefs=new PreferencesHandler(location);
-            BluetoothClient btclient=new BluetoothClient(uuidstring);
+            
+            AndroidServer server=null;
+            
+            Element root=(Element)prefs.get_doc().getFirstChild();
+            
+            int choice=Integer.parseInt(root.getAttribute("connection"));
+            
+            BluetoothClient btclient=null;
+            String password=root.getAttribute("password");
+            try {
+                server=new AndroidServer(password);
+                GlobalVar.setAndroidServer(server);
+            } catch (IOException ex) {
+                Logger.getLogger(TeclaDesktop.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+            GlobalVar.setPreferences(prefs);
+
+           
             
             final Thread[] threads=new Thread[6];
             
+            TeclaDesktop tdesk=new TeclaDesktop(btclient,server,prefs,threads);
+            
+            
+            
+            if(choice==EventConstant.CONNECT_TO_BLUETOOTH){
+            btclient=new BluetoothClient(uuidstring);
             if(btclient.get_btstate()){
             ClientMain client=new ClientMain(prefs,btclient);
             //Make client and btclient globally available.
@@ -41,14 +75,37 @@ public class TeclaDesktop {
             //show the GUI
             client.setVisible(true);
             
-            
-            
-            final EventGenerator eventgen =new EventGenerator();
-            
             btclient.start();
             
-            btclient.addShieldEventListener(new ShieldEventListener(){
+            btclient.addShieldEventListener(tdesk);
 
+               
+            }
+            }
+            else if(choice==EventConstant.CONNECT_TO_ANDROID){
+                ClientMain client=new ClientMain(prefs,btclient);
+            //Make client and btclient globally available.
+                GlobalVar.setMainWindow(client);
+                GlobalVar.setbluetoothclient(btclient);
+                client.setVisible(true);
+                new Thread(server).start();
+                server.addShieldEventListener(tdesk);
+            }
+        } catch (BluetoothStateException ex) {
+            ErrorDialog err=new ErrorDialog(errormessage);
+            err.setVisible(true);
+            Logger.getLogger(TeclaDesktop.class.getName()).log(Level.SEVERE, null, ex);
+        }
+             
+    }
+
+    private TeclaDesktop(BluetoothClient btclient, AndroidServer server, PreferencesHandler prefs,Thread[] threads) {
+        this.btclient=btclient;
+        this.server=server;
+        this.prefs=prefs;
+        eventgen=new EventGenerator();
+        this.threads=threads;
+    }
                 @Override
                 public void onButtonPressed(ShieldEvent e) {
                    ShieldButton current=prefs.getShieldButton(e.getbutton());
@@ -104,13 +161,6 @@ public class TeclaDesktop {
                    // throw new UnsupportedOperationException("Not supported yet.");
                 }
             
-            });
-            }
-        } catch (BluetoothStateException ex) {
-            ErrorDialog err=new ErrorDialog(errormessage);
-            err.setVisible(true);
-            Logger.getLogger(TeclaDesktop.class.getName()).log(Level.SEVERE, null, ex);
-        }
-              
-    }
+                
+
 }
