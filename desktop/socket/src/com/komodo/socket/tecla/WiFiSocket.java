@@ -145,7 +145,7 @@ public class WiFiSocket implements Runnable{
              * Broadcast alive packets multiple times as communication over
              * UDP is unreliable.
              */
-            for(int j=0;j<10;j++)
+            for(int j=0;j<20;j++)
                 broadcast("alive");
             
             byte[] buf=new byte[256];
@@ -282,6 +282,7 @@ public class WiFiSocket implements Runnable{
         public void run(){
             try {
                 //Make a new server socket and put it to accept mode
+                if(serversock==null)
                 serversock=new ServerSocket(PORT_NUMBER+2);
                 
                 client=serversock.accept();

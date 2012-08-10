@@ -66,18 +66,18 @@ public class TeclaDesktop implements ShieldEventListener{
             
             
             if(choice==EventConstant.CONNECT_TO_BLUETOOTH){
-            btclient=new BluetoothClient(uuidstring);
-            if(btclient.get_btstate()){
-            ClientMain client=new ClientMain(prefs,btclient);
+            tdesk.btclient=new BluetoothClient(uuidstring);
+            if(tdesk.btclient.get_btstate()){
+            ClientMain client=new ClientMain(prefs,tdesk.btclient);
             //Make client and btclient globally available.
             GlobalVar.setMainWindow(client);
-            GlobalVar.setbluetoothclient(btclient);
+            GlobalVar.setbluetoothclient(tdesk.btclient);
             //show the GUI
             client.setVisible(true);
             
-            btclient.start();
+            tdesk.btclient.start();
             
-            btclient.addShieldEventListener(tdesk);
+            tdesk.btclient.addShieldEventListener(tdesk);
 
                
             }

@@ -35,8 +35,9 @@ public class AndroidServer implements Runnable,ClipboardOwner {
     EventListenerList event_list;
     ShieldEvent prevevent,prevclick;
     Counter timer;
-    public static final byte NEXT_WINDOW=(byte)0x81;
-    public static final byte NEXT_FIELD=(byte) 0x82;
+    public static final byte NEXT_WINDOW=(byte)0x82;
+    public static final byte NEXT_FIELD=(byte) 0x81;
+    WiFiReceiver rec;
     
     public AndroidServer(String passcode) throws IOException{
         Password=passcode;
@@ -55,18 +56,22 @@ public class AndroidServer implements Runnable,ClipboardOwner {
 
             @Override
             public void onClientConnected() {
+                System.out.println("Connected");
+                rec=new WiFiReceiver(socket);
+                new Thread(rec).start();
                 //throw new UnsupportedOperationException("Not supported yet.");
             }
 
             @Override
             public void onClientDisconnected() {
+                runnewthread();
                // throw new UnsupportedOperationException("Not supported yet.");
             }
 
             @Override
             public void onNoClientFound() {
                 try {
-                    Thread.sleep(60000*2);
+                    Thread.sleep(600*2);
                 } catch (InterruptedException ex) {
                     Logger.getLogger(AndroidServer.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -75,6 +80,7 @@ public class AndroidServer implements Runnable,ClipboardOwner {
 
             @Override
             public void onReceived(String data) {
+               System.out.println("received data:"+data);
                resolve(data);
             }
 
@@ -123,18 +129,25 @@ public class AndroidServer implements Runnable,ClipboardOwner {
          * prefix for shield commands ----- command:
          * 
          */
-        
-        String action_type=receiveddata.substring(0, 7);
+        if(receiveddata.equals("ping"))
+            try {
+            socket.write("ping");
+            return;
+        } catch (IOException ex) {
+            Logger.getLogger(AndroidServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        String action_type=receiveddata.substring(0, receiveddata.indexOf(':'));
         String argument=receiveddata.substring(receiveddata.indexOf(':')+1);
         if(action_type.contains("dictate")){
             addToClipboard(argument);
             try {
                 Robot rob=new Robot();
+                synchronized(this){
                 rob.keyPress(KeyEvent.VK_CONTROL);
-                rob.keyPress(KeyEvent.VK_CONTROL);
+                rob.keyPress(KeyEvent.VK_V);
                 rob.keyRelease(KeyEvent.VK_V);
-                rob.keyRelease(KeyEvent.VK_V);
-                
+                rob.keyRelease(KeyEvent.VK_CONTROL);
+                }
             } catch (AWTException ex) {
                 Logger.getLogger(AndroidServer.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -179,11 +192,12 @@ public class AndroidServer implements Runnable,ClipboardOwner {
         if(b==NEXT_WINDOW){               
             try {
                 Robot rob=new Robot();
+                synchronized(this){
                 rob.keyPress(KeyEvent.VK_ALT);
                 rob.keyPress(KeyEvent.VK_TAB);
-                rob.keyPress(KeyEvent.VK_TAB);
+                rob.keyRelease(KeyEvent.VK_TAB);
                 rob.keyRelease(KeyEvent.VK_ALT);
-                
+                }
             } catch (AWTException ex) {
                 Logger.getLogger(AndroidServer.class.getName()).log(Level.SEVERE, null, ex);
             } 
@@ -191,10 +205,10 @@ public class AndroidServer implements Runnable,ClipboardOwner {
         else if(b==NEXT_FIELD){
             try {
                 Robot rob=new Robot();
-                
+                synchronized(this){
                 rob.keyPress(KeyEvent.VK_TAB);
-                rob.keyPress(KeyEvent.VK_TAB);
-                
+                rob.keyRelease(KeyEvent.VK_TAB);
+                }
             } catch (AWTException ex) {
                 Logger.getLogger(AndroidServer.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -358,4 +372,5 @@ public class AndroidServer implements Runnable,ClipboardOwner {
             runflag=false;
         }
     }
+    
 }

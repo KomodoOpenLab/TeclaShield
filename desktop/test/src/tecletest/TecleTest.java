@@ -7,6 +7,9 @@ import com.komodo.socket.tecla.BluetoothEventListener;
 import com.komodo.socket.tecla.TeclaSocket;
 import com.komodo.socket.tecla.WiFiEventListener;
 import com.komodo.socket.tecla.WiFiSocket;
+import java.awt.AWTException;
+import java.awt.Robot;
+import java.awt.event.KeyEvent;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -22,8 +25,22 @@ public class TecleTest {
      */
     public static void main(String[] args) {
         String uuid="0000110100001000800000805F9B34FB";
+        String dictate="dictate:ashhsak";
+        System.out.println(dictate.substring(0,dictate.indexOf(":")));
+        System.out.println(dictate.substring(dictate.indexOf(":")+1));
         try {
-            final WiFiSocket sock=new WiFiSocket("android");
+                Robot rob=new Robot();
+                rob.keyPress(KeyEvent.VK_CONTROL);
+                rob.keyPress(KeyEvent.VK_V);
+                rob.keyRelease(KeyEvent.VK_V);
+                rob.keyRelease(KeyEvent.VK_CONTROL);
+                
+            } catch (AWTException ex) {
+                
+            }
+        
+        try {
+            final WiFiSocket sock=new WiFiSocket("Tecla123");
             sock.addWiFiEventListener(new WiFiEventListener(){
 
                 @Override
@@ -50,6 +67,7 @@ public class TecleTest {
 
                 @Override
                 public void onReceived(String data) {
+                    System.out.println("received"+data);
                    // throw new UnsupportedOperationException("Not supported yet.");
                 }
 
@@ -66,6 +84,7 @@ public class TecleTest {
                 } catch (InterruptedException ex) {
                     Logger.getLogger(TecleTest.class.getName()).log(Level.SEVERE, null, ex);
                 }
+                sock.read();
             }
             /*byte ch=0;
             System.out.println("Connecting .....");
