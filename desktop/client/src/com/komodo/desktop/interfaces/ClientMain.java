@@ -4,14 +4,13 @@
  */
 package com.komodo.desktop.interfaces;
 
-import com.komodo.desktop.client.BluetoothClient;
-import com.komodo.desktop.client.EventConstant;
-import com.komodo.desktop.client.GlobalVar;
-import com.komodo.desktop.client.PreferencesHandler;
+import com.komodo.desktop.client.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.WindowEvent;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import org.w3c.dom.Element;
@@ -27,7 +26,6 @@ public class ClientMain extends javax.swing.JFrame {
      */
     public static final String TECLA_ICON_PATH="tekla_icon.png";
     ButtonPref b1,b2,b3,b4,b5,b6;
-    BluetoothClient bcl;
     SystemTray systray;
     TrayIcon icon;
     boolean systray_available;
@@ -38,16 +36,18 @@ public class ClientMain extends javax.swing.JFrame {
     public static int connection_method;
     Element root;
     PreferencesHandler prefs;
+    TeclaDesktop tdesk;
     
-    public ClientMain(PreferencesHandler pref,BluetoothClient bcl_) {
+    
+    public ClientMain(PreferencesHandler pref,TeclaDesktop tdesk) {
         initComponents();
         prefs=pref;
+        this.tdesk=tdesk;
         //Select the desired configurations
         cfgsel=new ConfigSel(this,pref);
         jPanel1.setLayout(new BorderLayout());
         jPanel1.add(cfgsel);
         refresh_display(pref);
-        bcl=bcl_;
         closeflag=false;   
         buttonGroup1.add(radioShield);
         buttonGroup1.add(radioandroid);
@@ -295,7 +295,8 @@ public class ClientMain extends javax.swing.JFrame {
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
                 // TODO add your handling code here:
                 if(closeflag){
-                bcl.close();
+                if(GlobalVar.btclient_global!= null)
+                GlobalVar.btclient_global.close();
                 }
                 else{
                 this.setState(JFrame.ICONIFIED);    
@@ -323,14 +324,23 @@ public class ClientMain extends javax.swing.JFrame {
 
     private void disconnect_ButtonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_disconnect_ButtonMouseClicked
         // TODO add your handling code here:
-        bcl.disconnect_temp(DELAY*60000);
+        if(prefs.getChoice()==EventConstant.CONNECT_TO_BLUETOOTH && GlobalVar.btclient_global!=null)
+        GlobalVar.btclient_global.disconnect_temp(DELAY*60000);
+        else if(prefs.getChoice()==EventConstant.CONNECT_TO_ANDROID && GlobalVar.android_server!=null){
+            GlobalVar.android_server.close();
+            GlobalVar.android_server.closeserver();
+            try {
+                Thread.sleep(2*60000);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(ClientMain.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            GlobalVar.android_server.runnewthread();
+        }
     }//GEN-LAST:event_disconnect_ButtonMouseClicked
 
     private void jButton2MouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jButton2MouseClicked
         // TODO add your handling code here:
         closeflag=true;
-        if(bcl!=null)
-        bcl.close();
         WindowEvent wev = new WindowEvent(this, WindowEvent.WINDOW_CLOSING);
         Toolkit.getDefaultToolkit().getSystemEventQueue().postEvent(wev);
         setVisible(false);
@@ -344,6 +354,8 @@ public class ClientMain extends javax.swing.JFrame {
             connection_method=EventConstant.CONNECT_TO_ANDROID;
             root.setAttribute("connection",""+EventConstant.CONNECT_TO_ANDROID);
             prefs.commitchanges(prefs.get_doc());
+            System.out.println("in radio changed");
+            tdesk.startandroid();
         }
     }//GEN-LAST:event_radioandroidItemStateChanged
 
@@ -353,6 +365,7 @@ public class ClientMain extends javax.swing.JFrame {
             connection_method=EventConstant.CONNECT_TO_BLUETOOTH;
             root.setAttribute("connection",""+EventConstant.CONNECT_TO_BLUETOOTH);
             prefs.commitchanges(prefs.get_doc());
+            tdesk.startbluetoothserver();
         }
     }//GEN-LAST:event_radioShieldItemStateChanged
 
@@ -423,7 +436,8 @@ public class ClientMain extends javax.swing.JFrame {
     }
     public void onSelectDialog(int index){
         //Connect to a particular device as selected by the user after presing "Select" in the dialog.
-        bcl.selectservice(index);
+        if(GlobalVar.btclient_global!= null)
+        GlobalVar.btclient_global.selectservice(index);
     }
     
     public void setStatus(String message){

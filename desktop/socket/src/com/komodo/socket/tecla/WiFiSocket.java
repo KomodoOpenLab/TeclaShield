@@ -100,6 +100,9 @@ public class WiFiSocket implements Runnable{
             in.close();
         if(out!=null)
             out.close();
+        if(client!=null)
+            client.close();
+        
         connection_status=false;
     }
     public void disconnect() throws IOException{
@@ -193,6 +196,7 @@ public class WiFiSocket implements Runnable{
         } catch (SocketException ex) {
             ex.printStackTrace();
         } catch (IOException ex) {
+            ex.printStackTrace();
             fireevent(new WiFiEvent(this,WiFiEvent.NO_CLIENT_FOUND));
         }
         
@@ -209,8 +213,11 @@ public class WiFiSocket implements Runnable{
          */
         if(multi_sock==null){
             multi_sock=new MulticastSocket(PORT_NUMBER); 
+            multi_sock.setBroadcast(true);
+            multi_sock.getTimeToLive();
             multi_sock.setSoTimeout(3000);
         }
+        System.out.println(multi_sock.getTimeToLive());
         byte[] buf=message.getBytes(); 
         packet=new DatagramPacket(buf,buf.length,group,PORT_NUMBER);
         multi_sock.send(packet);
@@ -269,6 +276,14 @@ public class WiFiSocket implements Runnable{
         //throw new UnsupportedOperationException("Not supported yet.");
     }
     
+    public void closeserver(){
+        if(serversock!=null)
+            try {
+            serversock.close();
+        } catch (IOException ex) {
+            Logger.getLogger(WiFiSocket.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
     
     private class acceptorthread extends Thread{
         /*
@@ -282,7 +297,7 @@ public class WiFiSocket implements Runnable{
         public void run(){
             try {
                 //Make a new server socket and put it to accept mode
-                if(serversock==null)
+                if(serversock==null || !serversock.isBound())
                 serversock=new ServerSocket(PORT_NUMBER+2);
                 
                 client=serversock.accept();
@@ -324,5 +339,5 @@ public class WiFiSocket implements Runnable{
             
         }
     }
-    
+   
 }

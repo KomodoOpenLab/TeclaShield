@@ -341,6 +341,19 @@ public class AndroidServer implements Runnable,ClipboardOwner {
          */
         event_list.remove(ShieldEventListener.class,l);
     }
+
+    public void close() {
+        try {
+            socket.close();
+            
+        } catch (IOException ex) {
+            Logger.getLogger(AndroidServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void closeserver() {
+        socket.closeserver();
+    }
     private class Counter extends Thread implements Runnable{
         
         int delay=0;  //Used to count delay

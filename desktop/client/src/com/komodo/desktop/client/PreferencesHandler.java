@@ -380,5 +380,13 @@ public class PreferencesHandler {
         }
         return buttonret;
     }
-
+    
+    public String getPassword(){
+        return rootElement.getAttribute("password");
+    }
+    public int getChoice(){
+        int x=-1;
+        x=Integer.parseInt(rootElement.getAttribute("connection"));
+        return x;
+    }
 }
