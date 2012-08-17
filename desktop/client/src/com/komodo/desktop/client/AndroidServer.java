@@ -38,6 +38,9 @@ public class AndroidServer implements Runnable,ClipboardOwner {
     public static final byte NEXT_WINDOW=(byte)0x82;
     public static final byte NEXT_FIELD=(byte) 0x81;
     WiFiReceiver rec;
+    public static ShieldEvent disevent,dictevent;
+    
+    boolean waitflag=false;
     
     public AndroidServer(String passcode) throws IOException{
         Password=passcode;
@@ -47,29 +50,40 @@ public class AndroidServer implements Runnable,ClipboardOwner {
         prevevent=new ShieldEvent(this,-1,ShieldEvent.EVENT_RELEASED);
         timer=new Counter();
         event_list=new EventListenerList();
+        
         socket.addWiFiEventListener(new WiFiEventListener(){
 
             @Override
             public void onClientFound() {
+                
                 //throw new UnsupportedOperationException("Not supported yet.");
             }
 
             @Override
             public void onClientConnected() {
-                System.out.println("Connected");
-                rec=new WiFiReceiver(socket);
-                new Thread(rec).start();
-                //throw new UnsupportedOperationException("Not supported yet.");
+                try {
+                    socket.read();
+                    socket.read();
+                    GlobalVar.client_window_global.setStatus("Connected to android");
+                    System.out.println("Connected");
+                    rec=new WiFiReceiver(socket);
+                    new Thread(rec).start();
+                    //throw new UnsupportedOperationException("Not supported yet.");
+                } catch (IOException ex) {
+                    Logger.getLogger(AndroidServer.class.getName()).log(Level.SEVERE, null, ex);
+                }
             }
 
             @Override
             public void onClientDisconnected() {
+                GlobalVar.client_window_global.setStatus("Disconnected from android");
                 runnewthread();
                // throw new UnsupportedOperationException("Not supported yet.");
             }
 
             @Override
             public void onNoClientFound() {
+                GlobalVar.client_window_global.setStatus("No Android Clients were found");
                 try {
                     Thread.sleep(600*2);
                 } catch (InterruptedException ex) {
@@ -101,10 +115,25 @@ public class AndroidServer implements Runnable,ClipboardOwner {
     }
     @Override
     public void run() {
+        if(waitflag){
+            waitflag=false;
+            try {
+            Thread.sleep(2*60000);
+            
+        } catch (InterruptedException ex) {
+            Logger.getLogger(AndroidServer.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        }
         socket.search_connections();
         //   throw new UnsupportedOperationException("Not supported yet.");
     }
     public void runnewthread(){
+        
+            
+        new Thread(this).start();
+    }
+    public void runnewthreadwithwait(){
+        waitflag=true;
         new Thread(this).start();
     }
     
@@ -132,10 +161,12 @@ public class AndroidServer implements Runnable,ClipboardOwner {
         if(receiveddata.equals("ping"))
             try {
             socket.write("ping");
+            System.out.println("Sent ping");
             return;
         } catch (IOException ex) {
             Logger.getLogger(AndroidServer.class.getName()).log(Level.SEVERE, null, ex);
         }
+       
         String action_type=receiveddata.substring(0, receiveddata.indexOf(':'));
         String argument=receiveddata.substring(receiveddata.indexOf(':')+1);
         if(action_type.contains("dictate")){
@@ -154,6 +185,10 @@ public class AndroidServer implements Runnable,ClipboardOwner {
         }else if(action_type.contains("command")){
             byte x=(byte)Integer.parseInt(argument);
             resolve(x);
+        }else if(action_type.contains("disevent")){
+            setdisevent(Integer.parseInt(argument));
+        }else if(action_type.contains("dictevent")){
+            setdictevent(Integer.parseInt(argument));
         }
     }
     
@@ -344,8 +379,7 @@ public class AndroidServer implements Runnable,ClipboardOwner {
 
     public void close() {
         try {
-            socket.close();
-            
+            socket.disconnect();
         } catch (IOException ex) {
             Logger.getLogger(AndroidServer.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -383,6 +417,28 @@ public class AndroidServer implements Runnable,ClipboardOwner {
         }
         public void end(){      //Interrupt the wait.
             runflag=false;
+        }
+    }
+    
+    public void setdisevent(int num){
+        
+        int button=num/10-1;
+        int event=num%10-1;
+        disevent=new ShieldEvent(this,button,event);
+        System.out.println("setting disevent");
+        
+    }
+    public void setdictevent(int num){
+        System.out.println("setting dictevent");
+        int button=num/10-1;
+        int event=num%10-1;
+        dictevent=new ShieldEvent(this,button,event);
+    }
+    public void request_dictation(){
+        try {
+            socket.write("dictation");
+        } catch (IOException ex) {
+            Logger.getLogger(AndroidServer.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     

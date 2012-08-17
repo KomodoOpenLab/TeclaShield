@@ -52,6 +52,7 @@ public class TeclaDesktop implements ShieldEventListener{
     private TeclaDesktop(){
         prefs=new PreferencesHandler(location);
         threads=new Thread[6];
+        eventgen=new EventGenerator();
         GlobalVar.setPreferences(prefs);
         mains=new ClientMain(prefs,this);
         GlobalVar.setMainWindow(mains);
@@ -61,6 +62,15 @@ public class TeclaDesktop implements ShieldEventListener{
     
                 @Override
                 public void onButtonPressed(ShieldEvent e) {
+                   if(prefs.getChoice()==EventConstant.CONNECT_TO_ANDROID&&
+                           server!=null&&AndroidServer.dictevent!=null&&e.equals(AndroidServer.dictevent)){
+                       server.request_dictation();
+                       return;
+                   }else if(prefs.getChoice()==EventConstant.CONNECT_TO_ANDROID&&
+                           server!=null&&AndroidServer.disevent!=null&&e.equals(AndroidServer.disevent)){
+                       server.close();
+                       return;
+                   }
                    ShieldButton current=prefs.getShieldButton(e.getbutton());
                    
                    if(current!=null){
@@ -78,6 +88,15 @@ public class TeclaDesktop implements ShieldEventListener{
 
                 @Override
                 public void onButtonReleased(ShieldEvent e) {
+                    if(prefs.getChoice()==EventConstant.CONNECT_TO_ANDROID&&
+                           server!=null&&AndroidServer.dictevent!=null&&e.equals(AndroidServer.dictevent)){
+                       server.request_dictation();
+                       return;
+                   }else if(prefs.getChoice()==EventConstant.CONNECT_TO_ANDROID&&
+                           server!=null&&AndroidServer.disevent!=null&&e.equals(AndroidServer.disevent)){
+                       server.close();
+                       return;
+                   }
                     ShieldButton current=prefs.getShieldButton(e.getbutton());
                    if(current!=null){
                    if(current.RTR_flag && threads[e.getbutton()]!=null&&threads[e.getbutton()].isAlive())
@@ -89,6 +108,15 @@ public class TeclaDesktop implements ShieldEventListener{
 
                 @Override
                 public void onButtonClick(ShieldEvent e) {
+                    if(prefs.getChoice()==EventConstant.CONNECT_TO_ANDROID&&
+                           server!=null&&AndroidServer.dictevent!=null&&e.equals(AndroidServer.dictevent)){
+                       server.request_dictation();
+                       return;
+                   }else if(prefs.getChoice()==EventConstant.CONNECT_TO_ANDROID&&
+                           server!=null&&AndroidServer.disevent!=null&&e.equals(AndroidServer.disevent)){
+                       server.close();
+                       return;
+                   }
                     ShieldButton current=prefs.getShieldButton(e.getbutton());
                    if(current!=null)
                    eventgen.interpret(current.eventlist[ShieldEvent.EVENT_CLICK]);
@@ -98,6 +126,15 @@ public class TeclaDesktop implements ShieldEventListener{
 
                 @Override
                 public void onButtonDblClick(ShieldEvent e) {
+                    if(prefs.getChoice()==EventConstant.CONNECT_TO_ANDROID&&
+                           server!=null&&AndroidServer.dictevent!=null&&e.equals(AndroidServer.dictevent)){
+                       server.request_dictation();
+                       return;
+                   }else if(prefs.getChoice()==EventConstant.CONNECT_TO_ANDROID&&
+                           server!=null&&AndroidServer.disevent!=null&&e.equals(AndroidServer.disevent)){
+                       server.close();
+                       return;
+                   }
                    ShieldButton current=prefs.getShieldButton(e.getbutton());
                    if(current!=null)
                    eventgen.interpret(current.eventlist[ShieldEvent.EVENT_DOUBLECLICK]);
@@ -107,6 +144,15 @@ public class TeclaDesktop implements ShieldEventListener{
 
                @Override
                 public void onLongPress(ShieldEvent e) {
+                   if(prefs.getChoice()==EventConstant.CONNECT_TO_ANDROID&&
+                           server!=null&&AndroidServer.dictevent!=null&&e.equals(AndroidServer.dictevent)){
+                       server.request_dictation();
+                       return;
+                   }else if(prefs.getChoice()==EventConstant.CONNECT_TO_ANDROID&&
+                           server!=null&&AndroidServer.disevent!=null&&e.equals(AndroidServer.disevent)){
+                       server.close();
+                       return;
+                   }
                     ShieldButton current=prefs.getShieldButton(e.getbutton());
                    if(current!=null)
                    eventgen.interpret(current.eventlist[ShieldEvent.EVENT_LONGPRESS]);
@@ -151,6 +197,7 @@ public class TeclaDesktop implements ShieldEventListener{
         } catch (BluetoothStateException ex) {
             ErrorDialog err=new ErrorDialog(errormessage);
             err.setVisible(true);
+            mains.setandroid(); //prevents deadlock
             mains.setVisible(false);
             Logger.getLogger(TeclaDesktop.class.getName()).log(Level.SEVERE, null, ex);
         }
