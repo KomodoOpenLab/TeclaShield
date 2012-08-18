@@ -21,7 +21,7 @@ import org.w3c.dom.Element;
  */
 public class TeclaDesktop implements ShieldEventListener{
     public static final String uuidstring = "0000110100001000800000805F9B34FB";
-    public static final String location = "Preferences";
+    public static String location = "Preferences";
     public static final String errormessage="Bluetooth is either turned off or you have not installed a bluetooth device,"
             + "Turn On and restart the application,The application will now quit";
     //public static final String configlocation = "Preferences/config.xml";
@@ -50,13 +50,16 @@ public class TeclaDesktop implements ShieldEventListener{
     }
     
     private TeclaDesktop(){
+        location="Preferences";
         prefs=new PreferencesHandler(location);
-        threads=new Thread[6];
-        eventgen=new EventGenerator();
-        GlobalVar.setPreferences(prefs);
         mains=new ClientMain(prefs,this);
         GlobalVar.setMainWindow(mains);
         mains.setVisible(true);
+        threads=new Thread[6];
+        eventgen=new EventGenerator();
+        GlobalVar.setPreferences(prefs);
+        
+       
         
     }
     

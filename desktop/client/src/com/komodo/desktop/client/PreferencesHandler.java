@@ -58,7 +58,7 @@ public class PreferencesHandler {
     FileWriter filew;               //Filewriter used to write to the file.
     Element rootElement;            //the element directly below the document in DOM heirarchy
     ShieldButton ecu1,ecu2,ecu3,ecu4,e1,e2; //ShieldButton objects one for each button.
-    
+    String location;
     public PreferencesHandler(String filepath) {
         /*
          * 
@@ -68,6 +68,7 @@ public class PreferencesHandler {
          * if the file exists the file will be parsed into the document.
          * 
          */
+        location=filepath;
         dir=new File(filepath);      //Directory containing preferences
         available_configs = dir.listFiles();    //List all available configs in the directory
         if(available_configs==null || available_configs.length==0)
@@ -104,7 +105,7 @@ public class PreferencesHandler {
     public void createXmlFile(){
         try {
             try {
-                current_config = new File("Preferences/default.xml");   //Create a default config
+                current_config = new File(location+"/default.xml");   //Create a default config
                 current_config.getParentFile().mkdirs();    //Create all parent directories
                 current_config.createNewFile();
             } catch (IOException ex) {

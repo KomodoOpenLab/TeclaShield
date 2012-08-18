@@ -22,7 +22,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 LicenseFile=D:\GSoC\TeclaShield\desktop\client\release\GPL.txt
-OutputBaseFilename=setup
+OutputBaseFilename=Teclaclient-v1.0-setup
 Compression=lzma
 SolidCompression=yes
 
@@ -53,14 +53,16 @@ Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"
 
 [Tasks]
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
-
+[Dirs]
+Name: "{app}\Preferences"; Permissions: users-modify
 [Files]
 Source: "D:\GSoC\TeclaShield\desktop\client\release\TeclaClient.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "D:\GSoC\TeclaShield\desktop\client\release\lib\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "D:\GSoC\TeclaShield\desktop\client\release\Preferences\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\GSoC\TeclaShield\desktop\client\release\lib\*"; DestDir: "{app}\lib"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "D:\GSoC\TeclaShield\desktop\client\release\Preferences\*"; DestDir: "{app}\Preferences"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\GSoC\TeclaShield\desktop\client\release\Desktop.jar"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\GSoC\TeclaShield\desktop\client\release\splash_logo.bmp"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\GSoC\TeclaShield\desktop\client\release\tekla_icon.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "D:\GSoC\TeclaShield\desktop\client\release\tekla_icon.png"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]

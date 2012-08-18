@@ -4,6 +4,7 @@
  */
 package com.komodo.socket.tecla;
 import java.io.*;
+import java.lang.Thread.State;
 import java.net.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,8 +52,7 @@ public class WiFiSocket implements Runnable{
         passcode=passcode_;
         group=InetAddress.getByName("225.0.0.0");
         list=new EventListenerList();
-        acceptor=new acceptorthread();           
-        acceptor.start();
+        acceptor=new acceptorthread();
         lock=new Object();
     }
     
@@ -139,60 +139,25 @@ public class WiFiSocket implements Runnable{
          * Should be called on a separate thread to find android clients.
          * 
          */
-        if(!acceptor.isAlive()){
-            acceptor=new acceptorthread();
-            acceptor.start();
-        }
+            
+            if(acceptor.getState()==State.NEW)
+                acceptor.start();
+            else if(acceptor.getState()==State.TERMINATED){
+                acceptor=new acceptorthread();
+                acceptor.start();
+            }
             try {
             /*
              * Broadcast alive packets multiple times as communication over
              * UDP is unreliable.
              */
-            for(int j=0;j<20;j++)
+            for(int j=0;j<10;j++)
                 broadcast("alive");
-            
-            byte[] buf=new byte[256];
-            
-            packet=new DatagramPacket(buf,buf.length);
-            
-            System.out.println("TeclaShield".getBytes());
-            
-            //Receiver Multicast Socket to receive acknowledgement from android client.
-            
-            MulticastSocket multi_sock_receiver=new MulticastSocket(PORT_NUMBER+1);
-            
-            multi_sock_receiver.joinGroup(InetAddress.getByName("226.0.0.0"));
-            
-            multi_sock_receiver.setSoTimeout(30000);
-            
-            multi_sock_receiver.receive(packet);
-            
-            //Receive the Acknowledgement packet from the android client.
-            
-            byte[] buffer=packet.getData();
-            
-            String pr=new String(buffer);
-            
-            pr=pr.substring(0,pr.indexOf(0));
-            
-            if(pr.equals("TeclaShield"))
-                //Acknowledgement successful;
-                fireevent(new WiFiEvent(this,WiFiEvent.CLIENT_FOUND));
-            
-            System.out.println(pr);
-            
-            
-                try {
-                    synchronized(lock){
-                    //Wait for the actual tcp connection to be completed and authenticated.    
-                    lock.wait();
-                    }
-                } catch (InterruptedException ex) {
-                    Logger.getLogger(WiFiSocket.class.getName()).log(Level.SEVERE, null, ex);
-                
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(WiFiSocket.class.getName()).log(Level.SEVERE, null, ex);
             }
-            
-           
         } catch (SocketException ex) {
             ex.printStackTrace();
             fireevent(new WiFiEvent(this,WiFiEvent.NO_CLIENT_FOUND));
@@ -297,11 +262,24 @@ public class WiFiSocket implements Runnable{
         public void run(){
             try {
                 //Make a new server socket and put it to accept mode
-                if(serversock==null || !serversock.isBound() ||serversock.isClosed())
+                
+                
+                
+                if(serversock==null || !serversock.isBound() || serversock.isClosed())
                 serversock=new ServerSocket(PORT_NUMBER+2);
+                
+                
+                System.out.println("Opening server connection");
                 
                 client=serversock.accept();
                 
+                serversock.close();
+                if(client==null)
+                        return;
+                        
+                System.out.println("connection complete");
+                
+                client.setSoTimeout(20000);
                 //Initialize the input and putput streams
                 
                 out=new ObjectOutputStream(client.getOutputStream());
@@ -325,13 +303,9 @@ public class WiFiSocket implements Runnable{
             }
             else
                 close();
-            
-            synchronized(lock){
-                //Notify the thread waiting in search_connections that the connection is complete.
-                lock.notify();
-            }
                 
             } catch (IOException ex) {
+                
                 Logger.getLogger(WiFiSocket.class.getName()).log(Level.SEVERE, null, ex);
             }
             //set the connection status to true

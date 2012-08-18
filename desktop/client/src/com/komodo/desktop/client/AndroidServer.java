@@ -35,11 +35,11 @@ public class AndroidServer implements Runnable,ClipboardOwner {
     EventListenerList event_list;
     ShieldEvent prevevent,prevclick;
     Counter timer;
-    public static final byte NEXT_WINDOW=(byte)0x82;
-    public static final byte NEXT_FIELD=(byte) 0x81;
+    public static final byte NEXT_WINDOW=(byte)0x81;
+    public static final byte NEXT_FIELD=(byte) 0x82;
     WiFiReceiver rec;
     public static ShieldEvent disevent,dictevent;
-    
+    int count=0;
     boolean waitflag=false;
     
     public AndroidServer(String passcode) throws IOException{
@@ -76,6 +76,7 @@ public class AndroidServer implements Runnable,ClipboardOwner {
 
             @Override
             public void onClientDisconnected() {
+                
                 GlobalVar.client_window_global.setStatus("Disconnected from android");
                 runnewthread();
                // throw new UnsupportedOperationException("Not supported yet.");
@@ -83,6 +84,7 @@ public class AndroidServer implements Runnable,ClipboardOwner {
 
             @Override
             public void onNoClientFound() {
+                
                 GlobalVar.client_window_global.setStatus("No Android Clients were found");
                 try {
                     Thread.sleep(600*2);
@@ -124,12 +126,14 @@ public class AndroidServer implements Runnable,ClipboardOwner {
             Logger.getLogger(AndroidServer.class.getName()).log(Level.SEVERE, null, ex);
         }
         }
-        socket.search_connections();
+        if(GlobalVar.client_window_global!=null)
+          GlobalVar.client_window_global.setStatus("Looking for android clients");  
+        while(!socket.connection_status)
+            socket.search_connections();
         //   throw new UnsupportedOperationException("Not supported yet.");
     }
     public void runnewthread(){
-        
-            
+               
         new Thread(this).start();
     }
     public void runnewthreadwithwait(){
@@ -149,7 +153,8 @@ public class AndroidServer implements Runnable,ClipboardOwner {
 
     @Override
     public void lostOwnership(Clipboard clpbrd, Transferable t) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        Clipboard clipboard =Toolkit.getDefaultToolkit().getSystemClipboard();
+        //throw new UnsupportedOperationException("Not supported yet.");
     }
     
     public void resolve(String receiveddata){
@@ -166,9 +171,14 @@ public class AndroidServer implements Runnable,ClipboardOwner {
         } catch (IOException ex) {
             Logger.getLogger(AndroidServer.class.getName()).log(Level.SEVERE, null, ex);
         }
-       
+        
         String action_type=receiveddata.substring(0, receiveddata.indexOf(':'));
         String argument=receiveddata.substring(receiveddata.indexOf(':')+1);
+        if(!receiveddata.equals("command:129"))
+            {
+            System.out.println("count=0"+ argument);
+            count=0;
+        }
         if(action_type.contains("dictate")){
             addToClipboard(argument);
             try {
@@ -224,13 +234,18 @@ public class AndroidServer implements Runnable,ClipboardOwner {
     }
     
     public void resolve (byte b){
-        if(b==NEXT_WINDOW){               
+        if(b==NEXT_WINDOW){    
+            count++;
+            if(count>10)count=1;
+            System.out.println("count="+count);
             try {
                 Robot rob=new Robot();
                 synchronized(this){
                 rob.keyPress(KeyEvent.VK_ALT);
+                for(int x=0;x<count;x++){
                 rob.keyPress(KeyEvent.VK_TAB);
                 rob.keyRelease(KeyEvent.VK_TAB);
+                }
                 rob.keyRelease(KeyEvent.VK_ALT);
                 }
             } catch (AWTException ex) {
