@@ -1,0 +1,233 @@
+TeclaClient v1.0 User Guide.
+
+This guide will help you use TeclaClient to control your computer using android or the TeclaShield.
+
+##Index
+
+1.  Summary 
+2.  Installation
+3.  Getting Started
+4.  Graphical User Interface
+5.  Connecting to TeclaShield
+6.  Setting an event preference
+7.  Preferences files
+8.  Exiting the application
+9.  List of Switch Events. 
+10. Credits
+11. License
+12. Links
+
+
+##Summary
+
+TeclaClient is an open-source desktop accessibility application for Windows and Linux(The source code may run on MAC OSX as well) written completely in Java using Java Swing and BlueCove libraries. This application allows the user to connect to "TeclaShield for android" and enables them to use the computer. The application has following features:
+
+1) Generate Computer Events like Mouse Clicks and Keypboard Keypresses so as to give control of the computer to the TeclaShield user.
+
+2) The events will be generated as per the user's preference.
+
+3) Multiple preferences can be saved and can be selected dynamically during runtime.
+
+4) Enables Voice input to the desktop using Google Voice Actions on Android with features on the Android app to change windows and fields in the text input area from the android application itself.
+
+##Installation and Pre-Requisites:
+
+###Windows
+
+1)JRE 1.6 and above
+
+2)If Bluetooth is used , use WidComm stack (the driver that windows installs automatically).This application doesn't work with BlueSoleil bluetooth stack.
+
+3) Run the TeclaClient-v1.0-setup.exe.You can download it from here.This will launch a windows installer which will install the application in Windows.
+
+###Linux
+
+
+1) JRE 1.6 and above
+
+2) /usr/local/libbluetooth.so which can be a symlink to libbluetooth.so.2 or libbluetooth.so.3.
+
+Fedora : yum install bluez-libs-devel
+Ubuntu : apt-get install libbluetooth-dev
+OpenSUSE:zypper install bluez-devel 
+
+3) bluez v3.7 and above.
+
+4) Installer still to be added.
+
+###Using source:
+
+1) Make sure the above requirements are met
+
+2) Download the tar-file teclaclient-linux.gz
+
+3) untar the file
+    tar -zxvf teclaclient-v1.0-linux.gz  
+
+4) Give permissions to teclaclient.sh  
+    chmod +rwx teclaclient.sh
+
+5) Double Clicking on this file will start the application.
+
+##Getting Started:
+
+###Windows:
+
+1) To start the application, Do
+
+Start->Programs->TeclaClient->TeclaClient.
+
+2) Allow the firewall to add the exception if firewall dialog appears.
+
+3) If the computer is not connecting to android, check whether firewall exception is added or not.If manual exception addition is required add an exception rule for allowing send and receive on both udp and tcp port in the range 28195-28197.
+
+4) If you are connecting to android, VirtualBox Host should not be enabled in windows Network Interfaces and Adapters.
+
+5) The application will start as minimized to system tray.To show the application window,Click on the tray icon.
+
+### Linux 
+
+1) To start using the source code version,run teclaclient.sh.
+
+2) If the computer is not connecting to android, check whether firewall exception is added or not.If manual exception addition is required add an exception rule for allowing send and receive on both udp and tcp port in the range 28195-28197.
+
+###Common
+
+In order to connect to an android device the password should match the password on the android device.You can set the password by selecting the set password button on the GUI and on the android device by opening "TeclaAccess -> Desktop Settings -> Set Password".
+
+It is not recommended to change the password.This is to be used only when multiple servers i.e multiple desktops are running this application and to differentiate between these desktops this password can be used.(May not work reliably).
+
+##Graphical User Interface(GUI)
+
+The Graphical User Interface of the application allows the users to select the connectivity preference. It allows the users to set the computer events for the corresponding switch events.A List of events and their description is provided at the end of the page.
+
+It also allows the user to create and delete preference files and switch between preferences by selecting from a dropdown box.
+
+The GUI consists of a panel containing 6 tabs where each tab corresponding to 6 switches/inputs on the Shield. Each Switch has 5 events associated with it.
+
+The GUI shows the description of the computer event assigned to that particular switch event.Each event has an "Edit" button associated with it.Clicking on the buton will allow the user to change the switch event.
+
+Above the panel, there are two buttons - Disconnect and Quit.Disconnect disconnects the current connection (android or bluetooth) temporarily that is it waits for some period before attempting to reconnect again.Pressing Quit will quit the application.
+
+Above these buttons u can choose the connection mode.
+
+1) TeclaShield -> Connect to TeclaShield directly over bluetooth.
+
+2) Android     -> Connect to android over WiFi.
+
+You can set the password for authenticating your connection to the android device.The password should match the one in the android app.
+
+You can create a new preference file using "Save As" button and Delete a Preference file in "Delete" button.
+
+You can select the preference file dynamically by selecting the preference file by choosing the required file from the dropdown menu.
+ 
+##Connecting To TeclaShield
+
+The GUI provides two radiobuttons to select the connection method.
+
+Application provides two methods of connection.
+
+1) Direct connection to TeclaShield over Bluetooth.  
+* Requires the system to be bluetooth enabled.If bluetooth is not detected or is off,an error message will be flashed and the application will exit.
+
+* In case of multiple TeclaShields in bluetooth range,a dialog will be presented to select between multiple devices.
+
+2) An android device can be used to relay the switch events from TeclaShield connected to the android device to the desktop.  
+ 
+* During this time, when Relay is enabled on the android device, (and Send To Pc button on TeclaAccess Keyboard is asserted),the shield will directly control the Desktop.
+* The user is allowed to set two events which will disconnect this connection from the shield itself and to start google voice actions on the android.This settings are to be done on the android app.   
+* Dictation can be done only in this mode and not in the direct connection mode over bluetooth.
+* When the relay is enabled, the switch events will be interpreted on the desktop only except during dictation.Switch Events won't work on android device otherwise.
+* The password should match the password on the android device.The password can be set using the "Set Password Button" on the GUI.
+* It is not recommended to change the password.This is to be used only when multiple servers i.e ultiple desktops are running this application and to differentiate between these desktops this password can be used.(May not work reliably).
+*This is the default value as it doesn't have a hardware requirement.
+
+##Setting an Event Preference
+
+1) Choose the proper tab on the GUI corresponding to the button.
+
+2) Click on the Edit button corresponding to the event you want to change.
+
+3) A dialog box will appear as shown.
+
+4) Select a device i.e mouse or keyboard.If you want to do nothing on that event choose None.
+
+5) If you select mouse, Select the event that you want to choose like click or move from the dropdown menu.
+
+6) MouseMove requires two more parameters which will specify the x-offset and y-offset.Negative values for x-offset indicates movement to the left and for y-offset indicates upward motion.
+
+7) MouseScrolling requires only one parameter to specify scroll units.Negative value indicates scroll wheel rotation away from the user.Default value in both the cases is 5 units   
+
+8) If you select Keyboard, You need to click on the DropDown Menu, and then press the keycombination you want to enter.The combination you enter should not contain only Shift or only Alt or only Control as this may create a problem in the system.
+
+9) Repeat till release mode will make the onPress event of the particular switch to be executed repeatedly by a user defined delay
+till a switch release event occurs.This should be used ideally for events like mouse move.
+
+ 
+##Preference Files.
+
+###Saving a file
+
+1) Click on the "Save As" button.This will open a dialog. Enter the filename and click on Save.This will save the current config to a new file.
+2) Enter the file name witjout extension.
+
+###Deleting a file
+
+1) Select the file you want to delete the file from the dropdown menu. Then click on the "Delete" button on the GUI. This will remove the file.
+
+###Selecting a different preference file
+
+1) You can select the preference file by clicking on the dropdown menu and selceting the required preference files.   
+ 
+##Exiting the Application
+
+The application will run even if the close button that is "X" button is pressed.It will minimize to the system tray.
+In order to completely exit the application. Click on the "Quit" button on the GUI Window.
+
+##List of Switch Events:
+
+###List of Switches:
+
+Four switches J1-J4 for joystick control i.e up-J1, down-J2, left-J3 ,right-J4
+
+Two switches E1 and E2.
+
+For more details visit the TeclaShield link provided below.
+     
+###Basic Events:
+ 
+* OnPress   -> Fired when any of the buttons pressed.
+     
+* OnRelease -> Fired when any of the buttons released.
+     
+###Special Events:
+      
+* OnClick    -> fired when a button is pressed and released and if same event doesn't occur in DOUBLECLICK_DELAY,the event is fired
+      
+* OnDblClick -> fired when a button is pressed twice and released in a row with a delay less than DOUBLECLICK_DELAY = 150ms
+     
+* OnLongPress ->fired when a button is released after being pressed for a time more than LONG_DELAY = 2s
+
+The switch events on the GUI are not mutually exclusive. e.g Pressing and Releasing a switch results in the events onPress , onRelease and onClick.
+     
+##Credits
+
+1) Akhil Rao
+2) Ankit Dafetry
+3) Jorge Silva
+
+##License
+
+1) GPL
+2) MITL
+
+##Links 
+
+1) TeclaShield :  http://komodoopenlab.com/tecla/tecla-for-android/the-shield/
+2) Source Code :  https://github.com/KomodoOpenLab/TeclaShield
+3) KomodoOpenLab: http://komodoopenlab.com/
+4) TeclaAccess :  https://play.google.com/store/apps/details?id=ca.idi.tekla
+
+
+
+
