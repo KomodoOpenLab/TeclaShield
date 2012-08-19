@@ -176,7 +176,6 @@ public class AndroidServer implements Runnable,ClipboardOwner {
         String argument=receiveddata.substring(receiveddata.indexOf(':')+1);
         if(!receiveddata.equals("command:129"))
             {
-            System.out.println("count=0"+ argument);
             count=0;
         }
         if(action_type.contains("dictate")){
@@ -235,9 +234,8 @@ public class AndroidServer implements Runnable,ClipboardOwner {
     
     public void resolve (byte b){
         if(b==NEXT_WINDOW){    
+            if(count>3)count=0;
             count++;
-            if(count>10)count=1;
-            System.out.println("count="+count);
             try {
                 Robot rob=new Robot();
                 synchronized(this){

@@ -117,7 +117,7 @@ public class PreferencesHandler {
             rootElement=doc.createElement("TeclaClient"); //RootElement=>TeclaClient
             rootElement.setAttribute("name", "default");
             rootElement.setAttribute("connection",""+EventConstant.CONNECT_TO_ANDROID);
-            rootElement.setAttribute("password",""+"TeclaShield");
+            rootElement.setAttribute("password",""+"Tecla123");
             rootElement.setAttribute("is_default", "true"); //Make the current config the default
             doc.appendChild(rootElement); //appends the rootelement to the document as Child.
             makedefault(doc,rootElement); //Initialize all the values.

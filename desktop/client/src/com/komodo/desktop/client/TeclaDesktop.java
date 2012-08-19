@@ -16,7 +16,7 @@ import org.w3c.dom.Element;
 
 
 /**
- * TeclaDesktop v0.9
+ * TeclaClient v1.0
  * @author Akhil
  */
 public class TeclaDesktop implements ShieldEventListener{

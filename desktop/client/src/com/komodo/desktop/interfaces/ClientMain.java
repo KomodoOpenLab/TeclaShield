@@ -150,7 +150,6 @@ public class ClientMain extends javax.swing.JFrame {
         statuslabel = new javax.swing.JLabel();
         disconnect_Button = new javax.swing.JButton();
         jButton2 = new javax.swing.JButton();
-        jCheckBox1 = new javax.swing.JCheckBox();
         radioShield = new javax.swing.JRadioButton();
         radioandroid = new javax.swing.JRadioButton();
         setPassword = new javax.swing.JButton();
@@ -208,8 +207,6 @@ public class ClientMain extends javax.swing.JFrame {
             }
         });
 
-        jCheckBox1.setText("Start on Startup");
-
         radioShield.setText("TeclaShield");
         radioShield.addItemListener(new java.awt.event.ItemListener() {
             public void itemStateChanged(java.awt.event.ItemEvent evt) {
@@ -243,8 +240,7 @@ public class ClientMain extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jCheckBox1)
-                        .addGap(22, 22, 22)
+                        .addGap(163, 163, 163)
                         .addComponent(disconnect_Button)
                         .addGap(26, 26, 26)
                         .addComponent(jButton2))
@@ -283,11 +279,9 @@ public class ClientMain extends javax.swing.JFrame {
                                     .addComponent(radioandroid)))
                             .addGroup(layout.createSequentialGroup()
                                 .addComponent(setPassword)
-                                .addGap(0, 0, Short.MAX_VALUE)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addGap(0, 8, Short.MAX_VALUE)))
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(disconnect_Button)
-                            .addComponent(jCheckBox1)
                             .addComponent(jButton2)))
                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
@@ -424,7 +418,6 @@ public class ClientMain extends javax.swing.JFrame {
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton disconnect_Button;
     private javax.swing.JButton jButton2;
-    private javax.swing.JCheckBox jCheckBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JTabbedPane preftab;
