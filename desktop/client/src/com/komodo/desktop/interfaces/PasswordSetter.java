@@ -7,12 +7,15 @@ package com.komodo.desktop.interfaces;
 import com.komodo.desktop.client.AndroidServer;
 
 /**
- *
+ * 
+ * Creates a dialog which shows and allows the user to set the password
+ * necessary for connecting to android
  * @author akhil
  */
 public class PasswordSetter extends javax.swing.JDialog {
 
     /**
+    
      * Creates new form PasswordSetter
      */
     AndroidServer aserver;

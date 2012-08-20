@@ -383,9 +383,11 @@ public class PreferencesHandler {
     }
     
     public String getPassword(){
+        //return the stored password for android connection
         return rootElement.getAttribute("password");
     }
     public int getChoice(){
+        //return the connection choice
         int x=-1;
         x=Integer.parseInt(rootElement.getAttribute("connection"));
         return x;

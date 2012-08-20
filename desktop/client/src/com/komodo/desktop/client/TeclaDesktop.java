@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.bluetooth.BluetoothStateException;
-import org.w3c.dom.Element;
 
 
 /**
@@ -164,8 +163,10 @@ public class TeclaDesktop implements ShieldEventListener{
                 }
       
    public void startandroid(){
+       //Start android server and close bluetoothserver if it is running
              if(btclient!=null)
                  btclient.close();
+             btclient=null;
              String password=prefs.getPassword();
         try {
             server=new AndroidServer(password);
@@ -179,6 +180,7 @@ public class TeclaDesktop implements ShieldEventListener{
          
          
    public void startbluetoothserver(){
+       //Start bluetooth server and disconnect the android server.
              if(server != null){
                 server.close();
                 server.closeserver();
@@ -204,9 +206,7 @@ public class TeclaDesktop implements ShieldEventListener{
             mains.setVisible(false);
             Logger.getLogger(TeclaDesktop.class.getName()).log(Level.SEVERE, null, ex);
         }
-             
-             
-             
+                       
      }
                 
 

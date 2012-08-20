@@ -7,7 +7,7 @@ package com.komodo.socket.tecla;
 import java.util.EventObject;
 
 /**
- *
+ * This class describes a WiFi Event like connecting and disconnecting.
  * @author akhil
  */
 public class WiFiEvent extends EventObject{

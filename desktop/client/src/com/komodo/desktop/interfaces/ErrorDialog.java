@@ -5,7 +5,9 @@
 package com.komodo.desktop.interfaces;
 
 /**
- *
+ * This class defines the look and functioning of the errorDialog
+ * To show errorDialog, Pass the error message (String) 
+ * Is shown when BlueTooth is off or not present in the system.
  * @author akhil
  */
 public class ErrorDialog extends javax.swing.JFrame {
@@ -15,7 +17,8 @@ public class ErrorDialog extends javax.swing.JFrame {
      */
     public ErrorDialog(String text) {
         initComponents();
-        jLabel1.setText("<html><div WIDTH=300 ALIGN=CENTER>Error: "+text+"</div></html>");
+        jLabel1.setText("<html><div WIDTH=300 ALIGN=CENTER>Error: "+text+"</div></html>"); 
+        //html tags for wrapping the text with max width 300
     }
 
     /**

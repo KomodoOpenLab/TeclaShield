@@ -60,7 +60,6 @@ Name: "{app}\Preferences"; Permissions: users-modify
 [Files]
 Source: "D:\GSoC\TeclaShield\desktop\client\win-release\TeclaClient.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\GSoC\TeclaShield\desktop\client\win-release\lib\*"; DestDir: "{app}\lib"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "D:\GSoC\TeclaShield\desktop\client\win-release\Preferences\*"; DestDir: "{app}\Preferences"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "D:\GSoC\TeclaShield\desktop\client\win-release\Desktop.jar"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\GSoC\TeclaShield\desktop\client\win-release\splash_logo.bmp"; DestDir: "{app}"; Flags: ignoreversion
 Source: "D:\GSoC\TeclaShield\desktop\client\win-release\tekla_icon.ico"; DestDir: "{app}"; Flags: ignoreversion

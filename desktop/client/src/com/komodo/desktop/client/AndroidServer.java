@@ -24,7 +24,10 @@ import javax.swing.event.EventListenerList;
 import org.w3c.dom.Element;
 
 /**
- *
+ * This class handles all the connection related work.
+ * Desktop that is this class works as the server and the
+ * TeclaAccess android application works as a client.
+ * 
  * @author akhil
  */
 public class AndroidServer implements Runnable,ClipboardOwner {
@@ -76,7 +79,7 @@ public class AndroidServer implements Runnable,ClipboardOwner {
 
             @Override
             public void onClientDisconnected() {
-                
+                //When the client disconnects attempt to reconnect.
                 GlobalVar.client_window_global.setStatus("Disconnected from android");
                 runnewthread();
                // throw new UnsupportedOperationException("Not supported yet.");
@@ -84,10 +87,10 @@ public class AndroidServer implements Runnable,ClipboardOwner {
 
             @Override
             public void onNoClientFound() {
-                
+                //No client was found so wait for 5 seconds and attempt to reconnect.
                 GlobalVar.client_window_global.setStatus("No Android Clients were found");
                 try {
-                    Thread.sleep(600*2);
+                    Thread.sleep(5000);
                 } catch (InterruptedException ex) {
                     Logger.getLogger(AndroidServer.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -96,31 +99,43 @@ public class AndroidServer implements Runnable,ClipboardOwner {
 
             @Override
             public void onReceived(String data) {
+               //The data is received. Resolve it to a switch event or a command etc.  
                System.out.println("received data:"+data);
                resolve(data);
             }
 
             @Override
             public void onSent() {
-                
+                //data was sent to android successfully.
             }
         });
     }
     public void setPassword(String psswd){
+        /*
+         * Updates the password set using PasswordSetter.
+         */
         socket.setPasscode(psswd);
         Element root=(Element)GlobalVar.handler.get_doc().getFirstChild();
         root.setAttribute("password",psswd);
         GlobalVar.handler.commitchanges(GlobalVar.handler.get_doc());
     }
     public String getPassword(){
+        //returns the current password
         return socket.getPasscode();
     }
     @Override
     public void run() {
+        /*
+         * Should be used by initializing a thread with an instance of this object.
+         * new Thread(androidserver).start();
+         * or simply by calling 
+         * androidserver.runnewthread();
+         * 
+         */
         if(waitflag){
             waitflag=false;
             try {
-            Thread.sleep(2*60000);
+            Thread.sleep(2*60000); //Wait for 2 minutes before attempting to reconnect.
             
         } catch (InterruptedException ex) {
             Logger.getLogger(AndroidServer.class.getName()).log(Level.SEVERE, null, ex);
@@ -133,10 +148,11 @@ public class AndroidServer implements Runnable,ClipboardOwner {
         //   throw new UnsupportedOperationException("Not supported yet.");
     }
     public void runnewthread(){
-               
+        //Start searching for android clients immediately on a new thread       
         new Thread(this).start();
     }
     public void runnewthreadwithwait(){
+        //Start searching for android clients after 2 minutes on a new thread
         waitflag=true;
         new Thread(this).start();
     }
@@ -159,12 +175,15 @@ public class AndroidServer implements Runnable,ClipboardOwner {
     
     public void resolve(String receiveddata){
         /*
+         * Resolves the data for firing events and settings etc.
          * prefix for dictation text  ----- dictate:
          * prefix for shield commands ----- command:
-         * 
+         * prefix for disconnect event setting -----disevent
+         * prefix for dictation event setting ----- dictevent
          */
         if(receiveddata.equals("ping"))
             try {
+                //Maintaining the connection by frequent pinging.The ping byte is echoed.
             socket.write("ping");
             System.out.println("Sent ping");
             return;
@@ -179,11 +198,11 @@ public class AndroidServer implements Runnable,ClipboardOwner {
             count=0;
         }
         if(action_type.contains("dictate")){
-            addToClipboard(argument);
+            addToClipboard(argument); //copy the text to clipboard
             try {
                 Robot rob=new Robot();
                 synchronized(this){
-                rob.keyPress(KeyEvent.VK_CONTROL);
+                rob.keyPress(KeyEvent.VK_CONTROL); //Paste using CTRL+V
                 rob.keyPress(KeyEvent.VK_V);
                 rob.keyRelease(KeyEvent.VK_V);
                 rob.keyRelease(KeyEvent.VK_CONTROL);
@@ -233,12 +252,13 @@ public class AndroidServer implements Runnable,ClipboardOwner {
     }
     
     public void resolve (byte b){
+        //is used to resolve received bytes as next window command,next field command or simply a switch event
         if(b==NEXT_WINDOW){    
             if(count>3)count=0;
             count++;
             try {
                 Robot rob=new Robot();
-                synchronized(this){
+                synchronized(this){ //Use Alt+tab to change windows 
                 rob.keyPress(KeyEvent.VK_ALT);
                 for(int x=0;x<count;x++){
                 rob.keyPress(KeyEvent.VK_TAB);
@@ -253,7 +273,7 @@ public class AndroidServer implements Runnable,ClipboardOwner {
         else if(b==NEXT_FIELD){
             try {
                 Robot rob=new Robot();
-                synchronized(this){
+                synchronized(this){ //Tab key to go to next field
                 rob.keyPress(KeyEvent.VK_TAB);
                 rob.keyRelease(KeyEvent.VK_TAB);
                 }
@@ -290,7 +310,6 @@ public class AndroidServer implements Runnable,ClipboardOwner {
                break;
            }
        }    
-       if(button==5)System.out.println("5");
        return button;
     }
     public int setevent(byte b,int button){
@@ -343,7 +362,6 @@ public class AndroidServer implements Runnable,ClipboardOwner {
                  * if button clicked is same as prevclick fire double-click else 
                  * fire prevclick and start a new timer.
                  */
-                System.out.println("timer alive");
                 timer.end();
                 ShieldEvent ev=new ShieldEvent(this,button,ShieldEvent.EVENT_CLICK);
                 if(ev.equals(prevclick)){
@@ -434,21 +452,24 @@ public class AndroidServer implements Runnable,ClipboardOwner {
     }
     
     public void setdisevent(int num){
-        
+        //Sets the disconnect_Event.Disconnect_Event when received stops the event relay.
         int button=num/10-1;
         int event=num%10-1;
         disevent=new ShieldEvent(this,button,event);
-        System.out.println("setting disevent");
+        //System.out.println("setting disevent");
         
     }
     public void setdictevent(int num){
-        System.out.println("setting dictevent");
+        //Sets the dictation_event
+        //System.out.println("setting dictevent");
         int button=num/10-1;
         int event=num%10-1;
         dictevent=new ShieldEvent(this,button,event);
     }
     public void request_dictation(){
         try {
+            //if the application is connected to android coneting to android will start voice actions on the android
+            //is fired when dictation_event is received when the android switch event relay is on.
             socket.write("dictation");
         } catch (IOException ex) {
             Logger.getLogger(AndroidServer.class.getName()).log(Level.SEVERE, null, ex);

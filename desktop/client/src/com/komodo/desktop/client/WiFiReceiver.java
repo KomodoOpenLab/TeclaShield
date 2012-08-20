@@ -10,10 +10,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
+ * This class represents the receiver which continously listens to the android client for inputs
+ * The listening for inputs from client occurs on a new thread.
  * @author akhil
  */
 public class WiFiReceiver implements Runnable {
+    
+    /*
+     * should be used as new Thread(new WiFiReceiver(wifi_socket)).start();
+     */
     
     WiFiSocket sock;
     boolean runf;
@@ -39,6 +44,9 @@ public class WiFiReceiver implements Runnable {
     }
     
     public void stop(){
+        /*
+         * Stop the receiver
+         */
         runf=false;
     }
     

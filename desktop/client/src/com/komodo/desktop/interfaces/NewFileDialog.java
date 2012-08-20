@@ -8,7 +8,10 @@ import com.komodo.desktop.client.PreferencesHandler;
 import java.io.File;
 
 /**
- *
+ * This dialog allows the user to enter the name of new configuration file.
+ * The current configuration is saved into the new preference file.
+ * The directory where the preferences is to be stored cannot be selected.
+ * The files are stored in the default directory.
  * @author akhil
  */
 public class NewFileDialog extends javax.swing.JDialog {

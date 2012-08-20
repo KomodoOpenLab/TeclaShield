@@ -1,1 +1,0 @@
-java -jar Desktop.jar  
