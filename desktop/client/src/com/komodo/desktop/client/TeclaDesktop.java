@@ -15,7 +15,7 @@ import javax.bluetooth.BluetoothStateException;
 
 
 /**
- * TeclaClient v1.0
+ * TeclaClient version 0.1
  * @author Akhil
  */
 public class TeclaDesktop implements ShieldEventListener{

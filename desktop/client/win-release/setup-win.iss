@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "TeclaClient"
-#define MyAppVersion "1.0"
+#define MyAppVersion "0.1"
 #define MyAppPublisher "KomodoOpenLab"
 #define MyAppURL "https://komodoopenlab.com/"
 #define MyAppExeName "TeclaClient.exe"
@@ -22,7 +22,7 @@ AppUpdatesURL={#MyAppURL}
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 LicenseFile=D:\GSoC\TeclaShield\desktop\client\win-release\Licensing.txt
-OutputBaseFilename=Teclaclient-v1.0-setup
+OutputBaseFilename=Teclaclient-v0.1-setup
 Compression=lzma
 SolidCompression=yes
 ArchitecturesInstallIn64BitMode=x64
