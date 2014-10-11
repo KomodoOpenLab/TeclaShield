@@ -1,0 +1,10 @@
+Tecla Shield Emulator (with an accessible GUI) - started by Rishabh Jain(rishabhiitd10@gmail.com, www.github.com/rishabhjain08)
+This is a Netbeans project and can be directly opened using it.
+For users who only wish to use the emulator, copy the "dist" folder to the location you desire and run the jar file "TeclaShieldEmulator.jar" located inside the "dist" folder. Add an additional argument -gui if you wish to use the gui version of the emulator. Press 'h' for help.
+Important note : 
+1. Remember to rename your computer to "TeclaShield" or "TeklaShield"
+2. This will work only for Windows users, linux users should replace the "bluecove-2.1.1-SNAPSHOT.jar"(located at dist/lib) with the bluez version of the bluecove snapshot available at "http://snapshot.bluecove.org/distribution/download/2.1.1-SNAPSHOT/2.1.1-SNAPSHOT.62/"
+3. All the folders and files inside the "dist" folder support the jar file and should not be deleted.
+4. Make sure that your bluetooth is turned on, otherwise running the emulator will cause an error.
+
+For users who wish to contribute to the emulator, the source code is available inside the src folder.
